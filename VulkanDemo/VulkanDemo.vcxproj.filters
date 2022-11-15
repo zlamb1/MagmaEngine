@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="main">
+      <UniqueIdentifier>{4193b175-5de0-404f-8565-bf40a0edbb3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan">
+      <UniqueIdentifier>{c6d29023-f133-4dfb-bb3d-0312cc22b434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\debug">
+      <UniqueIdentifier>{87d8ecbc-56a5-4ce5-8d1e-d4cf74a426a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\validation">
+      <UniqueIdentifier>{87242640-181e-4085-a546-cf21ec9d166e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\device">
+      <UniqueIdentifier>{09bf5660-68c8-4684-93d8-e47e4ea139d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\surface">
+      <UniqueIdentifier>{fdb7526b-e804-47bd-89b0-02c801c8abc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\swapchain">
+      <UniqueIdentifier>{45d2cb74-aa16-4a74-b6c5-5305187969d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\graphics">
+      <UniqueIdentifier>{8623f8a9-3fb6-4c5a-91cd-e88630519360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\pipeline">
+      <UniqueIdentifier>{a361fe4f-7813-4aff-b0be-fa1ea5cb610f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\commands">
+      <UniqueIdentifier>{38affb4b-8fe2-4288-903b-95a900d4c897}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vulkan\sync">
+      <UniqueIdentifier>{7b95f311-52d9-4212-82b6-97b3c5d62c53}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan_api.cpp">
+      <Filter>vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="application.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_validation_wrapper.cpp">
+      <Filter>vulkan\validation</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_debug_wrapper.cpp">
+      <Filter>vulkan\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_device_wrapper.cpp">
+      <Filter>vulkan\device</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_surface_wrapper.cpp">
+      <Filter>vulkan\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_swap_chain_wrapper.cpp">
+      <Filter>vulkan\swapchain</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_graphics_pipeline.cpp">
+      <Filter>vulkan\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_shader_wrapper.cpp">
+      <Filter>vulkan\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_fixed_function_wrapper.cpp">
+      <Filter>vulkan\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_render_pass_wrapper.cpp">
+      <Filter>vulkan\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_pipeline_wrapper.cpp">
+      <Filter>vulkan\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_framebuffer_wrapper.cpp">
+      <Filter>vulkan\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_command_wrapper.cpp">
+      <Filter>vulkan\commands</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_sync_wrapper.cpp">
+      <Filter>vulkan\sync</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="vulkan_api.h">
+      <Filter>vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="application.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_validation_wrapper.h">
+      <Filter>vulkan\validation</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_debug_wrapper.h">
+      <Filter>vulkan\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_device_wrapper.h">
+      <Filter>vulkan\device</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_surface_wrapper.h">
+      <Filter>vulkan\surface</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_swap_chain_wrapper.h">
+      <Filter>vulkan\swapchain</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_graphics_pipeline.h">
+      <Filter>vulkan\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_shader_wrapper.h">
+      <Filter>vulkan\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_fixed_function_wrapper.h">
+      <Filter>vulkan\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_render_pass_wrapper.h">
+      <Filter>vulkan\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_pipeline_wrapper.h">
+      <Filter>vulkan\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_framebuffer_wrapper.h">
+      <Filter>vulkan\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_command_wrapper.h">
+      <Filter>vulkan\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_sync_wrapper.h">
+      <Filter>vulkan\sync</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
