@@ -6,24 +6,24 @@
 
 class Application {
 
-public:
+	public:
 	
-	static Application& instance();
+		static Application& instance();
 
-	int run();
+		int run();
 
-private:
+	private:
 
-	const uint32_t WIDTH = 800;
-	const uint32_t HEIGHT = 600;
+		const uint32_t WIDTH = 800;
+		const uint32_t HEIGHT = 600;
 
-	GLFWwindow* window;
-	std::unique_ptr<VulkanAPI> vulkanAPI;
+		GLFWwindow* window;
+		std::unique_ptr<VulkanAPI> vulkanAPI;
 
-	~Application();
+		~Application();
 
-	void initWindow();
-	void initVulkan();
-	void mainLoop();
+		void initWindow();
+		void initVulkan();
+		void mainLoop();
 
 };
