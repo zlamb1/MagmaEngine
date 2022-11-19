@@ -9,7 +9,6 @@ VkSurfaceWrapper::VkSurfaceWrapper(VkInstance& _vkInstance, GLFWwindow& _window)
 
 VkSurfaceWrapper::~VkSurfaceWrapper() {
     vkDestroySurfaceKHR(vkInstance, vkSurface, nullptr);
-    vkDestroyInstance(vkInstance, nullptr);
 }
 
 VkSurfaceKHR& VkSurfaceWrapper::getSurface() {

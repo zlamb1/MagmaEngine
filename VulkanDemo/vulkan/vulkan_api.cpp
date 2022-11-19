@@ -14,6 +14,21 @@ VulkanAPI::VulkanAPI(GLFWwindow& _window) : window{ _window }
 }
 
 VulkanAPI::~VulkanAPI() {
+
+    // we need the wrappers to be deleted in a specific order
+    delete vkSyncWrapper;
+
+    delete vkCmdBufferWrapper;
+    delete vkCmdPoolWrapper;
+
+    delete vkPipelineWrapper;
+    delete vkSwapChainWrapper;
+    delete vkDeviceWrapper;
+
+    delete vkSurfaceWrapper;
+
+    delete vkDebugWrapper;
+
     vkDestroyInstance(vkInstance, nullptr);
 }
 
@@ -28,7 +43,7 @@ void VulkanAPI::newFrame() {
         vkSwapChainWrapper->getSwapchain(), UINT64_MAX,
         vkSyncWrapper->getImageSemaphore(), VK_NULL_HANDLE, &imageIndex);
 
-    vkPipelineWrapper->newFrame(*vkCommandWrapper, imageIndex);
+    vkPipelineWrapper->newFrame(*vkCmdBufferWrapper, imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -42,7 +57,7 @@ void VulkanAPI::newFrame() {
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &vkCommandWrapper->getCommandBuffer();
+    submitInfo.pCommandBuffers = &vkCmdBufferWrapper->vkCmdBuffer;
 
     VkSemaphore signalSemaphores[] = { 
         vkSyncWrapper->getRenderSemaphore() 
@@ -70,11 +85,13 @@ void VulkanAPI::newFrame() {
     presentInfo.pImageIndices = &imageIndex;
 
     vkQueuePresentKHR(vkDeviceWrapper->getPresentationQueue(), &presentInfo);
+
+    vkDeviceWaitIdle(vkDeviceWrapper->getLogicalDevice());
 }
 
 void VulkanAPI::init() {
     if (vkValidationWrapper.enabled) {
-        vkDebugWrapper = std::make_unique<VkDebugWrapper>(vkInstance);
+        vkDebugWrapper = new VkDebugWrapper(vkInstance);
     }
 
     initInstance();
@@ -87,7 +104,7 @@ void VulkanAPI::init() {
     initDevice();
     initSwapChain();
     initPipeline();
-    initCommands();
+    initCmdWrapper();
     initSync();
 }
 
@@ -134,33 +151,45 @@ void VulkanAPI::initInstance() {
 }
 
 void VulkanAPI::initSurface() {
-    vkSurfaceWrapper = std::make_unique<VkSurfaceWrapper>(vkInstance, window);
+    vkSurfaceWrapper = new VkSurfaceWrapper(vkInstance, window);
 }
 
 void VulkanAPI::initDevice() {
-    vkDeviceWrapper = std::make_unique<VkDeviceWrapper>(
+    vkDeviceWrapper = new VkDeviceWrapper(
         vkInstance, *vkSurfaceWrapper,
         vkValidationWrapper, debugMode);
 }
 
 void VulkanAPI::initSwapChain() {
-    vkSwapChainWrapper = std::make_unique<VkSwapChainWrapper>(
+    vkSwapChainWrapper = new VkSwapChainWrapper(
         window, *vkSurfaceWrapper, *vkDeviceWrapper);
 }
 
 void VulkanAPI::initPipeline() {
-    vkPipelineWrapper = std::make_unique<VkPipelineWrapper>(
+    vkPipelineWrapper = new VkPipelineWrapper(
         *vkDeviceWrapper, *vkSwapChainWrapper);
     vkPipelineWrapper->init();
 }
 
-void VulkanAPI::initCommands() {
-    vkCommandWrapper = std::make_unique<VkCommandWrapper>(*vkDeviceWrapper);
-    vkCommandWrapper->init();
+void VulkanAPI::initCmdWrapper() {
+    
+    vkCmdPoolWrapper = new VkCmdPoolWrapper();
+    vkCmdPoolWrapper->pDevice = &vkDeviceWrapper->getLogicalDevice();
+    vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->getQueueFamily();
+    if (vkCmdPoolWrapper->create() != VK_SUCCESS) {
+        throw new std::runtime_error("could not create vkCmdPoolWrapper");
+    }
+
+    vkCmdBufferWrapper = new VkCmdBufferWrapper();
+    vkCmdBufferWrapper->pCmdPool = vkCmdPoolWrapper;
+    vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->getLogicalDevice();
+    if (vkCmdBufferWrapper->create() != VK_SUCCESS) {
+        throw new std::runtime_error("could not create vkCmdBufferWrapper");
+    }
 }
 
 void VulkanAPI::initSync() {
-    vkSyncWrapper = std::make_unique<VkSyncWrapper>(*vkDeviceWrapper);
+    vkSyncWrapper = new VkSyncWrapper(*vkDeviceWrapper);
     vkSyncWrapper->init();
 }
 

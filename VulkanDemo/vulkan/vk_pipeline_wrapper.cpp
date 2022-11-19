@@ -11,9 +11,15 @@ VkPipelineWrapper::VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 	initRenderPass();
 }
 
-void VkPipelineWrapper::newFrame(VkCommandWrapper& vkCommandWrapper, uint32_t imageIndex) {
-	vkCommandWrapper.resetCommandBuffer();
-	vkCommandWrapper.recordCommandBuffer(imageIndex);
+VkPipelineWrapper::~VkPipelineWrapper() {
+	vkDestroyPipeline(vkDeviceWrapper.getLogicalDevice(), vkPipeline, nullptr);
+}
+
+void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
+	uint32_t imageIndex) {
+
+	vkCmdBufferWrapper.resetCmdBuffer();
+	vkCmdBufferWrapper.recordCmdBuffer();
 
 	auto swapchainExtent = vkSwapChainWrapper.getSwapChainExtent();
 
@@ -29,10 +35,10 @@ void VkPipelineWrapper::newFrame(VkCommandWrapper& vkCommandWrapper, uint32_t im
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColor;
 
-	vkCmdBeginRenderPass(vkCommandWrapper.getCommandBuffer(), 
+	vkCmdBeginRenderPass(vkCmdBufferWrapper.vkCmdBuffer, 
 		&renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(vkCommandWrapper.getCommandBuffer(), 
+	vkCmdBindPipeline(vkCmdBufferWrapper.vkCmdBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
 	VkViewport viewport{};
@@ -42,18 +48,18 @@ void VkPipelineWrapper::newFrame(VkCommandWrapper& vkCommandWrapper, uint32_t im
 	viewport.height = (float)swapchainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(vkCommandWrapper.getCommandBuffer(), 0, 1, &viewport);
+	vkCmdSetViewport(vkCmdBufferWrapper.vkCmdBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
 	scissor.extent = swapchainExtent;
-	vkCmdSetScissor(vkCommandWrapper.getCommandBuffer(), 0, 1, &scissor);
+	vkCmdSetScissor(vkCmdBufferWrapper.vkCmdBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(vkCommandWrapper.getCommandBuffer(), 3, 1, 0, 0);
+	vkCmdDraw(vkCmdBufferWrapper.vkCmdBuffer, 3, 1, 0, 0);
 
-	vkCmdEndRenderPass(vkCommandWrapper.getCommandBuffer());
+	vkCmdEndRenderPass(vkCmdBufferWrapper.vkCmdBuffer);
 
-	if (vkEndCommandBuffer(vkCommandWrapper.getCommandBuffer()) 
+	if (vkEndCommandBuffer(vkCmdBufferWrapper.vkCmdBuffer)
 		!= VK_SUCCESS) {
 		throw std::runtime_error("failed to record command buffer!");
 	}

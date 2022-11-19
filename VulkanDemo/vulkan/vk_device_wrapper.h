@@ -52,6 +52,10 @@ class VkDeviceWrapper {
 		VkPhysicalDevice& getPhysicalDevice();
 		VkDevice& getLogicalDevice();
 
+		QueueFamily family;
+
+		QueueFamily& getQueueFamily();
+
 		VkQueue& getGraphicsQueue();
 		VkQueue& getPresentationQueue();
 

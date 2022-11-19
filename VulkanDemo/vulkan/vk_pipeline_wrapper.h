@@ -7,7 +7,7 @@
 #include "vk_fixed_function_wrapper.h"
 #include "vk_render_pass_wrapper.h"
 #include "vk_framebuffer_wrapper.h"
-#include "vk_command_wrapper.h"
+#include "vk_cmd_wrapper.h"
 
 class VkPipelineWrapper {
 
@@ -15,8 +15,10 @@ class VkPipelineWrapper {
 
 		VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper, 
 			VkSwapChainWrapper& _vkSwapChainWrapper);
+		~VkPipelineWrapper();
 
-		void newFrame(VkCommandWrapper& vkCommandWrapper, uint32_t imageIndex);
+		void newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
+			uint32_t imageIndex);
 
 		void init();
 
@@ -36,5 +38,5 @@ class VkPipelineWrapper {
 		void initFixedFunctionState();
 		void initRenderPass();
 		void initFramebuffers();
-
+		
 };

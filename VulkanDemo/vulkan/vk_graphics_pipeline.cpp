@@ -31,15 +31,27 @@ VkGraphicsPipeline::VkGraphicsPipeline(VkDeviceWrapper& _vkDeviceWrapper) :
 
 }
 
-std::vector<VkPipelineShaderStageCreateInfo>& VkGraphicsPipeline::getShaderStages() {
-	return vkShaderStageInfo;
+VkGraphicsPipeline::~VkGraphicsPipeline() {
+	for (auto vkShaderWrapper : vkShaderWrappers) {
+		delete vkShaderWrapper;
+	}
+	vkShaderWrappers.clear();
+}
+
+std::vector<VkPipelineShaderStageCreateInfo> VkGraphicsPipeline::getShaderStages() {
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+	for (auto vkShaderWrapper : vkShaderWrappers) {
+		if (vkShaderWrapper != nullptr) {
+			shaderStages.push_back(vkShaderWrapper->getShaderStageInfo());
+		}
+	}
+	return shaderStages;
 }
 
 void VkGraphicsPipeline::addShader(const char* code, shaderc_shader_kind kind) {
 	// shader init is done in constructor
-	// this is a memory leak (fix some other way)
 	VkShaderWrapper* vkShaderWrapper = new VkShaderWrapper(vkDeviceWrapper, code, kind);
-	vkShaderStageInfo.push_back(vkShaderWrapper->getShaderStageInfo());
+	vkShaderWrappers.push_back(vkShaderWrapper);
 }
 
 void VkGraphicsPipeline::init() {

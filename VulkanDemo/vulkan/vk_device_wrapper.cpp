@@ -31,6 +31,10 @@ VkDevice& VkDeviceWrapper::getLogicalDevice() {
     return vkLogicalDevice;
 }
 
+QueueFamily& VkDeviceWrapper::getQueueFamily() {
+    return family;
+}
+
 VkQueue& VkDeviceWrapper::getGraphicsQueue() {
     return vkGraphicsQueue;
 }
@@ -130,7 +134,7 @@ bool VkDeviceWrapper::checkDeviceExtensionsSupport(VkPhysicalDevice& device) {
 }
 
 void VkDeviceWrapper::createLogicalDevice() {
-    QueueFamily family = findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
+    family = findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
 
     VkDeviceQueueCreateInfo queueCreateInfo{};
 

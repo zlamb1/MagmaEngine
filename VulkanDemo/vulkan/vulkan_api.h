@@ -11,7 +11,7 @@
 #include "vk_validation_wrapper.h"
 #include "vk_swap_chain_wrapper.h"
 #include "vk_pipeline_wrapper.h"
-#include "vk_command_wrapper.h"
+#include "vk_cmd_wrapper.h"
 #include "vk_sync_wrapper.h"
 
 class VulkanAPI {
@@ -32,21 +32,25 @@ class VulkanAPI {
 		VkInstance vkInstance;
 
 		VkValidationWrapper vkValidationWrapper;
+		VkDebugWrapper* vkDebugWrapper;
 
-		std::unique_ptr<VkDebugWrapper> vkDebugWrapper;
-		std::unique_ptr<VkSurfaceWrapper> vkSurfaceWrapper;
-		std::unique_ptr<VkDeviceWrapper> vkDeviceWrapper;
-		std::unique_ptr<VkSwapChainWrapper> vkSwapChainWrapper;
-		std::unique_ptr<VkPipelineWrapper> vkPipelineWrapper;
-		std::unique_ptr<VkCommandWrapper> vkCommandWrapper;
-		std::unique_ptr<VkSyncWrapper> vkSyncWrapper;
+		VkSurfaceWrapper* vkSurfaceWrapper;
+
+		VkDeviceWrapper* vkDeviceWrapper;
+		VkSwapChainWrapper* vkSwapChainWrapper;
+		VkPipelineWrapper* vkPipelineWrapper;
+		
+		VkCmdPoolWrapper* vkCmdPoolWrapper;
+		VkCmdBufferWrapper* vkCmdBufferWrapper;
+
+		VkSyncWrapper* vkSyncWrapper;
 
 		void initInstance();
 		void initSurface();
 		void initDevice();
 		void initSwapChain();
 		void initPipeline();
-		void initCommands();
+		void initCmdWrapper();
 		void initSync();
 
 		std::vector<const char*> getRequiredExtensions();

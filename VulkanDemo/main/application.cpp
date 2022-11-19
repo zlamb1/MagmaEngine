@@ -12,6 +12,7 @@ int Application::run() {
     initVulkan();
     mainLoop();
 
+    system("pause");
     return EXIT_SUCCESS;
 }
 

@@ -15,10 +15,9 @@ class VkGraphicsPipeline {
 	public:
 
 		VkGraphicsPipeline(VkDeviceWrapper& _vkDeviceWrapper);
+		~VkGraphicsPipeline();
 
-		std::vector<VkPipelineShaderStageCreateInfo>& getShaderStages();
-
-
+		std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
 
 		void addShader(const char* code, shaderc_shader_kind kind);
 
@@ -29,8 +28,7 @@ class VkGraphicsPipeline {
 		VkDeviceWrapper& vkDeviceWrapper; 
 
 		// store shader wrappers to ensure they don't go out of scope
-		std::vector<VkShaderWrapper> vkShaderWrappers;
-		std::vector<VkPipelineShaderStageCreateInfo> vkShaderStageInfo;
+		std::vector<VkShaderWrapper*> vkShaderWrappers;
 
 		static std::vector<char> readFile(const std::string& filename);
 
