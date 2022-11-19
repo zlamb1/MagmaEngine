@@ -206,6 +206,6 @@ VkResult _VkDevice::create() {
     return VK_SUCCESS;
 }
 
-SwapChainSupportDetails _VkDevice::querySwapChainSupport() {
+SwapChainSupportDetails _VkDevice::querySwapchainSupport() {
     return VkDeviceUtility::querySwapchainSupport(vkPhysicalDevice, *pSurfaceKHR);
 }

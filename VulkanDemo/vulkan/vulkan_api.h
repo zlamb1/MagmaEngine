@@ -17,6 +17,13 @@
 #include "vk_cmd_wrapper.h"
 #include "vk_sync_wrapper.h"
 
+/*
+* Naming Conventions =>
+* vk = Vulkan class
+* _vk prefix = Vulkan wrapper class (classes in this API)
+* camelCase
+*/
+
 class VulkanAPI {
 
 	public:
@@ -40,7 +47,7 @@ class VulkanAPI {
 		VkSurfaceWrapper* _vkSurfaceWrapper = nullptr;
 
 		_VkDevice* _vkDevice = nullptr;
-		VkSwapChainWrapper* _vkSwapChainWrapper = nullptr;
+		_VkSwapchain* _vkSwapchain = nullptr;
 		VkPipelineWrapper* _vkPipelineWrapper = nullptr;
 		
 		_VkCmdPool* _vkCmdPool = nullptr;

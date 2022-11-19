@@ -11,7 +11,7 @@ class VkFixedFunctionWrapper {
 	public:
 
 		VkFixedFunctionWrapper(_VkDevice& _vkDevice,
-			VkSwapChainWrapper& _vkSwapChainWrapper);
+			_VkSwapchain& _vkSwapchain);
 		~VkFixedFunctionWrapper();
 
 		VkPipelineDynamicStateCreateInfo& getDynamicState();
@@ -33,7 +33,7 @@ class VkFixedFunctionWrapper {
 	private:
 
 		_VkDevice& _vkDevice;
-		VkSwapChainWrapper& vkSwapChainWrapper;
+		_VkSwapchain& _vkSwapchain;
 
 		VkPipelineDynamicStateCreateInfo vkDynamicState;
 		std::vector<VkDynamicState> dynamicStates = {

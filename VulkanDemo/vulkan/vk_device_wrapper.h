@@ -57,6 +57,6 @@ struct _VkDevice {
 	};
 
 	VkResult create();
-	SwapChainSupportDetails querySwapChainSupport();
+	SwapChainSupportDetails querySwapchainSupport();
 
 };

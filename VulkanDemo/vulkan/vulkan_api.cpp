@@ -25,7 +25,7 @@ VulkanAPI::~VulkanAPI() {
     delete _vkCmdPool;
 
     delete _vkPipelineWrapper;
-    delete _vkSwapChainWrapper;
+    delete _vkSwapchain;
     delete _vkDevice;
 
     delete _vkSurfaceWrapper;
@@ -43,7 +43,7 @@ void VulkanAPI::onNewFrame() {
 
     uint32_t imageIndex;
     vkAcquireNextImageKHR(_vkDevice->vkDevice,
-        _vkSwapChainWrapper->getSwapchain(), UINT64_MAX,
+        _vkSwapchain->vkSwapchainKHR, UINT64_MAX,
         _vkRenderSync->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     _vkPipelineWrapper->newFrame(*_vkCmdBuffer, imageIndex);
@@ -79,7 +79,7 @@ void VulkanAPI::onNewFrame() {
     presentInfo.pWaitSemaphores = signalSemaphores;
 
     VkSwapchainKHR swapChains[] = { 
-        _vkSwapChainWrapper->getSwapchain() 
+        _vkSwapchain->vkSwapchainKHR
     };
 
     presentInfo.swapchainCount = 1;
@@ -187,13 +187,17 @@ void VulkanAPI::initDevice() {
 }
 
 void VulkanAPI::initSwapChain() {
-    _vkSwapChainWrapper = new VkSwapChainWrapper(
-        glfwWindow, *_vkSurfaceWrapper, *_vkDevice);
+    _vkSwapchain = new _VkSwapchain();
+
+    _vkSwapchain->pWindow = &glfwWindow;
+    _vkSwapchain->_pDevice = _vkDevice;
+    _vkSwapchain->pSurfaceKHR = &_vkSurfaceWrapper->GetSurfaceKHR();
+
+    _vkSwapchain->create();
 }
 
 void VulkanAPI::initPipeline() {
-    _vkPipelineWrapper = new VkPipelineWrapper(
-        *_vkDevice, *_vkSwapChainWrapper);
+    _vkPipelineWrapper = new VkPipelineWrapper(*_vkDevice, *_vkSwapchain);
     _vkPipelineWrapper->init();
 }
 

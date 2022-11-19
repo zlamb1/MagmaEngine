@@ -10,14 +10,14 @@
 
 struct _VkFramebuffer : VulkanWrapper {
 
-	VkSwapChainWrapper* pSwapchainWrapper;
+	_VkFramebuffer() {}
+	~_VkFramebuffer();
+
+	_VkSwapchain* _pSwapchain;
 	VkDevice* pDevice;
 	VkRenderPass* pRenderPass; 
 
 	std::vector<VkFramebuffer> vkFramebuffers{};
-
-	_VkFramebuffer() {}
-	~_VkFramebuffer();
 
 	VkResult create();
 

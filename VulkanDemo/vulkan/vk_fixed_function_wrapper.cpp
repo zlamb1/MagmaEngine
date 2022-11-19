@@ -4,9 +4,9 @@
 
 VkFixedFunctionWrapper::VkFixedFunctionWrapper(
     _VkDevice& _vkDevice,
-    VkSwapChainWrapper& _vkSwapChainWrapper) :
+    _VkSwapchain& _vkSwapchain) :
     _vkDevice{ _vkDevice },
-    vkSwapChainWrapper{ _vkSwapChainWrapper }
+    _vkSwapchain{ _vkSwapchain }
 {
 
 }
@@ -102,17 +102,17 @@ void VkFixedFunctionWrapper::initInputAssembly() {
 }
 
 void VkFixedFunctionWrapper::initViewport() {
-    auto swapChainExtent = vkSwapChainWrapper.getSwapChainExtent();
+    auto vkSwapchainExtent = _vkSwapchain.vkSwapchainExtent;
 
     vkViewport.x = 0.0f;
     vkViewport.y = 0.0f;
-    vkViewport.width = (float) swapChainExtent.width;
-    vkViewport.height = (float) swapChainExtent.height;
+    vkViewport.width = (float) vkSwapchainExtent.width;
+    vkViewport.height = (float) vkSwapchainExtent.height;
     vkViewport.minDepth = 0.0f;
     vkViewport.maxDepth = 1.0f;
 
     vkRect2D.offset = { 0, 0 };
-    vkRect2D.extent = swapChainExtent;
+    vkRect2D.extent = vkSwapchainExtent;
 
 
     vkViewportState.sType = 

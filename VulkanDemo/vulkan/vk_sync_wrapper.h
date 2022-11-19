@@ -10,9 +10,9 @@ struct _VkSemaphore : VulkanWrapper {
 	_VkSemaphore() {}
 	~_VkSemaphore();
 
-	VkDevice* pDevice;
+	VkDevice* pDevice = nullptr;
 
-	VkSemaphore vkSemaphore; 
+	VkSemaphore vkSemaphore{};
 
 	VkResult create();
 
@@ -23,9 +23,9 @@ struct _VkFence : VulkanWrapper {
 	_VkFence() {}
 	~_VkFence();
 
-	VkDevice* pDevice;
+	VkDevice* pDevice = nullptr;
 
-	VkFence vkFence;
+	VkFence vkFence{};
 
 	VkResult create();
 
@@ -35,11 +35,11 @@ struct _VkRenderSync : VulkanWrapper {
 
 	_VkRenderSync() {}
 
-	VkDevice* pDevice;
+	VkDevice* pDevice = nullptr;
 
-	_VkFence _vkFlightFence;
-	_VkSemaphore _vkImageSemaphore;
-	_VkSemaphore _vkRenderSemaphore; 
+	_VkFence _vkFlightFence{};
+	_VkSemaphore _vkImageSemaphore{};
+	_VkSemaphore _vkRenderSemaphore{};
 
 	VkResult create();
 

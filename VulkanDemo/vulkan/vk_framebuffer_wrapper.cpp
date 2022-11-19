@@ -11,7 +11,7 @@ _VkFramebuffer::~_VkFramebuffer() {
 VkResult _VkFramebuffer::create() {
     auto logger = _VkLogger::Instance();
     
-    if (pSwapchainWrapper == nullptr) {
+    if (_pSwapchain == nullptr) {
         logger.LogText("_VkFramebuffer => pSwapchainWrapper is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
@@ -26,11 +26,11 @@ VkResult _VkFramebuffer::create() {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-	vkFramebuffers.resize(pSwapchainWrapper->getImageViews().size());
+	vkFramebuffers.resize(_pSwapchain->vkImageViews.size());
 
-    for (size_t i = 0; i < pSwapchainWrapper->getImageViews().size(); i++) {
+    for (size_t i = 0; i < _pSwapchain->vkImageViews.size(); i++) {
         VkImageView attachments[] = {
-            pSwapchainWrapper->getImageViews()[i]
+            _pSwapchain->vkImageViews[i]
         };
 
         VkFramebufferCreateInfo framebufferInfo{};
@@ -38,8 +38,8 @@ VkResult _VkFramebuffer::create() {
         framebufferInfo.renderPass = *pRenderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = pSwapchainWrapper->getSwapChainExtent().width;
-        framebufferInfo.height = pSwapchainWrapper->getSwapChainExtent().height;
+        framebufferInfo.width = _pSwapchain->vkSwapchainExtent.width;
+        framebufferInfo.height = _pSwapchain->vkSwapchainExtent.height;
         framebufferInfo.layers = 1;
 
         auto vkCreateFramebufferResult = vkCreateFramebuffer(*pDevice,

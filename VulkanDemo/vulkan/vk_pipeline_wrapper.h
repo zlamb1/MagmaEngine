@@ -13,7 +13,7 @@ class VkPipelineWrapper {
 
 public:
 	VkPipelineWrapper(_VkDevice& _vkDevice,
-		VkSwapChainWrapper& _vkSwapChainWrapper);
+		_VkSwapchain& _vkSwapchain);
 	~VkPipelineWrapper();
 
 	void init();
@@ -22,10 +22,10 @@ public:
 
 private:
 
-	_VkLogger& logger;
+	_VkLogger& _vkLogger;
 
 	_VkDevice& _vkDevice;
-	VkSwapChainWrapper& vkSwapChainWrapper;
+	_VkSwapchain& _vkSwapchain;
 
 	// store as unique pointers as destruction order doesn't matter
 	std::unique_ptr<VkGraphicsPipeline> vkGraphicsPipeline;
