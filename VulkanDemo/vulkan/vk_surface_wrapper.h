@@ -8,22 +8,24 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk_logger.h"
+
 class VkSurfaceWrapper {
 
-	public:
+public:
 
-		VkSurfaceWrapper(VkInstance& vkInstance, GLFWwindow& window);
-		~VkSurfaceWrapper();
+	VkSurfaceWrapper(GLFWwindow& _glfwWindow, VkInstance& _vkInstance);
+	~VkSurfaceWrapper();
 
-		VkSurfaceKHR& getSurface();
+	void Initialize();
 
-	private:
+	VkSurfaceKHR& GetSurfaceKHR();
 
-		VkInstance& vkInstance;
-		GLFWwindow& window;
+private:
 
-		VkSurfaceKHR vkSurface;
+	GLFWwindow& glfwWindow;
+	VkInstance& vkInstance;
 
-		void initSurface();
+	VkSurfaceKHR vkSurfaceKHR{};
 
 };

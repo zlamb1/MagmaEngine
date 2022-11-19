@@ -34,21 +34,21 @@ class VulkanAPI {
 
 		GLFWwindow& window;
 
-		VkInstance vkInstance;
+		VkInstance vkInstance{};
 
-		VkValidationWrapper vkValidationWrapper;
-		VkDebugWrapper* vkDebugWrapper;
+		VkValidationWrapper vkValidationWrapper{};
+		VkDebugWrapper* vkDebugWrapper = nullptr;
 
-		VkSurfaceWrapper* vkSurfaceWrapper;
+		VkSurfaceWrapper* vkSurfaceWrapper = nullptr;
 
-		VkDeviceWrapper* vkDeviceWrapper;
-		VkSwapChainWrapper* vkSwapChainWrapper;
-		VkPipelineWrapper* vkPipelineWrapper;
+		VkDeviceWrapper* vkDeviceWrapper = nullptr;
+		VkSwapChainWrapper* vkSwapChainWrapper = nullptr;
+		VkPipelineWrapper* vkPipelineWrapper = nullptr;
 		
-		VkCmdPoolWrapper* vkCmdPoolWrapper;
-		VkCmdBufferWrapper* vkCmdBufferWrapper;
+		VkCmdPoolWrapper* vkCmdPoolWrapper = nullptr;
+		VkCmdBufferWrapper* vkCmdBufferWrapper = nullptr;
 
-		VkSyncWrapper* vkSyncWrapper;
+		VkSyncWrapper* vkSyncWrapper = nullptr;
 
 		void initInstance();
 		void initSurface();

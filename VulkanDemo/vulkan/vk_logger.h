@@ -25,7 +25,7 @@ private:
 
 	_VkLogger() {}
 
-	bool doLogging = true;
+	bool doLogging = true, doLogSuccess = false;
 
 	const std::string API_NAME = "[VulkanAPI]";
 

@@ -38,6 +38,8 @@ VkSwapchainKHR& VkSwapChainWrapper::getSwapchain() {
 // Private
 
 void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
+    auto logger = _VkLogger::Instance();
+
     SwapChainSupportDetails swapChainSupport = vkDeviceWrapper.querySwapChainSupport();
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -52,7 +54,7 @@ void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = _vkSurfaceWrapper.getSurface();
+    createInfo.surface = _vkSurfaceWrapper.GetSurfaceKHR();
 
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
@@ -86,11 +88,9 @@ void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(
-        vkDeviceWrapper.vkDevice, &createInfo,
-        nullptr, &vkSwapChain) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create swap chain!");
-    }
+    auto vkCreateSwapchainResult = vkCreateSwapchainKHR(vkDeviceWrapper.vkDevice, &createInfo,
+        nullptr, &vkSwapChain);
+    logger.LogResult("vkCreateSwapchainKHR =>", vkCreateSwapchainResult);
         
     vkGetSwapchainImagesKHR(vkDeviceWrapper.vkDevice,
         vkSwapChain, &imageCount, nullptr);
@@ -101,12 +101,13 @@ void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
 
     vkSwapChainImageFormat = surfaceFormat.format;
     vkSwapChainExtent = extent;
-
-    std::cout << "Swapchain created!" << std::endl << std::endl;
 }
 
 void VkSwapChainWrapper::initImageViews() {
+    auto logger = _VkLogger::Instance();
+
     swapChainImageViews.resize(swapChainImages.size());
+
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         VkImageViewCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -126,15 +127,10 @@ void VkSwapChainWrapper::initImageViews() {
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(vkDeviceWrapper.vkDevice,
-            &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create image views!");
-        }
-        else {
-            std::cout << "Created image view." << std::endl;
-        }
+        auto vkCreateImageViewResult = vkCreateImageView(vkDeviceWrapper.vkDevice,
+            &createInfo, nullptr, &swapChainImageViews[i]);
+        logger.LogResult("vkCreateImageView =>", vkCreateImageViewResult);
     }
-    std::cout << std::endl;
 }
 
 VkSurfaceFormatKHR VkSwapChainWrapper::chooseSwapSurfaceFormat(

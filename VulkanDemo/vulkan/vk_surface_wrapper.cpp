@@ -2,26 +2,25 @@
 
 // Public
 
-VkSurfaceWrapper::VkSurfaceWrapper(VkInstance& _vkInstance, GLFWwindow& _window) :
-    vkInstance{ _vkInstance }, window{ _window } {
-    initSurface();
+VkSurfaceWrapper::VkSurfaceWrapper(GLFWwindow& _glfwWindow, VkInstance& _vkInstance) :
+    glfwWindow{ _glfwWindow }, vkInstance{ _vkInstance }  
+{
+
 }
 
 VkSurfaceWrapper::~VkSurfaceWrapper() {
-    vkDestroySurfaceKHR(vkInstance, vkSurface, nullptr);
+    vkDestroySurfaceKHR(vkInstance, vkSurfaceKHR, nullptr);
 }
 
-VkSurfaceKHR& VkSurfaceWrapper::getSurface() {
-    return vkSurface;
+VkSurfaceKHR& VkSurfaceWrapper::GetSurfaceKHR() {
+    return vkSurfaceKHR;
 }
 
-// Private
-
-void VkSurfaceWrapper::initSurface() {
-    if (glfwCreateWindowSurface(vkInstance, &window, nullptr, &vkSurface) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create window surface!");
-    }
-    else {
-        std::cout << "Vulkan surface created." << std::endl << std::endl;
+void VkSurfaceWrapper::Initialize() {
+    auto logger = _VkLogger::Instance();
+    auto createWindowSurfaceResult = glfwCreateWindowSurface(
+        vkInstance, &glfwWindow, nullptr, &vkSurfaceKHR);
+    if (createWindowSurfaceResult != VK_SUCCESS) {
+        logger.LogResult("glfwCreateWindowSurface =>", createWindowSurfaceResult);
     }
 }

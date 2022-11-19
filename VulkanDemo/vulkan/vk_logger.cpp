@@ -16,7 +16,7 @@ void _VkLogger::LogText(std::string text) {
 }
 
 void _VkLogger::LogResult(std::string text, VkResult result) {
-	if (doLogging) {
+	if (doLogging && (doLogSuccess || result != VK_SUCCESS)) {
 		std::cout << API_NAME << " " << text << " " << ERROR_NAMES.at(result) << std::endl;
 	}
 }

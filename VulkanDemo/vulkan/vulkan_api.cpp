@@ -69,9 +69,7 @@ void VulkanAPI::newFrame() {
 
     auto vkQueueSubmitResult = vkQueueSubmit(vkDeviceWrapper->vkGraphicsQueue, 1,
         &submitInfo, vkSyncWrapper->getFlightFence());
-    if (vkQueueSubmitResult != VK_SUCCESS) {
-        logger.LogResult("vkQueueSubmitResult Error => ", vkQueueSubmitResult);
-    }
+    logger.LogResult("vkQueueSubmitResult Error => ", vkQueueSubmitResult);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -154,7 +152,7 @@ void VulkanAPI::initInstance() {
     auto result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
     switch (result) {
         case VK_ERROR_LAYER_NOT_PRESENT:
-            logger.LogText("vkCreateInstance: failed to find required layers");
+            logger.LogText("vkCreateInstance => failed to find required layers");
             logger.LogText("Trying vkCreateInstance again...");
 
             createInfo.enabledLayerCount = 0;
@@ -162,25 +160,26 @@ void VulkanAPI::initInstance() {
 
             // try to create instance again with no layers
             result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-            logger.LogResult("vkCreateInstance Error =>", result);
+            logger.LogResult("vkCreateInstance =>", result);
             break;
         case VK_SUCCESS:
             break;
         default:
-            logger.LogResult("vkCreateInstance Error =>", result);
+            logger.LogResult("vkCreateInstance =>", result);
             break;
     }
 }
 
 void VulkanAPI::initSurface() {
-    vkSurfaceWrapper = new VkSurfaceWrapper(vkInstance, window);
+    vkSurfaceWrapper = new VkSurfaceWrapper(window, vkInstance);
+    vkSurfaceWrapper->Initialize();
 }
 
 void VulkanAPI::initDevice() {
     vkDeviceWrapper = new VkDeviceWrapper();
 
     vkDeviceWrapper->pInstance = &vkInstance;
-    vkDeviceWrapper->pSurfaceKHR = &vkSurfaceWrapper->getSurface();
+    vkDeviceWrapper->pSurfaceKHR = &vkSurfaceWrapper->GetSurfaceKHR();
     vkDeviceWrapper->pValidationWrapper = &vkValidationWrapper;
 
     auto vkDeviceCreateResult = vkDeviceWrapper->create();
@@ -204,18 +203,14 @@ void VulkanAPI::initCmdWrapper() {
     vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->vkQueueFamily;
 
     auto vkCreateCommandPoolResult = vkCmdPoolWrapper->create();
-    if (vkCreateCommandPoolResult != VK_SUCCESS) {
-        logger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
-    }
+    logger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
 
     vkCmdBufferWrapper = new VkCmdBufferWrapper();
     vkCmdBufferWrapper->pCmdPool = vkCmdPoolWrapper;
     vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->vkDevice;
 
     auto vkAllocateCommandBuffersResult = vkCmdBufferWrapper->create();
-    if (vkAllocateCommandBuffersResult != VK_SUCCESS) {
-        logger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
-    }
+    logger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
 }
 
 void VulkanAPI::initSync() {

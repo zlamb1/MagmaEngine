@@ -153,7 +153,6 @@ VkResult VkDeviceWrapper::create() {
     }
 
     if (vkPhysicalDevice == VK_NULL_HANDLE) {
-
         logger.LogText("Could not find a GPU that is suitable!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
@@ -194,8 +193,8 @@ VkResult VkDeviceWrapper::create() {
     }
 
     auto vkCreateDeviceResult = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &vkDevice);
+    logger.LogResult("vkCreateDeviceResult =>", vkCreateDeviceResult);
     if (vkCreateDeviceResult != VK_SUCCESS) {
-        logger.LogResult("vkCreateDeviceResult =>", vkCreateDeviceResult);
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
