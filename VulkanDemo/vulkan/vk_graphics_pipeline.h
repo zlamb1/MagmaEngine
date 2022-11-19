@@ -14,7 +14,7 @@ class VkGraphicsPipeline {
 
 	public:
 
-		VkGraphicsPipeline(VkDeviceWrapper& _vkDeviceWrapper);
+		VkGraphicsPipeline(_VkDevice& _vkDevice);
 		~VkGraphicsPipeline();
 
 		std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
@@ -25,7 +25,7 @@ class VkGraphicsPipeline {
 
 	private:
 
-		VkDeviceWrapper& vkDeviceWrapper; 
+		_VkDevice& _vkDevice;
 
 		// store shader wrappers to ensure they don't go out of scope
 		std::vector<VkShaderWrapper*> vkShaderWrappers;

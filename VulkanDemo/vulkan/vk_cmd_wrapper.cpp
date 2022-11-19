@@ -2,11 +2,23 @@
 
 // VkCmdPoolWrapper Implementation
 
-VkCmdPoolWrapper::~VkCmdPoolWrapper() {
+_VkCmdPool::~_VkCmdPool() {
 	vkDestroyCommandPool(*pDevice, vkCmdPool, nullptr);
 }
 
-VkResult VkCmdPoolWrapper::create() {
+VkResult _VkCmdPool::create() {
+	auto logger = _VkLogger::Instance();
+
+	if (pDevice == nullptr) {
+		logger.LogText("_VkCmdPool => pDevice is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	if (pQueueFamily == nullptr) {
+		logger.LogText("_VkCmdPool => pQueueFamily is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
 	VkCommandPoolCreateInfo poolInfo{};
 
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -18,7 +30,7 @@ VkResult VkCmdPoolWrapper::create() {
 
 // VkCmdBufferWrapper Implementation
 
-VkResult VkCmdBufferWrapper::create() {
+VkResult _VkCmdBuffer::create() {
 	VkCommandBufferAllocateInfo allocInfo{};
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -29,7 +41,7 @@ VkResult VkCmdBufferWrapper::create() {
 	return vkAllocateCommandBuffers(*pDevice, &allocInfo, &vkCmdBuffer);
 }
 
-VkResult VkCmdBufferWrapper::recordCmdBuffer() {
+VkResult _VkCmdBuffer::recordCmdBuffer() {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = 0; // optional
@@ -38,6 +50,6 @@ VkResult VkCmdBufferWrapper::recordCmdBuffer() {
 	return vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);
 }
 
-void VkCmdBufferWrapper::resetCmdBuffer() {
+void _VkCmdBuffer::resetCmdBuffer() {
 	vkResetCommandBuffer(vkCmdBuffer, 0);
 }

@@ -2,16 +2,16 @@
 
 // Public
 
-VkRenderPassWrapper::VkRenderPassWrapper(VkDeviceWrapper& _vkDeviceWrapper,
+VkRenderPassWrapper::VkRenderPassWrapper(_VkDevice& _vkDevice,
     VkSwapChainWrapper& _vkSwapChainWrapper) :
-    vkDeviceWrapper{ _vkDeviceWrapper }, 
+    _vkDevice{ _vkDevice },
     vkSwapChainWrapper { _vkSwapChainWrapper }
 {
 
 }
 
 VkRenderPassWrapper::~VkRenderPassWrapper() {
-    vkDestroyRenderPass(vkDeviceWrapper.vkDevice,
+    vkDestroyRenderPass(_vkDevice.vkDevice,
         vkRenderPass, nullptr);
 }
 
@@ -45,7 +45,7 @@ void VkRenderPassWrapper::init() {
     renderPassInfo.pSubpasses = &subpass;
 
 
-    auto vkCreateRenderPassResult = vkCreateRenderPass(vkDeviceWrapper.vkDevice,
+    auto vkCreateRenderPassResult = vkCreateRenderPass(_vkDevice.vkDevice,
         &renderPassInfo, nullptr, &vkRenderPass);
     logger.LogResult("vkCreateRenderPass =>", vkCreateRenderPassResult);
 }

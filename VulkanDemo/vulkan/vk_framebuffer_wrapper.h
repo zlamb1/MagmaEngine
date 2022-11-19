@@ -4,28 +4,21 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk_obj.h"
 #include "vk_swap_chain_wrapper.h"
 #include "vk_render_pass_wrapper.h"
 
-class VkFramebufferWrapper {
+struct _VkFramebuffer : VulkanWrapper {
 
-	public:
+	VkSwapChainWrapper* pSwapchainWrapper;
+	VkDevice* pDevice;
+	VkRenderPass* pRenderPass; 
 
-		VkFramebufferWrapper(VkDeviceWrapper& _vkDeviceWrapper,
-			VkSwapChainWrapper& _vkSwapChainWrapper,
-			VkRenderPassWrapper& _vkRenderPassWrapper);
-		~VkFramebufferWrapper();
+	std::vector<VkFramebuffer> vkFramebuffers{};
 
-		std::vector<VkFramebuffer>& getFramebuffers();
+	_VkFramebuffer() {}
+	~_VkFramebuffer();
 
-		void init();
-
-	private:
-		
-		VkDeviceWrapper& vkDeviceWrapper;
-		VkSwapChainWrapper& vkSwapChainWrapper;
-		VkRenderPassWrapper& vkRenderPassWrapper;
-
-		std::vector<VkFramebuffer> vkFramebuffers;
+	VkResult create();
 
 };

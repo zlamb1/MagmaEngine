@@ -2,27 +2,45 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk_obj.h"
 #include "vk_device_wrapper.h"
 
-class VkSyncWrapper {
+struct _VkSemaphore : VulkanWrapper {
 
-	public:
+	_VkSemaphore() {}
+	~_VkSemaphore();
 
-		VkSyncWrapper(VkDeviceWrapper& _vkDeviceWrapper);
-		~VkSyncWrapper();
+	VkDevice* pDevice;
 
-		VkFence& getFlightFence();
-		VkSemaphore& getImageSemaphore();
-		VkSemaphore& getRenderSemaphore();
+	VkSemaphore vkSemaphore; 
 
-		void init();
+	VkResult create();
 
-	private:
+};
 
-		VkDeviceWrapper& vkDeviceWrapper;
+struct _VkFence : VulkanWrapper {
 
-		VkSemaphore vkImageSemaphore;
-		VkSemaphore vkRenderSemaphore;
-		VkFence vkFlightFence;
+	_VkFence() {}
+	~_VkFence();
+
+	VkDevice* pDevice;
+
+	VkFence vkFence;
+
+	VkResult create();
+
+};
+
+struct _VkRenderSync : VulkanWrapper {
+
+	_VkRenderSync() {}
+
+	VkDevice* pDevice;
+
+	_VkFence _vkFlightFence;
+	_VkSemaphore _vkImageSemaphore;
+	_VkSemaphore _vkRenderSemaphore; 
+
+	VkResult create();
 
 };

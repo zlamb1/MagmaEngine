@@ -12,27 +12,26 @@
 class VkPipelineWrapper {
 
 public:
-	VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper, 
+	VkPipelineWrapper(_VkDevice& _vkDevice,
 		VkSwapChainWrapper& _vkSwapChainWrapper);
 	~VkPipelineWrapper();
 
 	void init();
 
-	void newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
-		uint32_t imageIndex);
+	void newFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex);
 
 private:
 
 	_VkLogger& logger;
 
-	VkDeviceWrapper& vkDeviceWrapper;
+	_VkDevice& _vkDevice;
 	VkSwapChainWrapper& vkSwapChainWrapper;
 
 	// store as unique pointers as destruction order doesn't matter
 	std::unique_ptr<VkGraphicsPipeline> vkGraphicsPipeline;
 	std::unique_ptr<VkFixedFunctionWrapper> vkFixedFunctionWrapper;
 	std::unique_ptr<VkRenderPassWrapper> vkRenderPassWrapper;
-	std::unique_ptr<VkFramebufferWrapper> vkFramebufferWrapper;
+	std::unique_ptr<_VkFramebuffer> vkFramebuffer;
 
 	VkPipeline vkPipeline;
 

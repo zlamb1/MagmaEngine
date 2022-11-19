@@ -2,16 +2,16 @@
 
 // Public
 
-VkShaderWrapper::VkShaderWrapper(VkDeviceWrapper& _vkDeviceWrapper, 
+VkShaderWrapper::VkShaderWrapper(_VkDevice& _vkDevice,
 	const char* shaderCode, shaderc_shader_kind kind) :
-	vkDeviceWrapper{ _vkDeviceWrapper }
+	_vkDevice{ _vkDevice }
 {
 	initModule(shaderCode, kind);
 	initStage(kind);
 }
 
 VkShaderWrapper::~VkShaderWrapper() {
-	vkDestroyShaderModule(vkDeviceWrapper.vkDevice, vkModule, nullptr);
+	vkDestroyShaderModule(_vkDevice.vkDevice, vkModule, nullptr);
 }
 
 VkPipelineShaderStageCreateInfo& VkShaderWrapper::getShaderStageInfo() {
@@ -31,7 +31,7 @@ void VkShaderWrapper::initModule(const char* shaderCode,
 	createInfo.codeSize = result.size() * sizeof(uint32_t);
 	createInfo.pCode = reinterpret_cast<const uint32_t*>(result.data());
 
-	auto vkCreateShaderModuleResult = vkCreateShaderModule(vkDeviceWrapper.vkDevice,
+	auto vkCreateShaderModuleResult = vkCreateShaderModule(_vkDevice.vkDevice,
 		&createInfo, nullptr, &vkModule);
 	logger.LogResult("vkCreateShaderModule =>", vkCreateShaderModuleResult);
 }

@@ -10,7 +10,7 @@ class VkFixedFunctionWrapper {
 
 	public:
 
-		VkFixedFunctionWrapper(VkDeviceWrapper& _vkDeviceWrapper,
+		VkFixedFunctionWrapper(_VkDevice& _vkDevice,
 			VkSwapChainWrapper& _vkSwapChainWrapper);
 		~VkFixedFunctionWrapper();
 
@@ -32,7 +32,7 @@ class VkFixedFunctionWrapper {
 
 	private:
 
-		VkDeviceWrapper& vkDeviceWrapper;
+		_VkDevice& _vkDevice;
 		VkSwapChainWrapper& vkSwapChainWrapper;
 
 		VkPipelineDynamicStateCreateInfo vkDynamicState;

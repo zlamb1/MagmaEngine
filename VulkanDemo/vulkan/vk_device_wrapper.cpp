@@ -120,11 +120,11 @@ namespace VkDeviceUtility {
 
 // Public
 
-VkDeviceWrapper::~VkDeviceWrapper() {
+_VkDevice::~_VkDevice() {
     vkDestroyDevice(vkDevice, nullptr);
 }
 
-VkResult VkDeviceWrapper::create() {
+VkResult _VkDevice::create() {
 
     _VkLogger& logger = _VkLogger::Instance();
 
@@ -184,9 +184,9 @@ VkResult VkDeviceWrapper::create() {
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    if (pValidationWrapper->enabled) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(pValidationWrapper->size());
-        createInfo.ppEnabledLayerNames = pValidationWrapper->data();
+    if (_pValidation->vkValidationEnabled) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(_pValidation->size());
+        createInfo.ppEnabledLayerNames = _pValidation->data();
     }
     else {
         createInfo.enabledLayerCount = 0;
@@ -206,6 +206,6 @@ VkResult VkDeviceWrapper::create() {
     return VK_SUCCESS;
 }
 
-SwapChainSupportDetails VkDeviceWrapper::querySwapChainSupport() {
+SwapChainSupportDetails _VkDevice::querySwapChainSupport() {
     return VkDeviceUtility::querySwapchainSupport(vkPhysicalDevice, *pSurfaceKHR);
 }

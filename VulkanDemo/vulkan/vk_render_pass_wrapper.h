@@ -8,7 +8,7 @@ class VkRenderPassWrapper {
 
 	public:
 
-		VkRenderPassWrapper(VkDeviceWrapper& _vkDeviceWrapper,
+		VkRenderPassWrapper(_VkDevice& _vkDevice,
 			VkSwapChainWrapper& _vkSwapChainWrapper);
 		~VkRenderPassWrapper();
 
@@ -18,7 +18,7 @@ class VkRenderPassWrapper {
 
 	private:
 
-		VkDeviceWrapper& vkDeviceWrapper;
+		_VkDevice& _vkDevice;
 		VkSwapChainWrapper& vkSwapChainWrapper;
 
 		VkRenderPass vkRenderPass;

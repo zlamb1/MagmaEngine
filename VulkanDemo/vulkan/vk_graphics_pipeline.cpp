@@ -26,8 +26,8 @@ void main() {
 
 // Public
 
-VkGraphicsPipeline::VkGraphicsPipeline(VkDeviceWrapper& _vkDeviceWrapper) :
-	vkDeviceWrapper{ _vkDeviceWrapper } {
+VkGraphicsPipeline::VkGraphicsPipeline(_VkDevice& _vkDevice) :
+	_vkDevice{ _vkDevice } {
 
 }
 
@@ -50,7 +50,7 @@ std::vector<VkPipelineShaderStageCreateInfo> VkGraphicsPipeline::getShaderStages
 
 void VkGraphicsPipeline::addShader(const char* code, shaderc_shader_kind kind) {
 	// shader init is done in constructor
-	VkShaderWrapper* vkShaderWrapper = new VkShaderWrapper(vkDeviceWrapper, code, kind);
+	VkShaderWrapper* vkShaderWrapper = new VkShaderWrapper(_vkDevice, code, kind);
 	vkShaderWrappers.push_back(vkShaderWrapper);
 }
 

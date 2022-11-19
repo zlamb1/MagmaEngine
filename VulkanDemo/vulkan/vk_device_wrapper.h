@@ -37,14 +37,14 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes{};
 };
 
-struct VkDeviceWrapper {
+struct _VkDevice {
 
-	VkDeviceWrapper() {}
-	~VkDeviceWrapper();
+	_VkDevice() {}
+	~_VkDevice();
 
 	VkInstance* pInstance = nullptr;
 	VkSurfaceKHR* pSurfaceKHR = nullptr;
-	VkValidationWrapper* pValidationWrapper = nullptr;
+	_VkValidation* _pValidation = nullptr;
 
 	VkPhysicalDevice vkPhysicalDevice{};
 	VkDevice vkDevice{};

@@ -5,13 +5,13 @@
 #include "vk_obj.h"
 #include "vk_device_wrapper.h"
 
-struct VkCmdPoolWrapper : VulkanWrapper {
+struct _VkCmdPool : VulkanWrapper {
 
 	QueueFamily* pQueueFamily = nullptr;
 	VkDevice* pDevice = nullptr; 
 
-	VkCmdPoolWrapper() {};
-	~VkCmdPoolWrapper();
+	_VkCmdPool() {};
+	~_VkCmdPool();
 
 	VkCommandPool vkCmdPool{};
 
@@ -19,12 +19,12 @@ struct VkCmdPoolWrapper : VulkanWrapper {
 
 };
 
-struct VkCmdBufferWrapper {
+struct _VkCmdBuffer {
 
 	VkDevice* pDevice = nullptr;
-	VkCmdPoolWrapper* pCmdPool = nullptr;
+	_VkCmdPool* pCmdPool = nullptr;
 
-	VkCmdBufferWrapper() {};
+	_VkCmdBuffer() {};
 
 	VkCommandBuffer vkCmdBuffer{};
 

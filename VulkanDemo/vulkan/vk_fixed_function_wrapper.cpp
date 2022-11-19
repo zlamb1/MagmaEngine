@@ -3,16 +3,16 @@
 // Public
 
 VkFixedFunctionWrapper::VkFixedFunctionWrapper(
-    VkDeviceWrapper& _vkDeviceWrapper,
+    _VkDevice& _vkDevice,
     VkSwapChainWrapper& _vkSwapChainWrapper) :
-    vkDeviceWrapper{ _vkDeviceWrapper },
+    _vkDevice{ _vkDevice },
     vkSwapChainWrapper{ _vkSwapChainWrapper }
 {
 
 }
 
 VkFixedFunctionWrapper::~VkFixedFunctionWrapper() {
-    vkDestroyPipelineLayout(vkDeviceWrapper.vkDevice, vkPipelineLayout, nullptr);
+    vkDestroyPipelineLayout(_vkDevice.vkDevice, vkPipelineLayout, nullptr);
 }
 
 VkPipelineDynamicStateCreateInfo& VkFixedFunctionWrapper::getDynamicState() {
@@ -190,7 +190,7 @@ void VkFixedFunctionWrapper::initPipelineLayout() {
     vkPipelineLayoutInfo.pPushConstantRanges = nullptr; // optional
 
     auto vkCreatePipelineLayoutResult = vkCreatePipelineLayout(
-        vkDeviceWrapper.vkDevice, &vkPipelineLayoutInfo,
+        _vkDevice.vkDevice, &vkPipelineLayoutInfo,
         nullptr, &vkPipelineLayout);
     logger.LogResult("vkCreatePipelineLayout =>", vkCreatePipelineLayoutResult);
 }

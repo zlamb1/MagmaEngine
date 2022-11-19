@@ -15,7 +15,7 @@ class VkSwapChainWrapper {
 
 		VkSwapChainWrapper(GLFWwindow& _window,
 			VkSurfaceWrapper& _vkSurfaceWrapper,
-			VkDeviceWrapper& _vkDeviceWrapper);
+			_VkDevice& _vkDevice);
 		~VkSwapChainWrapper();
 
 		VkFormat& getSwapChainImageFormat();
@@ -26,16 +26,16 @@ class VkSwapChainWrapper {
 
 	private:
 
-		GLFWwindow& window;
-		VkDeviceWrapper& vkDeviceWrapper;
+		GLFWwindow& glfwWindow;
+		_VkDevice& _vkDevice;
 
-		VkSwapchainKHR vkSwapChain; 
+		VkSwapchainKHR vkSwapchainKHR; 
 
-		VkFormat vkSwapChainImageFormat;
-		VkExtent2D vkSwapChainExtent;
+		VkFormat vkSwapchainImageFormat;
+		VkExtent2D vkSwapchainExtent;
 
-		std::vector<VkImage> swapChainImages;
-		std::vector<VkImageView> swapChainImageViews;
+		std::vector<VkImage> swapchainImages;
+		std::vector<VkImageView> swapchainImageViews;
 
 		void initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper);
 		void initImageViews();

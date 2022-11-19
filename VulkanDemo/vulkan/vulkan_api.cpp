@@ -9,48 +9,49 @@
 // Public
 
 VulkanAPI::VulkanAPI(GLFWwindow& _window) : 
-    logger{ _VkLogger::Instance() },
-    window{ _window }
+    glfwWindow{ _window },
+    _vkLogger{ _VkLogger::Instance() }
 {
 
 }
 
 VulkanAPI::~VulkanAPI() {
 
-    // we need the wrappers to be deleted in a specific order
-    delete vkSyncWrapper;
+    // the wrappers need to be deleted in a specific order
 
-    delete vkCmdBufferWrapper;
-    delete vkCmdPoolWrapper;
+    delete _vkRenderSync;
 
-    delete vkPipelineWrapper;
-    delete vkSwapChainWrapper;
-    delete vkDeviceWrapper;
+    delete _vkCmdBuffer;
+    delete _vkCmdPool;
 
-    delete vkSurfaceWrapper;
+    delete _vkPipelineWrapper;
+    delete _vkSwapChainWrapper;
+    delete _vkDevice;
 
-    delete vkDebugWrapper;
+    delete _vkSurfaceWrapper;
+
+    delete _vkDebugWrapper;
 
     vkDestroyInstance(vkInstance, nullptr);
 }
 
-void VulkanAPI::newFrame() {
-    vkWaitForFences(vkDeviceWrapper->vkDevice, 1,
-        &vkSyncWrapper->getFlightFence(), VK_TRUE, UINT64_MAX);
-    vkResetFences(vkDeviceWrapper->vkDevice,
-        1, &vkSyncWrapper->getFlightFence());
+void VulkanAPI::onNewFrame() {
+    vkWaitForFences(_vkDevice->vkDevice, 1,
+        &_vkRenderSync->_vkFlightFence.vkFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(_vkDevice->vkDevice,
+        1, &_vkRenderSync->_vkFlightFence.vkFence);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(vkDeviceWrapper->vkDevice,
-        vkSwapChainWrapper->getSwapchain(), UINT64_MAX,
-        vkSyncWrapper->getImageSemaphore(), VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(_vkDevice->vkDevice,
+        _vkSwapChainWrapper->getSwapchain(), UINT64_MAX,
+        _vkRenderSync->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-    vkPipelineWrapper->newFrame(*vkCmdBufferWrapper, imageIndex);
+    _vkPipelineWrapper->newFrame(*_vkCmdBuffer, imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { vkSyncWrapper->getImageSemaphore() };
+    VkSemaphore waitSemaphores[] = { _vkRenderSync->_vkImageSemaphore.vkSemaphore };
     VkPipelineStageFlags waitStages[] = { 
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT 
     };
@@ -59,17 +60,17 @@ void VulkanAPI::newFrame() {
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &vkCmdBufferWrapper->vkCmdBuffer;
+    submitInfo.pCommandBuffers = &_vkCmdBuffer->vkCmdBuffer;
 
     VkSemaphore signalSemaphores[] = { 
-        vkSyncWrapper->getRenderSemaphore() 
+        _vkRenderSync->_vkRenderSemaphore.vkSemaphore
     };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    auto vkQueueSubmitResult = vkQueueSubmit(vkDeviceWrapper->vkGraphicsQueue, 1,
-        &submitInfo, vkSyncWrapper->getFlightFence());
-    logger.LogResult("vkQueueSubmitResult Error => ", vkQueueSubmitResult);
+    auto vkQueueSubmitResult = vkQueueSubmit(_vkDevice->vkGraphicsQueue, 1,
+        &submitInfo, _vkRenderSync->_vkFlightFence.vkFence);
+    _vkLogger.LogResult("vkQueueSubmitResult => ", vkQueueSubmitResult);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -78,7 +79,7 @@ void VulkanAPI::newFrame() {
     presentInfo.pWaitSemaphores = signalSemaphores;
 
     VkSwapchainKHR swapChains[] = { 
-        vkSwapChainWrapper->getSwapchain() 
+        _vkSwapChainWrapper->getSwapchain() 
     };
 
     presentInfo.swapchainCount = 1;
@@ -86,21 +87,21 @@ void VulkanAPI::newFrame() {
 
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(vkDeviceWrapper->vkPresentationQueue, &presentInfo);
+    vkQueuePresentKHR(_vkDevice->vkPresentationQueue, &presentInfo);
 
     // allows for clean exit 
-    vkDeviceWaitIdle(vkDeviceWrapper->vkDevice);
+    vkDeviceWaitIdle(_vkDevice->vkDevice);
 }
 
 void VulkanAPI::init() {
-    if (vkValidationWrapper.enabled) {
-        vkDebugWrapper = new VkDebugWrapper(vkInstance);
+    if (_vkValidation.vkValidationEnabled) {
+        _vkDebugWrapper = new VkDebugWrapper(vkInstance);
     }
 
     initInstance();
 
-    if (vkValidationWrapper.enabled) {
-        vkDebugWrapper->start();
+    if (_vkValidation.vkValidationEnabled) {
+        _vkDebugWrapper->start();
     }
 
     initSurface();
@@ -115,9 +116,9 @@ void VulkanAPI::init() {
 
 void VulkanAPI::initInstance() {
 
-    if (vkValidationWrapper.enabled && !vkValidationWrapper.ensureRequiredLayers()) {
+    if (_vkValidation.vkValidationEnabled && !_vkValidation.ensureRequiredLayers()) {
         // TODO: add check to see if layers are strictly necessary
-        logger.LogText("Validation layers were requested but are not available!");
+        _vkLogger.LogText("Validation layers were requested but are not available!");
     }
 
     VkApplicationInfo appInfo{};
@@ -138,11 +139,11 @@ void VulkanAPI::initInstance() {
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
-    if (vkValidationWrapper.enabled) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(vkValidationWrapper.size());
-        createInfo.ppEnabledLayerNames = vkValidationWrapper.data();
+    if (_vkValidation.vkValidationEnabled) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(_vkValidation.size());
+        createInfo.ppEnabledLayerNames = _vkValidation.data();
 
-        vkDebugWrapper->populateDebugMessengerCreateInfo(debugCreateInfo);
+        _vkDebugWrapper->populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
@@ -152,70 +153,73 @@ void VulkanAPI::initInstance() {
     auto result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
     switch (result) {
         case VK_ERROR_LAYER_NOT_PRESENT:
-            logger.LogText("vkCreateInstance => failed to find required layers");
-            logger.LogText("Trying vkCreateInstance again...");
+            _vkLogger.LogText("vkCreateInstance => failed to find required layers");
+            _vkLogger.LogText("Trying vkCreateInstance again...");
 
             createInfo.enabledLayerCount = 0;
             createInfo.ppEnabledLayerNames = nullptr;
 
             // try to create instance again with no layers
             result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-            logger.LogResult("vkCreateInstance =>", result);
+            _vkLogger.LogResult("vkCreateInstance =>", result);
             break;
         case VK_SUCCESS:
             break;
         default:
-            logger.LogResult("vkCreateInstance =>", result);
+            _vkLogger.LogResult("vkCreateInstance =>", result);
             break;
     }
 }
 
 void VulkanAPI::initSurface() {
-    vkSurfaceWrapper = new VkSurfaceWrapper(window, vkInstance);
-    vkSurfaceWrapper->Initialize();
+    _vkSurfaceWrapper = new VkSurfaceWrapper(glfwWindow, vkInstance);
+    _vkSurfaceWrapper->Initialize();
 }
 
 void VulkanAPI::initDevice() {
-    vkDeviceWrapper = new VkDeviceWrapper();
+    _vkDevice = new _VkDevice();
 
-    vkDeviceWrapper->pInstance = &vkInstance;
-    vkDeviceWrapper->pSurfaceKHR = &vkSurfaceWrapper->GetSurfaceKHR();
-    vkDeviceWrapper->pValidationWrapper = &vkValidationWrapper;
+    _vkDevice->pInstance = &vkInstance;
+    _vkDevice->pSurfaceKHR = &_vkSurfaceWrapper->GetSurfaceKHR();
+    _vkDevice->_pValidation = &_vkValidation;
 
-    auto vkDeviceCreateResult = vkDeviceWrapper->create();
+    auto vkDeviceCreateResult = _vkDevice->create();
 }
 
 void VulkanAPI::initSwapChain() {
-    vkSwapChainWrapper = new VkSwapChainWrapper(
-        window, *vkSurfaceWrapper, *vkDeviceWrapper);
+    _vkSwapChainWrapper = new VkSwapChainWrapper(
+        glfwWindow, *_vkSurfaceWrapper, *_vkDevice);
 }
 
 void VulkanAPI::initPipeline() {
-    vkPipelineWrapper = new VkPipelineWrapper(
-        *vkDeviceWrapper, *vkSwapChainWrapper);
-    vkPipelineWrapper->init();
+    _vkPipelineWrapper = new VkPipelineWrapper(
+        *_vkDevice, *_vkSwapChainWrapper);
+    _vkPipelineWrapper->init();
 }
 
 void VulkanAPI::initCmdWrapper() {
     
-    vkCmdPoolWrapper = new VkCmdPoolWrapper();
-    vkCmdPoolWrapper->pDevice = &vkDeviceWrapper->vkDevice;
-    vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->vkQueueFamily;
+    _vkCmdPool = new _VkCmdPool();
+    _vkCmdPool->pDevice = &_vkDevice->vkDevice;
+    _vkCmdPool->pQueueFamily = &_vkDevice->vkQueueFamily;
 
-    auto vkCreateCommandPoolResult = vkCmdPoolWrapper->create();
-    logger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
+    auto vkCreateCommandPoolResult = _vkCmdPool->create();
+    _vkLogger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
 
-    vkCmdBufferWrapper = new VkCmdBufferWrapper();
-    vkCmdBufferWrapper->pCmdPool = vkCmdPoolWrapper;
-    vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->vkDevice;
+    _vkCmdBuffer = new _VkCmdBuffer();
+    _vkCmdBuffer->pCmdPool = _vkCmdPool;
+    _vkCmdBuffer->pDevice = &_vkDevice->vkDevice;
 
-    auto vkAllocateCommandBuffersResult = vkCmdBufferWrapper->create();
-    logger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
+    auto vkAllocateCommandBuffersResult = _vkCmdBuffer->create();
+    _vkLogger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
 }
 
 void VulkanAPI::initSync() {
-    vkSyncWrapper = new VkSyncWrapper(*vkDeviceWrapper);
-    vkSyncWrapper->init();
+    _vkRenderSync = new _VkRenderSync();
+
+    _vkRenderSync->pDevice = &_vkDevice->vkDevice;
+
+    _vkLogger.LogResult("_VkRenderSync =>", _vkRenderSync->create());
 }
 
 std::vector<const char*> VulkanAPI::getRequiredExtensions() {
@@ -225,7 +229,7 @@ std::vector<const char*> VulkanAPI::getRequiredExtensions() {
 
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (vkValidationWrapper.enabled) {
+    if (_vkValidation.vkValidationEnabled) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 

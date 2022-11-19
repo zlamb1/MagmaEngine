@@ -3,36 +3,38 @@
 // Public
 
 VkSwapChainWrapper::VkSwapChainWrapper(
-    GLFWwindow& _window, 
+    GLFWwindow& glfwWindow, 
     VkSurfaceWrapper& _vkSurfaceWrapper,
-    VkDeviceWrapper& _vkDeviceWrapper) : window{ _window }, 
-    vkDeviceWrapper{ _vkDeviceWrapper } {
+    _VkDevice& _vkDevice) : glfwWindow{ glfwWindow }, 
+    _vkDevice{ _vkDevice } {
+
     initSwapChain(_vkSurfaceWrapper);
     initImageViews();
+
 }
 
 VkSwapChainWrapper::~VkSwapChainWrapper() {
-    vkDestroySwapchainKHR(vkDeviceWrapper.vkDevice, vkSwapChain, nullptr);
+    vkDestroySwapchainKHR(_vkDevice.vkDevice, vkSwapchainKHR, nullptr);
 
-    for (auto imageView : swapChainImageViews) {
-        vkDestroyImageView(vkDeviceWrapper.vkDevice, imageView, nullptr);
+    for (auto imageView : swapchainImageViews) {
+        vkDestroyImageView(_vkDevice.vkDevice, imageView, nullptr);
     }
 }
 
 VkFormat& VkSwapChainWrapper::getSwapChainImageFormat() {
-    return vkSwapChainImageFormat;
+    return vkSwapchainImageFormat;
 }
 
 VkExtent2D& VkSwapChainWrapper::getSwapChainExtent() {
-    return vkSwapChainExtent;
+    return vkSwapchainExtent;
 }
 
 std::vector<VkImageView>& VkSwapChainWrapper::getImageViews() {
-    return swapChainImageViews;
+    return swapchainImageViews;
 }
 
 VkSwapchainKHR& VkSwapChainWrapper::getSwapchain() {
-    return vkSwapChain;
+    return vkSwapchainKHR;
 }
 
 // Private
@@ -40,7 +42,7 @@ VkSwapchainKHR& VkSwapChainWrapper::getSwapchain() {
 void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
     auto logger = _VkLogger::Instance();
 
-    SwapChainSupportDetails swapChainSupport = vkDeviceWrapper.querySwapChainSupport();
+    SwapChainSupportDetails swapChainSupport = _vkDevice.querySwapChainSupport();
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -63,7 +65,7 @@ void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    auto family = vkDeviceWrapper.vkQueueFamily;
+    auto family = _vkDevice.vkQueueFamily;
 
     uint32_t queueFamilyIndices[] = {
         family.getGraphics(),
@@ -88,33 +90,33 @@ void VkSwapChainWrapper::initSwapChain(VkSurfaceWrapper& _vkSurfaceWrapper) {
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    auto vkCreateSwapchainResult = vkCreateSwapchainKHR(vkDeviceWrapper.vkDevice, &createInfo,
-        nullptr, &vkSwapChain);
+    auto vkCreateSwapchainResult = vkCreateSwapchainKHR(_vkDevice.vkDevice, &createInfo,
+        nullptr, &vkSwapchainKHR);
     logger.LogResult("vkCreateSwapchainKHR =>", vkCreateSwapchainResult);
         
-    vkGetSwapchainImagesKHR(vkDeviceWrapper.vkDevice,
-        vkSwapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(_vkDevice.vkDevice,
+        vkSwapchainKHR, &imageCount, nullptr);
         
-    swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(vkDeviceWrapper.vkDevice,
-        vkSwapChain, &imageCount, swapChainImages.data());
+    swapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(_vkDevice.vkDevice,
+        vkSwapchainKHR, &imageCount, swapchainImages.data());
 
-    vkSwapChainImageFormat = surfaceFormat.format;
-    vkSwapChainExtent = extent;
+    vkSwapchainImageFormat = surfaceFormat.format;
+    vkSwapchainExtent = extent;
 }
 
 void VkSwapChainWrapper::initImageViews() {
     auto logger = _VkLogger::Instance();
 
-    swapChainImageViews.resize(swapChainImages.size());
+    swapchainImageViews.resize(swapchainImages.size());
 
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
+    for (size_t i = 0; i < swapchainImages.size(); i++) {
         VkImageViewCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = swapChainImages[i];
+        createInfo.image = swapchainImages[i];
 
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = vkSwapChainImageFormat;
+        createInfo.format = vkSwapchainImageFormat;
 
         createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -127,8 +129,8 @@ void VkSwapChainWrapper::initImageViews() {
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        auto vkCreateImageViewResult = vkCreateImageView(vkDeviceWrapper.vkDevice,
-            &createInfo, nullptr, &swapChainImageViews[i]);
+        auto vkCreateImageViewResult = vkCreateImageView(_vkDevice.vkDevice,
+            &createInfo, nullptr, &swapchainImageViews[i]);
         logger.LogResult("vkCreateImageView =>", vkCreateImageViewResult);
     }
 }
@@ -161,7 +163,7 @@ VkExtent2D VkSwapChainWrapper::chooseSwapExtent(
     }
     else {
         int width, height;
-        glfwGetFramebufferSize(&window, &width, &height);
+        glfwGetFramebufferSize(&glfwWindow, &width, &height);
 
         VkExtent2D actualExtent = {
             static_cast<uint32_t>(width),

@@ -12,15 +12,15 @@ class VkShaderWrapper {
 
 	public:
 
-		VkShaderWrapper(VkDeviceWrapper& _vkDeviceWrapper, const char* shaderCode, 
+		VkShaderWrapper(_VkDevice& _vkDevice, const char* shaderCode,
 			shaderc_shader_kind kind);
 		~VkShaderWrapper();
 
 		VkPipelineShaderStageCreateInfo& getShaderStageInfo();
 
 	private:
-		VkDeviceWrapper& vkDeviceWrapper;
-		shaderc::Compiler compiler;
+		_VkDevice& _vkDevice;
+		shaderc::Compiler compiler{};
 
 		VkShaderModule vkModule; 
 		VkPipelineShaderStageCreateInfo vkShaderStageInfo;

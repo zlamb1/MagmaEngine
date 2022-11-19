@@ -24,31 +24,29 @@ class VulkanAPI {
 		VulkanAPI(GLFWwindow& _window);
 		~VulkanAPI();
 
-		void newFrame();
+		void onNewFrame();
 
 		void init();
 
 	private:
 
-		_VkLogger& logger; 
-
-		GLFWwindow& window;
-
+		GLFWwindow& glfwWindow;
 		VkInstance vkInstance{};
 
-		VkValidationWrapper vkValidationWrapper{};
-		VkDebugWrapper* vkDebugWrapper = nullptr;
+		_VkValidation _vkValidation{};
+		VkDebugWrapper* _vkDebugWrapper = nullptr;
+		_VkLogger& _vkLogger;
 
-		VkSurfaceWrapper* vkSurfaceWrapper = nullptr;
+		VkSurfaceWrapper* _vkSurfaceWrapper = nullptr;
 
-		VkDeviceWrapper* vkDeviceWrapper = nullptr;
-		VkSwapChainWrapper* vkSwapChainWrapper = nullptr;
-		VkPipelineWrapper* vkPipelineWrapper = nullptr;
+		_VkDevice* _vkDevice = nullptr;
+		VkSwapChainWrapper* _vkSwapChainWrapper = nullptr;
+		VkPipelineWrapper* _vkPipelineWrapper = nullptr;
 		
-		VkCmdPoolWrapper* vkCmdPoolWrapper = nullptr;
-		VkCmdBufferWrapper* vkCmdBufferWrapper = nullptr;
+		_VkCmdPool* _vkCmdPool = nullptr;
+		_VkCmdBuffer* _vkCmdBuffer = nullptr;
 
-		VkSyncWrapper* vkSyncWrapper = nullptr;
+		_VkRenderSync* _vkRenderSync = nullptr;
 
 		void initInstance();
 		void initSurface();

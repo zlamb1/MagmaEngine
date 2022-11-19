@@ -2,10 +2,10 @@
 
 // Public
 
-VkPipelineWrapper::VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper,
+VkPipelineWrapper::VkPipelineWrapper(_VkDevice& _vkDevice,
 	VkSwapChainWrapper& _vkSwapChainWrapper) :
 	logger{ _VkLogger::Instance() }, 
-	vkDeviceWrapper(_vkDeviceWrapper), 
+	_vkDevice(_vkDevice),
 	vkSwapChainWrapper{_vkSwapChainWrapper}
 {
 	initGraphicsPipeline();
@@ -14,13 +14,13 @@ VkPipelineWrapper::VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 }
 
 VkPipelineWrapper::~VkPipelineWrapper() {
-	vkDestroyPipeline(vkDeviceWrapper.vkDevice, vkPipeline, nullptr);
+	vkDestroyPipeline(_vkDevice.vkDevice, vkPipeline, nullptr);
 }
 
-void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
+void VkPipelineWrapper::newFrame(_VkCmdBuffer& vkCmdBuffer, 
 	uint32_t imageIndex) {
-	vkCmdBufferWrapper.resetCmdBuffer();
-	vkCmdBufferWrapper.recordCmdBuffer();
+	vkCmdBuffer.resetCmdBuffer();
+	vkCmdBuffer.recordCmdBuffer();
 
 	auto swapchainExtent = vkSwapChainWrapper.getSwapChainExtent();
 
@@ -28,7 +28,7 @@ void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper,
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassInfo.renderPass = vkRenderPassWrapper->getRenderPass();
 	renderPassInfo.framebuffer = 
-		vkFramebufferWrapper->getFramebuffers()[imageIndex];
+		vkFramebuffer->vkFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = swapchainExtent;
 
@@ -36,11 +36,9 @@ void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper,
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColor;
 
-	vkCmdBeginRenderPass(vkCmdBufferWrapper.vkCmdBuffer, 
-		&renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(vkCmdBuffer.vkCmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(vkCmdBufferWrapper.vkCmdBuffer,
-		VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+	vkCmdBindPipeline(vkCmdBuffer.vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -49,18 +47,18 @@ void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper,
 	viewport.height = (float)swapchainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(vkCmdBufferWrapper.vkCmdBuffer, 0, 1, &viewport);
+	vkCmdSetViewport(vkCmdBuffer.vkCmdBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
 	scissor.extent = swapchainExtent;
-	vkCmdSetScissor(vkCmdBufferWrapper.vkCmdBuffer, 0, 1, &scissor);
+	vkCmdSetScissor(vkCmdBuffer.vkCmdBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(vkCmdBufferWrapper.vkCmdBuffer, 3, 1, 0, 0);
+	vkCmdDraw(vkCmdBuffer.vkCmdBuffer, 3, 1, 0, 0);
 
-	vkCmdEndRenderPass(vkCmdBufferWrapper.vkCmdBuffer);
+	vkCmdEndRenderPass(vkCmdBuffer.vkCmdBuffer);
 
-	auto vkEndCommandBufferResult = vkEndCommandBuffer(vkCmdBufferWrapper.vkCmdBuffer);
+	auto vkEndCommandBufferResult = vkEndCommandBuffer(vkCmdBuffer.vkCmdBuffer);
 	logger.LogResult("vkEndCommandBuffer =>", vkEndCommandBufferResult);
 }
 
@@ -90,7 +88,7 @@ void VkPipelineWrapper::init() {
 	vkPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
 	vkPipelineInfo.basePipelineIndex = -1; // optional
 
-	auto vkCreateGraphicsPipelineResult = vkCreateGraphicsPipelines(vkDeviceWrapper.vkDevice,
+	auto vkCreateGraphicsPipelineResult = vkCreateGraphicsPipelines(_vkDevice.vkDevice,
 		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr,
 		&vkPipeline);
 	logger.LogResult("vkCreateGraphicsPipeline =>", vkCreateGraphicsPipelineResult);
@@ -102,24 +100,28 @@ void VkPipelineWrapper::init() {
 // Private
 
 void VkPipelineWrapper::initGraphicsPipeline() {
-	vkGraphicsPipeline = std::make_unique<VkGraphicsPipeline>(vkDeviceWrapper);
+	vkGraphicsPipeline = std::make_unique<VkGraphicsPipeline>(_vkDevice);
 	vkGraphicsPipeline->init();
 }
 
 void VkPipelineWrapper::initFixedFunctionState() {
 	vkFixedFunctionWrapper = std::make_unique<VkFixedFunctionWrapper>(
-		vkDeviceWrapper, vkSwapChainWrapper);
+		_vkDevice, vkSwapChainWrapper);
 	vkFixedFunctionWrapper->init();
 }
 
 void VkPipelineWrapper::initRenderPass() {
 	vkRenderPassWrapper = std::make_unique<VkRenderPassWrapper>(
-		vkDeviceWrapper, vkSwapChainWrapper);
+		_vkDevice, vkSwapChainWrapper);
 	vkRenderPassWrapper->init();
 }
 
 void VkPipelineWrapper::initFramebuffers() {
-	vkFramebufferWrapper = std::make_unique<VkFramebufferWrapper>(
-		vkDeviceWrapper, vkSwapChainWrapper, *vkRenderPassWrapper);
-	vkFramebufferWrapper->init();
+	vkFramebuffer = std::make_unique<_VkFramebuffer>();
+
+	vkFramebuffer->pSwapchainWrapper = &vkSwapChainWrapper;
+	vkFramebuffer->pDevice = &_vkDevice.vkDevice;
+	vkFramebuffer->pRenderPass = &vkRenderPassWrapper->getRenderPass();
+
+	vkFramebuffer->create();
 }

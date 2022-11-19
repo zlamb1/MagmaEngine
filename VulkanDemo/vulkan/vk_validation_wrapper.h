@@ -4,21 +4,19 @@
 
 #include <vulkan/vulkan.h>
 
-class VkValidationWrapper {
+class _VkValidation {
 
-	public:
+public:
+	bool vkValidationEnabled = true; 
 
-		bool enabled = true; 
+	size_t size();
+	const char* const* data();
 
-		size_t size();
-		const char* const* data();
+	bool ensureRequiredLayers();
 
-		bool ensureRequiredLayers();
-
-	private:
-
-		const std::vector<const char*> validationLayers = {
-			"VK_LAYER_KHRONOS_validation"
-		};
+private:
+	const std::vector<const char*> vkValidationLayers = {
+		"VK_LAYER_KHRONOS_validation"
+	};
 
 };
