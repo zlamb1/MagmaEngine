@@ -8,11 +8,21 @@ Application& Application::instance() {
 }
 
 int Application::run() {
-    initWindow();
-    initVulkan();
-    mainLoop();
+
+    int exit_status = EXIT_SUCCESS;
+
+    try {
+        initWindow();
+        initVulkan();
+        mainLoop();
+    }
+    catch (const std::runtime_error& error) {
+        std::cout << error.what() << std::endl;
+        exit_status = EXIT_FAILURE;
+    }   
 
     system("pause");
+
     return EXIT_SUCCESS;
 }
 
@@ -37,7 +47,7 @@ void Application::initVulkan() {
 
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
-        //vulkanAPI->newFrame();
+        vulkanAPI->newFrame();
 
         glfwPollEvents();
     }

@@ -8,7 +8,9 @@
 
 // Public
 
-VulkanAPI::VulkanAPI(GLFWwindow& _window) : window{ _window } 
+VulkanAPI::VulkanAPI(GLFWwindow& _window) : 
+    logger{ _VkLogger::Instance() },
+    window{ _window }
 {
 
 }
@@ -65,9 +67,10 @@ void VulkanAPI::newFrame() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(vkDeviceWrapper->vkGraphicsQueue, 1,
-        &submitInfo, vkSyncWrapper->getFlightFence()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to submit draw command buffer!");
+    auto vkQueueSubmitResult = vkQueueSubmit(vkDeviceWrapper->vkGraphicsQueue, 1,
+        &submitInfo, vkSyncWrapper->getFlightFence());
+    if (vkQueueSubmitResult != VK_SUCCESS) {
+        logger.LogResult("vkQueueSubmitResult Error => ", vkQueueSubmitResult);
     }
 
     VkPresentInfoKHR presentInfo{};
@@ -113,13 +116,15 @@ void VulkanAPI::init() {
 // Private
 
 void VulkanAPI::initInstance() {
+
     if (vkValidationWrapper.enabled && !vkValidationWrapper.ensureRequiredLayers()) {
-        throw std::runtime_error("validation layers requested, but not available!");
+        // TODO: add check to see if layers are strictly necessary
+        logger.LogText("Validation layers were requested but are not available!");
     }
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = "VulkanDemo";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -134,22 +139,37 @@ void VulkanAPI::initInstance() {
     createInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+
     if (vkValidationWrapper.enabled) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(vkValidationWrapper.size());
         createInfo.ppEnabledLayerNames = vkValidationWrapper.data();
 
         vkDebugWrapper->populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-    }
-    else {
+    } else {
         createInfo.enabledLayerCount = 0;
         createInfo.pNext = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &vkInstance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
-    }
+    auto result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
+    switch (result) {
+        case VK_ERROR_LAYER_NOT_PRESENT:
+            logger.LogText("vkCreateInstance: failed to find required layers");
+            logger.LogText("Trying vkCreateInstance again...");
 
+            createInfo.enabledLayerCount = 0;
+            createInfo.ppEnabledLayerNames = nullptr;
+
+            // try to create instance again with no layers
+            result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
+            logger.LogResult("vkCreateInstance Error =>", result);
+            break;
+        case VK_SUCCESS:
+            break;
+        default:
+            logger.LogResult("vkCreateInstance Error =>", result);
+            break;
+    }
 }
 
 void VulkanAPI::initSurface() {
@@ -163,10 +183,7 @@ void VulkanAPI::initDevice() {
     vkDeviceWrapper->pSurfaceKHR = &vkSurfaceWrapper->getSurface();
     vkDeviceWrapper->pValidationWrapper = &vkValidationWrapper;
 
-    if (vkDeviceWrapper->create() != VK_SUCCESS) {
-        throw new std::runtime_error("could not create vkDeviceWrapper!");
-    }
-
+    auto vkDeviceCreateResult = vkDeviceWrapper->create();
 }
 
 void VulkanAPI::initSwapChain() {
@@ -185,15 +202,19 @@ void VulkanAPI::initCmdWrapper() {
     vkCmdPoolWrapper = new VkCmdPoolWrapper();
     vkCmdPoolWrapper->pDevice = &vkDeviceWrapper->vkDevice;
     vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->vkQueueFamily;
-    if (vkCmdPoolWrapper->create() != VK_SUCCESS) {
-        throw new std::runtime_error("could not create vkCmdPoolWrapper");
+
+    auto vkCreateCommandPoolResult = vkCmdPoolWrapper->create();
+    if (vkCreateCommandPoolResult != VK_SUCCESS) {
+        logger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
     }
 
     vkCmdBufferWrapper = new VkCmdBufferWrapper();
     vkCmdBufferWrapper->pCmdPool = vkCmdPoolWrapper;
     vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->vkDevice;
-    if (vkCmdBufferWrapper->create() != VK_SUCCESS) {
-        throw new std::runtime_error("could not create vkCmdBufferWrapper");
+
+    auto vkAllocateCommandBuffersResult = vkCmdBufferWrapper->create();
+    if (vkAllocateCommandBuffersResult != VK_SUCCESS) {
+        logger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
     }
 }
 

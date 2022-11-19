@@ -1,10 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 #include <GLFW/glfw3.h>
+
 #include <vulkan/vulkan.h>
 
+#include "vk_logger.h"
 #include "vk_debug_wrapper.h"
 #include "vk_device_wrapper.h"
 #include "vk_surface_wrapper.h"
@@ -26,6 +29,8 @@ class VulkanAPI {
 		void init();
 
 	private:
+
+		_VkLogger& logger; 
 
 		GLFWwindow& window;
 

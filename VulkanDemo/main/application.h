@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include <GLFW/glfw3.h>
 
 #include "../vulkan/vulkan_api.h"

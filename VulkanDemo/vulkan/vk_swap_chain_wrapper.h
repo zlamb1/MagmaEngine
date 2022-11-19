@@ -1,11 +1,11 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
-
 #include <algorithm> // std::numeric_limits
 #include <limits>    // std::clamp
 #include <vector>
+
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 #include "vk_device_wrapper.h"
 

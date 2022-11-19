@@ -126,6 +126,8 @@ VkDeviceWrapper::~VkDeviceWrapper() {
 
 VkResult VkDeviceWrapper::create() {
 
+    _VkLogger& logger = _VkLogger::Instance();
+
     vkPhysicalDevice = VK_NULL_HANDLE;
 
     if (pInstance == nullptr || pSurfaceKHR == nullptr) {
@@ -136,7 +138,8 @@ VkResult VkDeviceWrapper::create() {
     vkEnumeratePhysicalDevices(*pInstance, &deviceCount, nullptr);
 
     if (deviceCount == 0) {
-        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+        logger.LogText("Could not find a GPU with Vulkan support!");
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -150,18 +153,15 @@ VkResult VkDeviceWrapper::create() {
     }
 
     if (vkPhysicalDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable GPU!");
+
+        logger.LogText("Could not find a GPU that is suitable!");
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     // Create Logical Device
 
     vkQueueFamily = VkDeviceUtility::findQueueFamily(
         vkPhysicalDevice, *pSurfaceKHR, VK_QUEUE_GRAPHICS_BIT);
-
-    std::cout << "Device found: " << vkPhysicalDevice << std::endl;
-    std::cout << "\tGraphics queue index: " << vkQueueFamily.getGraphics() << std::endl;
-    std::cout << "\tPresentation queue index: " << vkQueueFamily.getPresentation() 
-        << std::endl << std::endl;
 
     VkDeviceQueueCreateInfo queueCreateInfo{};
 
@@ -193,20 +193,18 @@ VkResult VkDeviceWrapper::create() {
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &vkDevice) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create logical device!");
+    auto vkCreateDeviceResult = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &vkDevice);
+    if (vkCreateDeviceResult != VK_SUCCESS) {
+        logger.LogResult("vkCreateDeviceResult =>", vkCreateDeviceResult);
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    std::cout << "Queue creation:" << std::endl;
     vkGetDeviceQueue(vkDevice, vkQueueFamily.getGraphics(), 0,
         &vkGraphicsQueue);
-    std::cout << "\tCreated graphics queue" << std::endl;
     vkGetDeviceQueue(vkDevice, vkQueueFamily.getPresentation(), 0,
         &vkPresentationQueue);
-    std::cout << "\tCreated present queue" << std::endl << std::endl;
 
     return VK_SUCCESS;
-
 }
 
 SwapChainSupportDetails VkDeviceWrapper::querySwapChainSupport() {

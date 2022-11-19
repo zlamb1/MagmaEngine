@@ -8,6 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk_logger.h"
 #include "vk_surface_wrapper.h"
 #include "vk_validation_wrapper.h"
 
