@@ -37,7 +37,7 @@ void Application::initVulkan() {
 
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
-        vulkanAPI->newFrame();
+        //vulkanAPI->newFrame();
 
         glfwPollEvents();
     }

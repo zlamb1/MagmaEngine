@@ -11,7 +11,7 @@ VkRenderPassWrapper::VkRenderPassWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 }
 
 VkRenderPassWrapper::~VkRenderPassWrapper() {
-    vkDestroyRenderPass(vkDeviceWrapper.getLogicalDevice(), 
+    vkDestroyRenderPass(vkDeviceWrapper.vkDevice,
         vkRenderPass, nullptr);
 }
 
@@ -42,7 +42,7 @@ void VkRenderPassWrapper::init() {
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
 
-    if (vkCreateRenderPass(vkDeviceWrapper.getLogicalDevice(), 
+    if (vkCreateRenderPass(vkDeviceWrapper.vkDevice,
         &renderPassInfo, nullptr, &vkRenderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }

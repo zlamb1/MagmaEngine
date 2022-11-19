@@ -33,13 +33,13 @@ VulkanAPI::~VulkanAPI() {
 }
 
 void VulkanAPI::newFrame() {
-    vkWaitForFences(vkDeviceWrapper->getLogicalDevice(), 1, 
+    vkWaitForFences(vkDeviceWrapper->vkDevice, 1,
         &vkSyncWrapper->getFlightFence(), VK_TRUE, UINT64_MAX);
-    vkResetFences(vkDeviceWrapper->getLogicalDevice(), 
+    vkResetFences(vkDeviceWrapper->vkDevice,
         1, &vkSyncWrapper->getFlightFence());
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(vkDeviceWrapper->getLogicalDevice(), 
+    vkAcquireNextImageKHR(vkDeviceWrapper->vkDevice,
         vkSwapChainWrapper->getSwapchain(), UINT64_MAX,
         vkSyncWrapper->getImageSemaphore(), VK_NULL_HANDLE, &imageIndex);
 
@@ -65,7 +65,7 @@ void VulkanAPI::newFrame() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(vkDeviceWrapper->getGraphicsQueue(), 1,
+    if (vkQueueSubmit(vkDeviceWrapper->vkGraphicsQueue, 1,
         &submitInfo, vkSyncWrapper->getFlightFence()) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
@@ -79,14 +79,16 @@ void VulkanAPI::newFrame() {
     VkSwapchainKHR swapChains[] = { 
         vkSwapChainWrapper->getSwapchain() 
     };
+
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(vkDeviceWrapper->getPresentationQueue(), &presentInfo);
+    vkQueuePresentKHR(vkDeviceWrapper->vkPresentationQueue, &presentInfo);
 
-    vkDeviceWaitIdle(vkDeviceWrapper->getLogicalDevice());
+    // allows for clean exit 
+    vkDeviceWaitIdle(vkDeviceWrapper->vkDevice);
 }
 
 void VulkanAPI::init() {
@@ -155,9 +157,16 @@ void VulkanAPI::initSurface() {
 }
 
 void VulkanAPI::initDevice() {
-    vkDeviceWrapper = new VkDeviceWrapper(
-        vkInstance, *vkSurfaceWrapper,
-        vkValidationWrapper, debugMode);
+    vkDeviceWrapper = new VkDeviceWrapper();
+
+    vkDeviceWrapper->pInstance = &vkInstance;
+    vkDeviceWrapper->pSurfaceKHR = &vkSurfaceWrapper->getSurface();
+    vkDeviceWrapper->pValidationWrapper = &vkValidationWrapper;
+
+    if (vkDeviceWrapper->create() != VK_SUCCESS) {
+        throw new std::runtime_error("could not create vkDeviceWrapper!");
+    }
+
 }
 
 void VulkanAPI::initSwapChain() {
@@ -174,15 +183,15 @@ void VulkanAPI::initPipeline() {
 void VulkanAPI::initCmdWrapper() {
     
     vkCmdPoolWrapper = new VkCmdPoolWrapper();
-    vkCmdPoolWrapper->pDevice = &vkDeviceWrapper->getLogicalDevice();
-    vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->getQueueFamily();
+    vkCmdPoolWrapper->pDevice = &vkDeviceWrapper->vkDevice;
+    vkCmdPoolWrapper->pQueueFamily = &vkDeviceWrapper->vkQueueFamily;
     if (vkCmdPoolWrapper->create() != VK_SUCCESS) {
         throw new std::runtime_error("could not create vkCmdPoolWrapper");
     }
 
     vkCmdBufferWrapper = new VkCmdBufferWrapper();
     vkCmdBufferWrapper->pCmdPool = vkCmdPoolWrapper;
-    vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->getLogicalDevice();
+    vkCmdBufferWrapper->pDevice = &vkDeviceWrapper->vkDevice;
     if (vkCmdBufferWrapper->create() != VK_SUCCESS) {
         throw new std::runtime_error("could not create vkCmdBufferWrapper");
     }

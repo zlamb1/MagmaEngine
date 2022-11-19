@@ -9,11 +9,11 @@ VkSyncWrapper::VkSyncWrapper(VkDeviceWrapper& _vkDeviceWrapper) :
 }
 
 VkSyncWrapper::~VkSyncWrapper() {
-    vkDestroySemaphore(vkDeviceWrapper.getLogicalDevice(), 
+    vkDestroySemaphore(vkDeviceWrapper.vkDevice,
         vkImageSemaphore, nullptr);
-    vkDestroySemaphore(vkDeviceWrapper.getLogicalDevice(), 
+    vkDestroySemaphore(vkDeviceWrapper.vkDevice,
         vkRenderSemaphore, nullptr);
-    vkDestroyFence(vkDeviceWrapper.getLogicalDevice(), vkFlightFence, nullptr);
+    vkDestroyFence(vkDeviceWrapper.vkDevice, vkFlightFence, nullptr);
 }
 
 VkFence& VkSyncWrapper::getFlightFence() {
@@ -36,11 +36,11 @@ void VkSyncWrapper::init() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(vkDeviceWrapper.getLogicalDevice(),
+    if (vkCreateSemaphore(vkDeviceWrapper.vkDevice,
         &semaphoreInfo, nullptr, &vkImageSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(vkDeviceWrapper.getLogicalDevice(), 
+        vkCreateSemaphore(vkDeviceWrapper.vkDevice,
             &semaphoreInfo, nullptr, &vkRenderSemaphore) != VK_SUCCESS ||
-        vkCreateFence(vkDeviceWrapper.getLogicalDevice(), 
+        vkCreateFence(vkDeviceWrapper.vkDevice,
             &fenceInfo, nullptr, &vkFlightFence) != VK_SUCCESS) {
         throw std::runtime_error("failed to create semaphores!");
     }

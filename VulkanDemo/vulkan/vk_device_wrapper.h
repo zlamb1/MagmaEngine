@@ -14,81 +14,48 @@
 struct QueueFamily {
 
 	std::optional<uint32_t> graphics;
-	std::optional<uint32_t> present;
+	std::optional<uint32_t> presentation;
 
 	uint32_t getGraphics() {
 		return graphics.value();
 	}
 
-	uint32_t getPresent() {
-		return present.value();
+	uint32_t getPresentation() {
+		return presentation.value();
 	}
 
 	bool isComplete() {
-		return graphics.has_value() && present.has_value();
+		return graphics.has_value() && presentation.has_value();
 	}
 
 };
 
 struct SwapChainSupportDetails {
 	VkSurfaceCapabilitiesKHR capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR> presentModes; 
+	std::vector<VkSurfaceFormatKHR> formats{};
+	std::vector<VkPresentModeKHR> presentModes{};
 };
 
-class VkDeviceWrapper {
+struct VkDeviceWrapper {
 
-	public:
+	VkDeviceWrapper() {}
+	~VkDeviceWrapper();
 
-		VkDeviceWrapper(VkInstance& _vkInstance, 
-			VkSurfaceWrapper& _vkSurfaceWrapper,
-			VkValidationWrapper& _vkValidationWrapper);
-		VkDeviceWrapper(VkInstance& _vkInstance,
-			VkSurfaceWrapper& _vkSurfaceWrapper,
-			VkValidationWrapper& _vkValidationWrapper,
-			bool _debug);
-		~VkDeviceWrapper();
+	VkInstance* pInstance = nullptr;
+	VkSurfaceKHR* pSurfaceKHR = nullptr;
+	VkValidationWrapper* pValidationWrapper = nullptr;
 
-		VkPhysicalDevice& getPhysicalDevice();
-		VkDevice& getLogicalDevice();
+	VkPhysicalDevice vkPhysicalDevice{};
+	VkDevice vkDevice{};
 
-		QueueFamily family;
+	QueueFamily vkQueueFamily{};
+	VkQueue vkGraphicsQueue{}, vkPresentationQueue{};
 
-		QueueFamily& getQueueFamily();
+	const std::vector<const char*> vkReqExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
 
-		VkQueue& getGraphicsQueue();
-		VkQueue& getPresentationQueue();
-
-		QueueFamily findQueueFamily(VkQueueFlagBits flags);
-		SwapChainSupportDetails querySwapChainSupport();
-
-	private:
-
-		VkInstance& vkInstance;
-		VkValidationWrapper& vkValidationWrapper;
-		VkSurfaceWrapper& vkSurfaceWrapper;
-
-		VkPhysicalDevice vkPhysicalDevice;
-		VkDevice vkLogicalDevice;
-		VkQueue vkGraphicsQueue, vkPresentQueue;
-
-		const std::vector<const char*> requiredDeviceExtensions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
-
-		bool debug;
-
-		void selectPhysicalDevice();
-		bool isDeviceSuitable(VkPhysicalDevice device);
-		bool checkDeviceExtensionsSupport(VkPhysicalDevice& device);
-		void createLogicalDevice();
-
-		static QueueFamily findQueueFamily(
-			VkPhysicalDevice& device, 
-			VkSurfaceKHR& surface, 
-			VkQueueFlagBits flags);
-
-		static SwapChainSupportDetails querySwapChainSupport(
-			VkPhysicalDevice& device, VkSurfaceKHR& surface);
+	VkResult create();
+	SwapChainSupportDetails querySwapChainSupport();
 
 };

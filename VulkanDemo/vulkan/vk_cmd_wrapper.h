@@ -13,9 +13,9 @@ struct VkCmdPoolWrapper : VulkanWrapper {
 	VkCmdPoolWrapper() {};
 	~VkCmdPoolWrapper();
 
-	VkResult create();
-
 	VkCommandPool vkCmdPool{};
+
+	VkResult create();
 
 };
 
@@ -27,11 +27,11 @@ struct VkCmdBufferWrapper {
 	VkCmdBufferWrapper() {};
 	~VkCmdBufferWrapper();
 
+	VkCommandBuffer vkCmdBuffer{};
+
 	VkResult create();
 
 	VkResult recordCmdBuffer();
 	void resetCmdBuffer();
-
-	VkCommandBuffer vkCmdBuffer{};
 
 };

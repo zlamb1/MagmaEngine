@@ -12,7 +12,7 @@ VkFramebufferWrapper::VkFramebufferWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 
 VkFramebufferWrapper::~VkFramebufferWrapper() {
     for (auto framebuffer : vkFramebuffers) {
-        vkDestroyFramebuffer(vkDeviceWrapper.getLogicalDevice(), 
+        vkDestroyFramebuffer(vkDeviceWrapper.vkDevice,
             framebuffer, nullptr);
     }
 }
@@ -38,7 +38,7 @@ void VkFramebufferWrapper::init() {
         framebufferInfo.height = vkSwapChainWrapper.getSwapChainExtent().height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(vkDeviceWrapper.getLogicalDevice(), 
+        if (vkCreateFramebuffer(vkDeviceWrapper.vkDevice,
             &framebufferInfo, nullptr, &vkFramebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }

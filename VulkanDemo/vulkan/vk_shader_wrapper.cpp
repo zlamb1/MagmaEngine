@@ -13,7 +13,7 @@ VkShaderWrapper::VkShaderWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 }
 
 VkShaderWrapper::~VkShaderWrapper() {
-	vkDestroyShaderModule(vkDeviceWrapper.getLogicalDevice(), vkModule, nullptr);
+	vkDestroyShaderModule(vkDeviceWrapper.vkDevice, vkModule, nullptr);
 }
 
 VkPipelineShaderStageCreateInfo& VkShaderWrapper::getShaderStageInfo() {
@@ -31,7 +31,7 @@ void VkShaderWrapper::initModule(const char* shaderCode,
 	createInfo.codeSize = result.size() * sizeof(uint32_t);
 	createInfo.pCode = reinterpret_cast<const uint32_t*>(result.data());
 
-	if (vkCreateShaderModule(vkDeviceWrapper.getLogicalDevice(), 
+	if (vkCreateShaderModule(vkDeviceWrapper.vkDevice,
 		&createInfo, nullptr, &vkModule) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create shader module!");
 	}

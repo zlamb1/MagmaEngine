@@ -12,7 +12,7 @@ VkPipelineWrapper::VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 }
 
 VkPipelineWrapper::~VkPipelineWrapper() {
-	vkDestroyPipeline(vkDeviceWrapper.getLogicalDevice(), vkPipeline, nullptr);
+	vkDestroyPipeline(vkDeviceWrapper.vkDevice, vkPipeline, nullptr);
 }
 
 void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
@@ -91,7 +91,7 @@ void VkPipelineWrapper::init() {
 	vkPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
 	vkPipelineInfo.basePipelineIndex = -1; // optional
 
-	if (vkCreateGraphicsPipelines(vkDeviceWrapper.getLogicalDevice(), 
+	if (vkCreateGraphicsPipelines(vkDeviceWrapper.vkDevice,
 		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, 
 		&vkPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics pipeline!");
