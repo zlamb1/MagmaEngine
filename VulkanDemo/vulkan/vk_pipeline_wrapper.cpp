@@ -4,7 +4,9 @@
 
 VkPipelineWrapper::VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper,
 	VkSwapChainWrapper& _vkSwapChainWrapper) :
-	vkDeviceWrapper(_vkDeviceWrapper), vkSwapChainWrapper{ _vkSwapChainWrapper }
+	logger{ _VkLogger::Instance() }, 
+	vkDeviceWrapper(_vkDeviceWrapper), 
+	vkSwapChainWrapper{_vkSwapChainWrapper}
 {
 	initGraphicsPipeline();
 	initFixedFunctionState();
@@ -17,7 +19,6 @@ VkPipelineWrapper::~VkPipelineWrapper() {
 
 void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
 	uint32_t imageIndex) {
-
 	vkCmdBufferWrapper.resetCmdBuffer();
 	vkCmdBufferWrapper.recordCmdBuffer();
 
@@ -59,10 +60,8 @@ void VkPipelineWrapper::newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper,
 
 	vkCmdEndRenderPass(vkCmdBufferWrapper.vkCmdBuffer);
 
-	if (vkEndCommandBuffer(vkCmdBufferWrapper.vkCmdBuffer)
-		!= VK_SUCCESS) {
-		throw std::runtime_error("failed to record command buffer!");
-	}
+	auto vkEndCommandBufferResult = vkEndCommandBuffer(vkCmdBufferWrapper.vkCmdBuffer);
+	logger.LogResult("vkEndCommandBuffer =>", vkEndCommandBufferResult);
 }
 
 void VkPipelineWrapper::init() {
@@ -91,15 +90,13 @@ void VkPipelineWrapper::init() {
 	vkPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
 	vkPipelineInfo.basePipelineIndex = -1; // optional
 
-	if (vkCreateGraphicsPipelines(vkDeviceWrapper.vkDevice,
-		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, 
-		&vkPipeline) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create graphics pipeline!");
-	}
-	else {
-		// initialize frame buffers after init
-		initFramebuffers();
-	}
+	auto vkCreateGraphicsPipelineResult = vkCreateGraphicsPipelines(vkDeviceWrapper.vkDevice,
+		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr,
+		&vkPipeline);
+	logger.LogResult("vkCreateGraphicsPipeline =>", vkCreateGraphicsPipelineResult);
+
+	// initialize frame buffers after init
+	initFramebuffers();
 }
 
 // Private

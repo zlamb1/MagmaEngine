@@ -16,6 +16,8 @@ VkRenderPassWrapper::~VkRenderPassWrapper() {
 }
 
 void VkRenderPassWrapper::init() {
+    auto logger = _VkLogger::Instance();
+
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = vkSwapChainWrapper.getSwapChainImageFormat();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -42,10 +44,10 @@ void VkRenderPassWrapper::init() {
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
 
-    if (vkCreateRenderPass(vkDeviceWrapper.vkDevice,
-        &renderPassInfo, nullptr, &vkRenderPass) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create render pass!");
-    }
+
+    auto vkCreateRenderPassResult = vkCreateRenderPass(vkDeviceWrapper.vkDevice,
+        &renderPassInfo, nullptr, &vkRenderPass);
+    logger.LogResult("vkCreateRenderPass =>", vkCreateRenderPassResult);
 }
 
 VkRenderPass& VkRenderPassWrapper::getRenderPass() {

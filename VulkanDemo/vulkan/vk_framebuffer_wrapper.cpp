@@ -22,6 +22,8 @@ std::vector<VkFramebuffer>& VkFramebufferWrapper::getFramebuffers() {
 }
 
 void VkFramebufferWrapper::init() {
+    auto logger = _VkLogger::Instance();
+
 	vkFramebuffers.resize(vkSwapChainWrapper.getImageViews().size());
 
     for (size_t i = 0; i < vkSwapChainWrapper.getImageViews().size(); i++) {
@@ -38,9 +40,8 @@ void VkFramebufferWrapper::init() {
         framebufferInfo.height = vkSwapChainWrapper.getSwapChainExtent().height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(vkDeviceWrapper.vkDevice,
-            &framebufferInfo, nullptr, &vkFramebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
+        auto vkCreateFramebufferResult = vkCreateFramebuffer(vkDeviceWrapper.vkDevice,
+            &framebufferInfo, nullptr, &vkFramebuffers[i]);
+        logger.LogResult("vkCreateFramebuffer =>", vkCreateFramebufferResult);
     }
 }

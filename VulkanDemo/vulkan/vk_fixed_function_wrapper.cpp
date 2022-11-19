@@ -181,6 +181,7 @@ void VkFixedFunctionWrapper::initColorBlending() {
 }
 
 void VkFixedFunctionWrapper::initPipelineLayout() {
+    auto logger = _VkLogger::Instance();
 
     vkPipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     vkPipelineLayoutInfo.setLayoutCount = 0; // optional
@@ -188,9 +189,8 @@ void VkFixedFunctionWrapper::initPipelineLayout() {
     vkPipelineLayoutInfo.pushConstantRangeCount = 0; // optional
     vkPipelineLayoutInfo.pPushConstantRanges = nullptr; // optional
 
-    if (vkCreatePipelineLayout(vkDeviceWrapper.vkDevice, &vkPipelineLayoutInfo,
-        nullptr, &vkPipelineLayout) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create pipeline layout!");
-    }
-
+    auto vkCreatePipelineLayoutResult = vkCreatePipelineLayout(
+        vkDeviceWrapper.vkDevice, &vkPipelineLayoutInfo,
+        nullptr, &vkPipelineLayout);
+    logger.LogResult("vkCreatePipelineLayout =>", vkCreatePipelineLayoutResult);
 }

@@ -20,7 +20,5 @@ void VkSurfaceWrapper::Initialize() {
     auto logger = _VkLogger::Instance();
     auto createWindowSurfaceResult = glfwCreateWindowSurface(
         vkInstance, &glfwWindow, nullptr, &vkSurfaceKHR);
-    if (createWindowSurfaceResult != VK_SUCCESS) {
-        logger.LogResult("glfwCreateWindowSurface =>", createWindowSurfaceResult);
-    }
+    logger.LogResult("glfwCreateWindowSurface =>", createWindowSurfaceResult);
 }

@@ -13,15 +13,10 @@ VkResult VkCmdPoolWrapper::create() {
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.queueFamilyIndex = pQueueFamily->getGraphics();
 
-	return vkCreateCommandPool(*pDevice, &poolInfo, 
-		pAllocator, &vkCmdPool);
+	return vkCreateCommandPool(*pDevice, &poolInfo, pAllocator, &vkCmdPool);
 }
 
 // VkCmdBufferWrapper Implementation
-
-VkCmdBufferWrapper::~VkCmdBufferWrapper() {
-	
-}
 
 VkResult VkCmdBufferWrapper::create() {
 	VkCommandBufferAllocateInfo allocInfo{};
@@ -31,8 +26,7 @@ VkResult VkCmdBufferWrapper::create() {
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = 1;
 
-	return vkAllocateCommandBuffers(*pDevice, &allocInfo,
-		&vkCmdBuffer);
+	return vkAllocateCommandBuffers(*pDevice, &allocInfo, &vkCmdBuffer);
 }
 
 VkResult VkCmdBufferWrapper::recordCmdBuffer() {

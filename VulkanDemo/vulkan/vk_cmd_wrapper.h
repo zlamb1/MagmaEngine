@@ -25,7 +25,6 @@ struct VkCmdBufferWrapper {
 	VkCmdPoolWrapper* pCmdPool = nullptr;
 
 	VkCmdBufferWrapper() {};
-	~VkCmdBufferWrapper();
 
 	VkCommandBuffer vkCmdBuffer{};
 

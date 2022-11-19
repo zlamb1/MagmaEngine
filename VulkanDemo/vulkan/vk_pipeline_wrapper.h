@@ -11,32 +11,34 @@
 
 class VkPipelineWrapper {
 
-	public:
+public:
+	VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper, 
+		VkSwapChainWrapper& _vkSwapChainWrapper);
+	~VkPipelineWrapper();
 
-		VkPipelineWrapper(VkDeviceWrapper& _vkDeviceWrapper, 
-			VkSwapChainWrapper& _vkSwapChainWrapper);
-		~VkPipelineWrapper();
+	void init();
 
-		void newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
-			uint32_t imageIndex);
+	void newFrame(VkCmdBufferWrapper& vkCmdBufferWrapper, 
+		uint32_t imageIndex);
 
-		void init();
+private:
 
-	private:
+	_VkLogger& logger;
 
-		VkDeviceWrapper& vkDeviceWrapper;
-		VkSwapChainWrapper& vkSwapChainWrapper;
+	VkDeviceWrapper& vkDeviceWrapper;
+	VkSwapChainWrapper& vkSwapChainWrapper;
 
-		std::unique_ptr<VkGraphicsPipeline> vkGraphicsPipeline;
-		std::unique_ptr<VkFixedFunctionWrapper> vkFixedFunctionWrapper;
-		std::unique_ptr<VkRenderPassWrapper> vkRenderPassWrapper;
-		std::unique_ptr<VkFramebufferWrapper> vkFramebufferWrapper;
+	// store as unique pointers as destruction order doesn't matter
+	std::unique_ptr<VkGraphicsPipeline> vkGraphicsPipeline;
+	std::unique_ptr<VkFixedFunctionWrapper> vkFixedFunctionWrapper;
+	std::unique_ptr<VkRenderPassWrapper> vkRenderPassWrapper;
+	std::unique_ptr<VkFramebufferWrapper> vkFramebufferWrapper;
 
-		VkPipeline vkPipeline;
+	VkPipeline vkPipeline;
 
-		void initGraphicsPipeline();
-		void initFixedFunctionState();
-		void initRenderPass();
-		void initFramebuffers();
+	void initGraphicsPipeline();
+	void initFixedFunctionState();
+	void initRenderPass();
+	void initFramebuffers();
 		
 };

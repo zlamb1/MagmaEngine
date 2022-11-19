@@ -29,6 +29,8 @@ VkSemaphore& VkSyncWrapper::getRenderSemaphore() {
 }
 
 void VkSyncWrapper::init() {
+    auto logger = _VkLogger::Instance();
+
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -36,12 +38,10 @@ void VkSyncWrapper::init() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(vkDeviceWrapper.vkDevice,
-        &semaphoreInfo, nullptr, &vkImageSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(vkDeviceWrapper.vkDevice,
-            &semaphoreInfo, nullptr, &vkRenderSemaphore) != VK_SUCCESS ||
-        vkCreateFence(vkDeviceWrapper.vkDevice,
-            &fenceInfo, nullptr, &vkFlightFence) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create semaphores!");
-    }
+    logger.LogResult("vkImageSemaphore =>", vkCreateSemaphore(vkDeviceWrapper.vkDevice,
+        &semaphoreInfo, nullptr, &vkImageSemaphore));
+    logger.LogResult("vkImageSemaphore =>", vkCreateSemaphore(vkDeviceWrapper.vkDevice,
+        &semaphoreInfo, nullptr, &vkRenderSemaphore));
+    logger.LogResult("vkCreateFence =>", vkCreateFence(vkDeviceWrapper.vkDevice,
+        &fenceInfo, nullptr, &vkFlightFence));
 }
