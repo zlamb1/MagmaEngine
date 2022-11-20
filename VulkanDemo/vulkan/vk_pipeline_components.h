@@ -9,7 +9,7 @@
 
 #include "vk_device_wrapper.h"
 #include "vk_swap_chain_wrapper.h"
-#include "vk_shader_wrapper.h"
+#include "vk_shader.h"
 
 struct _VkShaderPipeline : VulkanWrapper  {
 
@@ -18,7 +18,7 @@ struct _VkShaderPipeline : VulkanWrapper  {
 
 	_VkDevice* _pDevice = nullptr;
 
-	std::vector<VkShaderWrapper*> vkShaderWrappers{};
+	std::vector<_VkShader*> _vkShaders{};
 	
 	VkResult create();
 
