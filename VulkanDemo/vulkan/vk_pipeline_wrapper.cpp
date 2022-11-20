@@ -17,8 +17,7 @@ void _VkPipeline::onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex) {
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassInfo.renderPass = vkRenderPassWrapper->getRenderPass();
-	renderPassInfo.framebuffer =
-		vkFramebuffer->vkFramebuffers[imageIndex];
+	renderPassInfo.framebuffer = _vkFramebuffer->vkFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = vkSwapchainExtent;
 
@@ -64,11 +63,20 @@ VkResult _VkPipeline::create() {
 	}
 
 	// member init
-	vkGraphicsPipeline = std::make_unique<VkGraphicsPipeline>(*_pDevice);
-	vkGraphicsPipeline->init();
+	_vkShaderPipeline = std::make_unique<_VkShaderPipeline>();
 
-	vkFixedFunctionWrapper = std::make_unique<VkFixedFunctionWrapper>(*_pDevice, *_pSwapchain);
-	vkFixedFunctionWrapper->init();
+	_vkShaderPipeline->_pDevice = _pDevice;
+	_vkShaderPipeline->pAllocator = pAllocator;
+
+	_vkShaderPipeline->create();
+
+	_vkFixedFunctionState = std::make_unique<_VkFixedFunctionState>();
+
+	_vkFixedFunctionState->_pDevice = _pDevice;
+	_vkFixedFunctionState->_pSwapchain = _pSwapchain;
+	_vkFixedFunctionState->pAllocator = pAllocator;
+
+	_vkFixedFunctionState->create();
 
 	vkRenderPassWrapper = std::make_unique<VkRenderPassWrapper>(*_pDevice, *_pSwapchain);
 	vkRenderPassWrapper->init();
@@ -78,19 +86,19 @@ VkResult _VkPipeline::create() {
 	vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	vkPipelineInfo.stageCount = 2;
 
-	auto shaderStages = vkGraphicsPipeline->getShaderStages();
+	auto shaderStages = _vkShaderPipeline->getShaderStages();
 	vkPipelineInfo.pStages = shaderStages.data();
 
-	vkPipelineInfo.pVertexInputState = &vkFixedFunctionWrapper->getVertexInputState();
-	vkPipelineInfo.pInputAssemblyState = &vkFixedFunctionWrapper->getInputAssemblyState();
-	vkPipelineInfo.pViewportState = &vkFixedFunctionWrapper->getViewportState();
-	vkPipelineInfo.pRasterizationState = &vkFixedFunctionWrapper->getRasterizerState();
-	vkPipelineInfo.pMultisampleState = &vkFixedFunctionWrapper->getMultisamplingState();
-	vkPipelineInfo.pDepthStencilState = &vkFixedFunctionWrapper->getDepthStencilState(); // Optional
-	vkPipelineInfo.pColorBlendState = &vkFixedFunctionWrapper->getColorBlendState();
-	vkPipelineInfo.pDynamicState = &vkFixedFunctionWrapper->getDynamicState();
+	vkPipelineInfo.pVertexInputState = &_vkFixedFunctionState->vkVertexInputState;
+	vkPipelineInfo.pInputAssemblyState = &_vkFixedFunctionState->vkInputAssemblyState;
+	vkPipelineInfo.pViewportState = &_vkFixedFunctionState->vkViewportState;
+	vkPipelineInfo.pRasterizationState = &_vkFixedFunctionState->vkRasterizerState;
+	vkPipelineInfo.pMultisampleState = &_vkFixedFunctionState->vkMultisamplingState;
+	vkPipelineInfo.pDepthStencilState = &_vkFixedFunctionState->vkDepthStencilState; // Optional
+	vkPipelineInfo.pColorBlendState = &_vkFixedFunctionState->vkColorBlendingState;
+	vkPipelineInfo.pDynamicState = &_vkFixedFunctionState->vkDynamicState;
 
-	vkPipelineInfo.layout = vkFixedFunctionWrapper->getPipelineLayout();
+	vkPipelineInfo.layout = _vkFixedFunctionState->vkPipelineLayout;
 
 	vkPipelineInfo.renderPass = vkRenderPassWrapper->getRenderPass();
 	vkPipelineInfo.subpass = 0;
@@ -106,13 +114,13 @@ VkResult _VkPipeline::create() {
 	}
 
 	// framebuffer init
-	vkFramebuffer = std::make_unique<_VkFramebuffer>();
+	_vkFramebuffer = std::make_unique<_VkFramebuffer>();
 
-	vkFramebuffer->_pSwapchain = _pSwapchain;
-	vkFramebuffer->pDevice = &_pDevice->vkDevice;
-	vkFramebuffer->pRenderPass = &vkRenderPassWrapper->getRenderPass();
+	_vkFramebuffer->_pSwapchain = _pSwapchain;
+	_vkFramebuffer->pDevice = &_pDevice->vkDevice;
+	_vkFramebuffer->pRenderPass = &vkRenderPassWrapper->getRenderPass();
 
-	auto vkFramebufferResult = vkFramebuffer->create();
+	auto vkFramebufferResult = _vkFramebuffer->create();
 	if (vkFramebufferResult != VK_SUCCESS) {
 		return vkFramebufferResult;
 	}
