@@ -1,24 +1,31 @@
 #include "vk_surface_wrapper.h"
 
-// Public
-
-VkSurfaceWrapper::VkSurfaceWrapper(GLFWwindow& _glfwWindow, VkInstance& _vkInstance) :
-    glfwWindow{ _glfwWindow }, vkInstance{ _vkInstance }  
-{
+_VkSurface::_VkSurface() {
 
 }
 
-VkSurfaceWrapper::~VkSurfaceWrapper() {
-    vkDestroySurfaceKHR(vkInstance, vkSurfaceKHR, nullptr);
+_VkSurface::~_VkSurface() {
+    if (pInstance != nullptr) {
+        vkDestroySurfaceKHR(*pInstance, vkSurfaceKHR, nullptr);
+    }
 }
 
-VkSurfaceKHR& VkSurfaceWrapper::GetSurfaceKHR() {
-    return vkSurfaceKHR;
-}
+VkResult _VkSurface::create() {
+    auto _vkLogger = _VkLogger::Instance();
 
-void VkSurfaceWrapper::Initialize() {
-    auto logger = _VkLogger::Instance();
-    auto createWindowSurfaceResult = glfwCreateWindowSurface(
-        vkInstance, &glfwWindow, nullptr, &vkSurfaceKHR);
-    logger.LogResult("glfwCreateWindowSurface =>", createWindowSurfaceResult);
+    if (pWindow == nullptr) {
+        _vkLogger.LogText("_VkSurface => pWindow is nullptr");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (pInstance == nullptr) {
+        _vkLogger.LogText("_VkSurface => pInstance is nullptr");
+        return VK_ERROR_INITIALIZATION_FAILED; 
+    }
+
+    auto vkCreateWindowSurface = glfwCreateWindowSurface(
+        *pInstance, pWindow, nullptr, &vkSurfaceKHR);
+    _vkLogger.LogResult("glfwCreateWindowSurface =>", vkCreateWindowSurface);
+
+    return vkCreateWindowSurface;
 }

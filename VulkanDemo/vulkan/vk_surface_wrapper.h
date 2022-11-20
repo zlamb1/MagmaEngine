@@ -9,23 +9,18 @@
 #include <vulkan/vulkan.h>
 
 #include "vk_logger.h"
+#include "vk_obj.h"
 
-class VkSurfaceWrapper {
+struct _VkSurface : VulkanWrapper {
 
-public:
+	_VkSurface();
+	~_VkSurface();
 
-	VkSurfaceWrapper(GLFWwindow& _glfwWindow, VkInstance& _vkInstance);
-	~VkSurfaceWrapper();
+	GLFWwindow* pWindow;
+	VkInstance* pInstance;
 
-	void Initialize();
+	VkSurfaceKHR vkSurfaceKHR;
 
-	VkSurfaceKHR& GetSurfaceKHR();
-
-private:
-
-	GLFWwindow& glfwWindow;
-	VkInstance& vkInstance;
-
-	VkSurfaceKHR vkSurfaceKHR{};
+	VkResult create();
 
 };

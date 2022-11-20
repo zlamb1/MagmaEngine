@@ -28,7 +28,7 @@ VulkanAPI::~VulkanAPI() {
     delete _vkSwapchain;
     delete _vkDevice;
 
-    delete _vkSurfaceWrapper;
+    delete _vkSurface;
 
     delete _vkDebugWrapper;
 
@@ -172,15 +172,19 @@ void VulkanAPI::initInstance() {
 }
 
 void VulkanAPI::initSurface() {
-    _vkSurfaceWrapper = new VkSurfaceWrapper(glfwWindow, vkInstance);
-    _vkSurfaceWrapper->Initialize();
+    _vkSurface = new _VkSurface();
+
+    _vkSurface->pWindow = &glfwWindow;
+    _vkSurface->pInstance = &vkInstance;
+
+    auto vkSurfaceCreateResult = _vkSurface->create();
 }
 
 void VulkanAPI::initDevice() {
     _vkDevice = new _VkDevice();
 
     _vkDevice->pInstance = &vkInstance;
-    _vkDevice->pSurfaceKHR = &_vkSurfaceWrapper->GetSurfaceKHR();
+    _vkDevice->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
     _vkDevice->_pValidation = &_vkValidation;
 
     auto vkDeviceCreateResult = _vkDevice->create();
@@ -191,7 +195,7 @@ void VulkanAPI::initSwapChain() {
 
     _vkSwapchain->pWindow = &glfwWindow;
     _vkSwapchain->_pDevice = _vkDevice;
-    _vkSwapchain->pSurfaceKHR = &_vkSurfaceWrapper->GetSurfaceKHR();
+    _vkSwapchain->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
 
     _vkSwapchain->create();
 }

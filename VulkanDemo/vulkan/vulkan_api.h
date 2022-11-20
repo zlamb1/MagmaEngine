@@ -44,7 +44,7 @@ class VulkanAPI {
 		VkDebugWrapper* _vkDebugWrapper = nullptr;
 		_VkLogger& _vkLogger;
 
-		VkSurfaceWrapper* _vkSurfaceWrapper = nullptr;
+		_VkSurface* _vkSurface = nullptr;
 
 		_VkDevice* _vkDevice = nullptr;
 		_VkSwapchain* _vkSwapchain = nullptr;
