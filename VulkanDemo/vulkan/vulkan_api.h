@@ -48,7 +48,7 @@ class VulkanAPI {
 
 		_VkDevice* _vkDevice = nullptr;
 		_VkSwapchain* _vkSwapchain = nullptr;
-		VkPipelineWrapper* _vkPipelineWrapper = nullptr;
+		_VkPipeline* _vkPipeline = nullptr;
 		
 		_VkCmdPool* _vkCmdPool = nullptr;
 		_VkCmdBuffer* _vkCmdBuffer = nullptr;

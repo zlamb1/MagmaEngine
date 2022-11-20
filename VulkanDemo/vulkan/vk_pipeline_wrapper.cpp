@@ -1,33 +1,23 @@
 #include "vk_pipeline_wrapper.h"
 
-// Public
+_VkPipeline::_VkPipeline() : _vkLogger{ _VkLogger::Instance() } {
 
-VkPipelineWrapper::VkPipelineWrapper(_VkDevice& _vkDevice,
-	_VkSwapchain& _vkSwapchain) :
-	_vkLogger{ _VkLogger::Instance() }, 
-	_vkDevice( _vkDevice ),
-	_vkSwapchain{ _vkSwapchain }
-{
-	initGraphicsPipeline();
-	initFixedFunctionState();
-	initRenderPass();
 }
 
-VkPipelineWrapper::~VkPipelineWrapper() {
-	vkDestroyPipeline(_vkDevice.vkDevice, vkPipeline, nullptr);
+_VkPipeline::~_VkPipeline() {
+	vkDestroyPipeline(_pDevice->vkDevice, vkPipeline, nullptr);
 }
 
-void VkPipelineWrapper::newFrame(_VkCmdBuffer& vkCmdBuffer, 
-	uint32_t imageIndex) {
+void _VkPipeline::onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex) {
 	vkCmdBuffer.resetCmdBuffer();
 	vkCmdBuffer.recordCmdBuffer();
 
-	auto vkSwapchainExtent = _vkSwapchain.vkSwapchainExtent;
+	auto vkSwapchainExtent = _pSwapchain->vkSwapchainExtent;
 
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassInfo.renderPass = vkRenderPassWrapper->getRenderPass();
-	renderPassInfo.framebuffer = 
+	renderPassInfo.framebuffer =
 		vkFramebuffer->vkFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = vkSwapchainExtent;
@@ -62,8 +52,28 @@ void VkPipelineWrapper::newFrame(_VkCmdBuffer& vkCmdBuffer,
 	_vkLogger.LogResult("vkEndCommandBuffer =>", vkEndCommandBufferResult);
 }
 
-void VkPipelineWrapper::init() {
+VkResult _VkPipeline::create() {
+	if (_pDevice == nullptr) {
+		_vkLogger.LogText("_VkPipeline => _pDevice is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
 
+	if (_pSwapchain == nullptr) {
+		_vkLogger.LogText("_VkPipeline => _pSwapchain is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	// member init
+	vkGraphicsPipeline = std::make_unique<VkGraphicsPipeline>(*_pDevice);
+	vkGraphicsPipeline->init();
+
+	vkFixedFunctionWrapper = std::make_unique<VkFixedFunctionWrapper>(*_pDevice, *_pSwapchain);
+	vkFixedFunctionWrapper->init();
+
+	vkRenderPassWrapper = std::make_unique<VkRenderPassWrapper>(*_pDevice, *_pSwapchain);
+	vkRenderPassWrapper->init();
+
+	// pipeline init
 	VkGraphicsPipelineCreateInfo vkPipelineInfo{};
 	vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	vkPipelineInfo.stageCount = 2;
@@ -88,40 +98,24 @@ void VkPipelineWrapper::init() {
 	vkPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
 	vkPipelineInfo.basePipelineIndex = -1; // optional
 
-	auto vkCreateGraphicsPipelineResult = vkCreateGraphicsPipelines(_vkDevice.vkDevice,
-		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr,
-		&vkPipeline);
+	auto vkCreateGraphicsPipelineResult = vkCreateGraphicsPipelines(_pDevice->vkDevice,
+		VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &vkPipeline);
 	_vkLogger.LogResult("vkCreateGraphicsPipeline =>", vkCreateGraphicsPipelineResult);
+	if (vkCreateGraphicsPipelineResult != VK_SUCCESS) {
+		return vkCreateGraphicsPipelineResult;
+	}
 
-	// initialize frame buffers after init
-	initFramebuffers();
-}
-
-// Private
-
-void VkPipelineWrapper::initGraphicsPipeline() {
-	vkGraphicsPipeline = std::make_unique<VkGraphicsPipeline>(_vkDevice);
-	vkGraphicsPipeline->init();
-}
-
-void VkPipelineWrapper::initFixedFunctionState() {
-	vkFixedFunctionWrapper = std::make_unique<VkFixedFunctionWrapper>(
-		_vkDevice, _vkSwapchain);
-	vkFixedFunctionWrapper->init();
-}
-
-void VkPipelineWrapper::initRenderPass() {
-	vkRenderPassWrapper = std::make_unique<VkRenderPassWrapper>(
-		_vkDevice, _vkSwapchain);
-	vkRenderPassWrapper->init();
-}
-
-void VkPipelineWrapper::initFramebuffers() {
+	// framebuffer init
 	vkFramebuffer = std::make_unique<_VkFramebuffer>();
 
-	vkFramebuffer->_pSwapchain = &_vkSwapchain;
-	vkFramebuffer->pDevice = &_vkDevice.vkDevice;
+	vkFramebuffer->_pSwapchain = _pSwapchain;
+	vkFramebuffer->pDevice = &_pDevice->vkDevice;
 	vkFramebuffer->pRenderPass = &vkRenderPassWrapper->getRenderPass();
 
-	vkFramebuffer->create();
+	auto vkFramebufferResult = vkFramebuffer->create();
+	if (vkFramebufferResult != VK_SUCCESS) {
+		return vkFramebufferResult;
+	}
+
+	return VK_SUCCESS;
 }

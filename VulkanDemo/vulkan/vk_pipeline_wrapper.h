@@ -9,35 +9,25 @@
 #include "vk_framebuffer_wrapper.h"
 #include "vk_cmd_wrapper.h"
 
-class VkPipelineWrapper {
+struct _VkPipeline : VulkanWrapper {
 
-public:
-	VkPipelineWrapper(_VkDevice& _vkDevice,
-		_VkSwapchain& _vkSwapchain);
-	~VkPipelineWrapper();
+	_VkPipeline();
+	~_VkPipeline();
 
-	void init();
+	_VkLogger& _vkLogger; 
 
-	void newFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex);
+	_VkDevice* _pDevice = nullptr;
+	_VkSwapchain* _pSwapchain = nullptr;
 
-private:
-
-	_VkLogger& _vkLogger;
-
-	_VkDevice& _vkDevice;
-	_VkSwapchain& _vkSwapchain;
-
-	// store as unique pointers as destruction order doesn't matter
 	std::unique_ptr<VkGraphicsPipeline> vkGraphicsPipeline;
 	std::unique_ptr<VkFixedFunctionWrapper> vkFixedFunctionWrapper;
 	std::unique_ptr<VkRenderPassWrapper> vkRenderPassWrapper;
 	std::unique_ptr<_VkFramebuffer> vkFramebuffer;
 
-	VkPipeline vkPipeline;
+	VkPipeline vkPipeline{};
 
-	void initGraphicsPipeline();
-	void initFixedFunctionState();
-	void initRenderPass();
-	void initFramebuffers();
-		
+	VkResult create();
+
+	void onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex);
+
 };

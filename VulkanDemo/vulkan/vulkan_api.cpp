@@ -18,13 +18,12 @@ VulkanAPI::VulkanAPI(GLFWwindow& _window) :
 VulkanAPI::~VulkanAPI() {
 
     // the wrappers need to be deleted in a specific order
-
     delete _vkRenderSync;
 
     delete _vkCmdBuffer;
     delete _vkCmdPool;
 
-    delete _vkPipelineWrapper;
+    delete _vkPipeline;
     delete _vkSwapchain;
     delete _vkDevice;
 
@@ -46,7 +45,7 @@ void VulkanAPI::onNewFrame() {
         _vkSwapchain->vkSwapchainKHR, UINT64_MAX,
         _vkRenderSync->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-    _vkPipelineWrapper->newFrame(*_vkCmdBuffer, imageIndex);
+    _vkPipeline->onNewFrame(*_vkCmdBuffer, imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -201,8 +200,12 @@ void VulkanAPI::initSwapChain() {
 }
 
 void VulkanAPI::initPipeline() {
-    _vkPipelineWrapper = new VkPipelineWrapper(*_vkDevice, *_vkSwapchain);
-    _vkPipelineWrapper->init();
+    _vkPipeline = new _VkPipeline();
+
+    _vkPipeline->_pDevice = _vkDevice;
+    _vkPipeline->_pSwapchain = _vkSwapchain;
+
+    _vkPipeline->create();
 }
 
 void VulkanAPI::initCmdWrapper() {
