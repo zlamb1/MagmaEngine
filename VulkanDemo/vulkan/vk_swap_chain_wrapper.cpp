@@ -45,6 +45,10 @@ namespace _VkSwapchainUtility {
     }
 }
 
+_VkSwapchain::_VkSwapchain() {
+
+}
+
 _VkSwapchain::~_VkSwapchain() {
     if (_pDevice != nullptr) {
         vkDestroySwapchainKHR(_pDevice->vkDevice, vkSwapchainKHR, nullptr);

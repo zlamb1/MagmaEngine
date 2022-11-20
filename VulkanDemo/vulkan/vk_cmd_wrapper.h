@@ -10,7 +10,7 @@ struct _VkCmdPool : VulkanWrapper {
 	QueueFamily* pQueueFamily = nullptr;
 	VkDevice* pDevice = nullptr; 
 
-	_VkCmdPool() {};
+	_VkCmdPool();
 	~_VkCmdPool();
 
 	VkCommandPool vkCmdPool{};
@@ -24,7 +24,7 @@ struct _VkCmdBuffer {
 	VkDevice* pDevice = nullptr;
 	_VkCmdPool* pCmdPool = nullptr;
 
-	_VkCmdBuffer() {};
+	_VkCmdBuffer();
 
 	VkCommandBuffer vkCmdBuffer{};
 

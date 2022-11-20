@@ -12,7 +12,7 @@
 
 struct _VkSwapchain : VulkanWrapper {
 
-	_VkSwapchain() {}
+	_VkSwapchain();
 	~_VkSwapchain();
 
 	GLFWwindow* pWindow = nullptr;

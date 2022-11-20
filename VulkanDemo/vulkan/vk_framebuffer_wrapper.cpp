@@ -1,5 +1,9 @@
 #include "vk_framebuffer_wrapper.h"
 
+_VkFramebuffer::_VkFramebuffer() {
+
+}
+
 _VkFramebuffer::~_VkFramebuffer() {
     if (pDevice != nullptr) {
         for (auto vkFramebuffer : vkFramebuffers) {

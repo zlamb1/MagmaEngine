@@ -8,15 +8,15 @@ _VkPipeline::~_VkPipeline() {
 	vkDestroyPipeline(_pDevice->vkDevice, vkPipeline, nullptr);
 }
 
-void _VkPipeline::onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex) {
-	vkCmdBuffer.resetCmdBuffer();
-	vkCmdBuffer.recordCmdBuffer();
+void _VkPipeline::onNewFrame(_VkCmdBuffer& _vkCmdBuffer, uint32_t imageIndex) {
+	_vkCmdBuffer.resetCmdBuffer();
+	_vkCmdBuffer.recordCmdBuffer();
 
 	auto vkSwapchainExtent = _pSwapchain->vkSwapchainExtent;
 
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = vkRenderPassWrapper->getRenderPass();
+	renderPassInfo.renderPass = _vkRenderPass->vkRenderPass;
 	renderPassInfo.framebuffer = _vkFramebuffer->vkFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = vkSwapchainExtent;
@@ -25,9 +25,9 @@ void _VkPipeline::onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex) {
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColor;
 
-	vkCmdBeginRenderPass(vkCmdBuffer.vkCmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(_vkCmdBuffer.vkCmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(vkCmdBuffer.vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+	vkCmdBindPipeline(_vkCmdBuffer.vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -36,18 +36,18 @@ void _VkPipeline::onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex) {
 	viewport.height = (float)vkSwapchainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(vkCmdBuffer.vkCmdBuffer, 0, 1, &viewport);
+	vkCmdSetViewport(_vkCmdBuffer.vkCmdBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
 	scissor.extent = vkSwapchainExtent;
-	vkCmdSetScissor(vkCmdBuffer.vkCmdBuffer, 0, 1, &scissor);
+	vkCmdSetScissor(_vkCmdBuffer.vkCmdBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(vkCmdBuffer.vkCmdBuffer, 3, 1, 0, 0);
+	vkCmdDraw(_vkCmdBuffer.vkCmdBuffer, 3, 1, 0, 0);
 
-	vkCmdEndRenderPass(vkCmdBuffer.vkCmdBuffer);
+	vkCmdEndRenderPass(_vkCmdBuffer.vkCmdBuffer);
 
-	auto vkEndCommandBufferResult = vkEndCommandBuffer(vkCmdBuffer.vkCmdBuffer);
+	auto vkEndCommandBufferResult = vkEndCommandBuffer(_vkCmdBuffer.vkCmdBuffer);
 	_vkLogger.LogResult("vkEndCommandBuffer =>", vkEndCommandBufferResult);
 }
 
@@ -64,22 +64,20 @@ VkResult _VkPipeline::create() {
 
 	// member init
 	_vkShaderPipeline = std::make_unique<_VkShaderPipeline>();
-
 	_vkShaderPipeline->_pDevice = _pDevice;
 	_vkShaderPipeline->pAllocator = pAllocator;
-
 	_vkShaderPipeline->create();
 
 	_vkFixedFunctionState = std::make_unique<_VkFixedFunctionState>();
-
 	_vkFixedFunctionState->_pDevice = _pDevice;
 	_vkFixedFunctionState->_pSwapchain = _pSwapchain;
 	_vkFixedFunctionState->pAllocator = pAllocator;
-
 	_vkFixedFunctionState->create();
 
-	vkRenderPassWrapper = std::make_unique<VkRenderPassWrapper>(*_pDevice, *_pSwapchain);
-	vkRenderPassWrapper->init();
+	_vkRenderPass = std::make_unique<_VkRenderPass>();
+	_vkRenderPass->_pDevice = _pDevice;
+	_vkRenderPass->_pSwapchain = _pSwapchain;
+	_vkRenderPass->create();
 
 	// pipeline init
 	VkGraphicsPipelineCreateInfo vkPipelineInfo{};
@@ -100,7 +98,7 @@ VkResult _VkPipeline::create() {
 
 	vkPipelineInfo.layout = _vkFixedFunctionState->vkPipelineLayout;
 
-	vkPipelineInfo.renderPass = vkRenderPassWrapper->getRenderPass();
+	vkPipelineInfo.renderPass = _vkRenderPass->vkRenderPass;
 	vkPipelineInfo.subpass = 0;
 
 	vkPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
@@ -118,7 +116,7 @@ VkResult _VkPipeline::create() {
 
 	_vkFramebuffer->_pSwapchain = _pSwapchain;
 	_vkFramebuffer->pDevice = &_pDevice->vkDevice;
-	_vkFramebuffer->pRenderPass = &vkRenderPassWrapper->getRenderPass();
+	_vkFramebuffer->pRenderPass = &_vkRenderPass->vkRenderPass;
 
 	auto vkFramebufferResult = _vkFramebuffer->create();
 	if (vkFramebufferResult != VK_SUCCESS) {

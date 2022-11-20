@@ -2,6 +2,10 @@
 
 // _VkSemaphore Implementation
 
+_VkSemaphore::_VkSemaphore() {
+
+}
+
 _VkSemaphore::~_VkSemaphore() {
     if (pDevice != nullptr) {
         vkDestroySemaphore(*pDevice, vkSemaphore, nullptr);
@@ -23,6 +27,10 @@ VkResult _VkSemaphore::create() {
 }
 
 // _VkFence Implementation
+
+_VkFence::_VkFence() {
+
+}
 
 _VkFence::~_VkFence() {
     if (pDevice != nullptr) {
@@ -46,6 +54,10 @@ VkResult _VkFence::create() {
 }
 
 // _VkRenderSync Implementation
+
+_VkRenderSync::_VkRenderSync() {
+
+}
 
 VkResult _VkRenderSync::create() {
     auto _vkLogger = _VkLogger::Instance();

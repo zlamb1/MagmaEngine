@@ -2,6 +2,10 @@
 
 // VkCmdPoolWrapper Implementation
 
+_VkCmdPool::_VkCmdPool() {
+
+}
+
 _VkCmdPool::~_VkCmdPool() {
 	vkDestroyCommandPool(*pDevice, vkCmdPool, nullptr);
 }
@@ -29,6 +33,10 @@ VkResult _VkCmdPool::create() {
 }
 
 // VkCmdBufferWrapper Implementation
+
+_VkCmdBuffer::_VkCmdBuffer() {
+
+}
 
 VkResult _VkCmdBuffer::create() {
 	VkCommandBufferAllocateInfo allocInfo{};

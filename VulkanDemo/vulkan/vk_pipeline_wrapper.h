@@ -4,7 +4,6 @@
 
 #include "vk_device_wrapper.h"
 #include "vk_pipeline_components.h"
-#include "vk_render_pass_wrapper.h"
 #include "vk_framebuffer_wrapper.h"
 #include "vk_cmd_wrapper.h"
 
@@ -20,7 +19,7 @@ struct _VkPipeline : VulkanWrapper {
 
 	std::unique_ptr<_VkShaderPipeline> _vkShaderPipeline;
 	std::unique_ptr<_VkFixedFunctionState> _vkFixedFunctionState;
-	std::unique_ptr<VkRenderPassWrapper> vkRenderPassWrapper;
+	std::unique_ptr<_VkRenderPass> _vkRenderPass;
 	std::unique_ptr<_VkFramebuffer> _vkFramebuffer;
 
 	VkPipeline vkPipeline{};

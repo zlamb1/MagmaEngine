@@ -7,7 +7,7 @@
 
 struct _VkSemaphore : VulkanWrapper {
 
-	_VkSemaphore() {}
+	_VkSemaphore();
 	~_VkSemaphore();
 
 	VkDevice* pDevice = nullptr;
@@ -20,7 +20,7 @@ struct _VkSemaphore : VulkanWrapper {
 
 struct _VkFence : VulkanWrapper {
 
-	_VkFence() {}
+	_VkFence();
 	~_VkFence();
 
 	VkDevice* pDevice = nullptr;
@@ -33,7 +33,7 @@ struct _VkFence : VulkanWrapper {
 
 struct _VkRenderSync : VulkanWrapper {
 
-	_VkRenderSync() {}
+	_VkRenderSync();
 
 	VkDevice* pDevice = nullptr;
 

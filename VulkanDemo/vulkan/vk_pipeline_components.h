@@ -59,3 +59,17 @@ struct _VkFixedFunctionState : VulkanWrapper {
 	VkResult create();
 
 };
+
+struct _VkRenderPass : VulkanWrapper {
+
+	_VkRenderPass();
+	~_VkRenderPass();
+
+	_VkDevice* _pDevice = nullptr;
+	_VkSwapchain* _pSwapchain = nullptr;
+
+	VkRenderPass vkRenderPass{};
+
+	VkResult create();
+
+};
