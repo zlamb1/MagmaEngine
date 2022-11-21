@@ -12,6 +12,10 @@ VulkanAPI::VulkanAPI(GLFWwindow& _window) :
 VulkanAPI::~VulkanAPI() {
     // allows for clean exit 
     vkDeviceWaitIdle(_vkDevice->vkDevice);
+    // delete shaders
+    for (auto _vkShaderHandle : _vkCreatedShaderHandles) {
+        delete _vkShaderHandle;
+    }
     // swapchain has custom lifetime
     delete _vkSwapchain;
     // unwrap the deque
@@ -124,20 +128,22 @@ _VkShader* VulkanAPI::createShaderHandle(const char* code, _ShaderType type) {
 }
 
 _VkShader* VulkanAPI::createShaderHandle(_VkShaderInfo _vkShaderInfo) {
-    _VkShader* _vkShader = new _VkShader();
-    _vkShader->pDevice = &_vkDevice->vkDevice;
-    _vkShader->pShaderCode = _vkShaderInfo.pCode;
-    _vkShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
-    _vkShader->create();
-    return _vkShader;
+    _VkShader* _vkShaderHandle = new _VkShader();
+    _vkShaderHandle->pDevice = &_vkDevice->vkDevice;
+    _vkShaderHandle->pShaderCode = _vkShaderInfo.pCode;
+    _vkShaderHandle->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
+    if (_vkShaderHandle->create() == VK_SUCCESS) {
+        _vkCreatedShaderHandles.push_back(_vkShaderHandle);
+    }
+    return _vkShaderHandle;
 }
 
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
     this->framebufferResized = framebufferResized;
 }
 
-void VulkanAPI::addShaderHandle(_VkShader* shaderHandle) {
-    _vkShaders.push_back(shaderHandle);
+void VulkanAPI::addShaderHandle(_VkShader* _vkShaderHandle) {
+    _vkActiveShaderHandles.push_back(_vkShaderHandle);
 }
 
 // Private Implementation
@@ -248,10 +254,9 @@ void VulkanAPI::initPipeline() {
     _vkPipeline->_pDevice = _vkDevice;
     _vkPipeline->_pSwapchain = _vkSwapchain;
 
-    for (auto _vkShader : _vkShaders) {
-        _vkPipeline->addShader(_vkShader);
+    for (auto _vkShaderHandle : _vkActiveShaderHandles) {
+        _vkPipeline->addShader(_vkShaderHandle);
     }
-    _vkShaders.clear();
 
     _vkPipeline->create();
     deque.addWrapper(_vkPipeline);
