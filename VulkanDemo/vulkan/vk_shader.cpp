@@ -1,7 +1,6 @@
 #include "vk_shader.h"
 
 namespace _VkShaderUtility {
-
 	static std::vector<uint32_t> compileShader(shaderc::Compiler& compiler,
 		const char* shaderCode, shaderc_shader_kind shaderType) {
 		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(shaderCode,
@@ -11,7 +10,6 @@ namespace _VkShaderUtility {
 		}
 		return { result.cbegin(), result.cend() };
 	}
-
 }
 
 // _VkShader Implementation

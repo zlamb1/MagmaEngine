@@ -1,37 +1,12 @@
 #include "vulkan_api.h"
 
-const char* vertexShaderCode = R"(#version 450
-    layout(location = 0) out vec3 fragColor;
-    vec2 positions[3] = vec2[](
-        vec2(0.0, -0.5),
-        vec2(0.5, 0.5),
-        vec2(-0.5, 0.5)
-    );
-    vec3 colors[3] = vec3[](
-        vec3(1.0, 0.0, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        vec3(0.0, 0.0, 1.0)
-    );
-    void main() {
-        gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-        fragColor = colors[gl_VertexIndex];
-    })";
-
-const char* fragmentShaderCode = R"(#version 450
-    layout(location = 0) in vec3 fragColor;
-    layout(location = 0) out vec4 outColor;
-    void main() {
-        outColor = vec4(fragColor, 1.0);
-    })";
-
 // Public Implementation
 
 VulkanAPI::VulkanAPI(GLFWwindow& _window) : 
     glfwWindow{ _window },
     _vkLogger{ _VkLogger::Instance() }
 {
-    _vkShaders.push_back({ vertexShaderCode, _ShaderType::VERTEX });
-    _vkShaders.push_back({ fragmentShaderCode, _ShaderType::FRAGMENT });
+
 }
 
 VulkanAPI::~VulkanAPI() {
@@ -47,7 +22,7 @@ VulkanAPI::~VulkanAPI() {
     vkDestroyInstance(vkInstance, nullptr);
 }
 
-void VulkanAPI::init() {
+void VulkanAPI::initSetup() {
     if (_vkValidation.validationEnabled) {
         _vkDebugWrapper = new VkDebugWrapper(vkInstance);
     }
@@ -61,6 +36,9 @@ void VulkanAPI::init() {
     initSurface();
     initDevice();
     createSwapchain();
+}
+
+void VulkanAPI::initRender() {
     initPipeline();
     initCmd();
     initSync();
@@ -141,11 +119,28 @@ void VulkanAPI::onNewFrame() {
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+_VkShader* VulkanAPI::createShaderHandle(const char* code, _ShaderType type) {
+    return createShaderHandle({ code, type });
+}
+
+_VkShader* VulkanAPI::createShaderHandle(_VkShaderInfo _vkShaderInfo) {
+    _VkShader* _vkShader = new _VkShader();
+    _vkShader->pDevice = &_vkDevice->vkDevice;
+    _vkShader->pShaderCode = _vkShaderInfo.pCode;
+    _vkShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
+    _vkShader->create();
+    return _vkShader;
+}
+
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
     this->framebufferResized = framebufferResized;
 }
 
-// Private
+void VulkanAPI::addShaderHandle(_VkShader* shaderHandle) {
+    _vkShaders.push_back(shaderHandle);
+}
+
+// Private Implementation
 
 void VulkanAPI::initInstance() {
     if (_vkValidation.validationEnabled && !_vkValidation.ensureRequiredLayers()) {

@@ -31,17 +31,22 @@ public:
 	VulkanAPI(GLFWwindow& _window);
 	~VulkanAPI();
 
-	void init();
+	void initSetup();
+	void initRender();
 	void onNewFrame();
+	
+	_VkShader* createShaderHandle(const char* code, _ShaderType);
+	_VkShader* createShaderHandle(_VkShaderInfo info);
 
 	void setFramebufferResized(bool framebufferResized);
+	void addShaderHandle(_VkShader* _vkShader);
 
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 
-	std::vector<_VkShaderInfo> _vkShaders; 
+	std::vector<_VkShader*> _vkShaders; 
 
 	GLFWwindow& glfwWindow;
 	VkInstance vkInstance{};

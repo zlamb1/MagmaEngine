@@ -7,16 +7,12 @@ _VkShaderPipeline::_VkShaderPipeline() {
 }
 
 _VkShaderPipeline::~_VkShaderPipeline() {
-	for (auto _vkShader : _vkShaders) {
-		delete _vkShader;
-	}
 
-	_vkShaders.clear();
 }
 
 std::vector<VkPipelineShaderStageCreateInfo> _VkShaderPipeline::getShaderStages() {
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-	for (auto _vkShader : _vkShaders) {
+	for (auto _vkShader : _vkShaderHandles) {
 		if (_vkShader != nullptr) {
 			shaderStages.push_back(_vkShader->vkShaderStageInfo);
 		}
@@ -25,28 +21,11 @@ std::vector<VkPipelineShaderStageCreateInfo> _VkShaderPipeline::getShaderStages(
 	return shaderStages;
 }
 
-void _VkShaderPipeline::addShader(_VkShaderInfo _vkShaderInfo) {
-	_vkShaderInfos.push_back(_vkShaderInfo);
+void _VkShaderPipeline::addShader(_VkShader* _vkShaderHandle) {
+	_vkShaderHandles.push_back(_vkShaderHandle);
 }
 
 VkResult _VkShaderPipeline::create() {
-	auto _vkLogger = _VkLogger::Instance();
-
-	if (_pDevice == nullptr) {
-		_vkLogger.LogText("_VkShaderPipeline{createShader} => _pDevice is nullptr");
-		return VK_ERROR_INITIALIZATION_FAILED;
-	}
-
-	for (auto _vkShaderInfo : _vkShaderInfos) {
-		// shader init is done in constructor
-		_VkShader* _vkShader = new _VkShader();
-		_vkShader->pDevice = &_pDevice->vkDevice;
-		_vkShader->pShaderCode = _vkShaderInfo.pCode;
-		_vkShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
-		_vkShader->create();
-		_vkShaders.push_back(_vkShader);
-	}
-
 	return VK_SUCCESS;
 }
 

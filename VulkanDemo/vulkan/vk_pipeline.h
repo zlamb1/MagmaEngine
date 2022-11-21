@@ -31,7 +31,7 @@ struct _VkPipeline : VulkanWrapper {
 	VkResult create();
 	VkResult initFramebuffers();
 
-	void addShader(_VkShaderInfo _vkShaderInfo);
+	void addShader(_VkShader* _vkShaderHandle);
 	void deleteFramebuffers();
 
 	void onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex);

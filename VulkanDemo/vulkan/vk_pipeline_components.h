@@ -29,12 +29,11 @@ struct _VkShaderPipeline : VulkanWrapper  {
 
 	_VkDevice* _pDevice = nullptr;
 
-	std::vector<_VkShaderInfo> _vkShaderInfos{};
-	std::vector<_VkShader*> _vkShaders{};
+	std::vector<_VkShader*> _vkShaderHandles{};
 	
 	VkResult create();
 
-	void addShader(_VkShaderInfo _vkShaderInfo);
+	void addShader(_VkShader* _vkShaderHandle);
 
 	std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
 

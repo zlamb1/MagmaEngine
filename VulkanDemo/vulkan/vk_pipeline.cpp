@@ -129,8 +129,8 @@ VkResult _VkPipeline::initFramebuffers() {
 	return vkFramebufferResult;
 }
 
-void _VkPipeline::addShader(_VkShaderInfo _vkShaderInfo) {
-	_vkShaderPipeline.addShader(_vkShaderInfo);
+void _VkPipeline::addShader(_VkShader* _vkShaderHandle) {
+	_vkShaderPipeline.addShader(_vkShaderHandle);
 }
 
 void _VkPipeline::deleteFramebuffers() {
