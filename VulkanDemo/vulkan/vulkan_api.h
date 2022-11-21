@@ -16,6 +16,7 @@
 #include "vk_pipeline_wrapper.h"
 #include "vk_cmd_wrapper.h"
 #include "vk_sync_wrapper.h"
+#include "vk_deque.h"
 
 /*
 * Naming Conventions =>
@@ -39,6 +40,8 @@ class VulkanAPI {
 
 		GLFWwindow& glfwWindow;
 		VkInstance vkInstance{};
+
+		VulkanDeque deque{};
 
 		_VkValidation _vkValidation{};
 		VkDebugWrapper* _vkDebugWrapper = nullptr;

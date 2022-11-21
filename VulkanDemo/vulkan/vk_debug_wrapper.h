@@ -13,7 +13,7 @@ public:
 	VkDebugWrapper(VkInstance& _instance);
 	~VkDebugWrapper();
 
-	void start();
+	void init();
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 private:

@@ -19,7 +19,7 @@ struct _VkCmdPool : VulkanWrapper {
 
 };
 
-struct _VkCmdBuffer {
+struct _VkCmdBuffer : VulkanWrapper {
 
 	VkDevice* pDevice = nullptr;
 	_VkCmdPool* pCmdPool = nullptr;

@@ -10,7 +10,7 @@ VkDebugWrapper::~VkDebugWrapper() {
     DestroyDebugUtilsMessengerEXT(nullptr);
 }
 
-void VkDebugWrapper::start() {
+void VkDebugWrapper::init() {
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 

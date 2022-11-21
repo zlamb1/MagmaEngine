@@ -7,7 +7,7 @@
 class _VkValidation {
 
 public:
-	bool vkValidationEnabled = true; 
+	bool validationEnabled = true; 
 
 	size_t size();
 	const char* const* data();

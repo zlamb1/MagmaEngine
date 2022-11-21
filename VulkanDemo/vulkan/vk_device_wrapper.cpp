@@ -26,7 +26,6 @@ namespace VkDeviceUtility {
         }
 
         return details;
-
     }
 
     static QueueFamily findQueueFamily(VkPhysicalDevice& device, VkSurfaceKHR& surface,
@@ -60,7 +59,6 @@ namespace VkDeviceUtility {
         }
 
         return family;
-
     }
 
     static bool checkDeviceExtensionsSupport(VkPhysicalDevice& device,
@@ -79,7 +77,6 @@ namespace VkDeviceUtility {
         }
 
         return requiredExtensions.empty();
-
     }
 
     static bool isDeviceSuitable(VkPhysicalDevice& device, VkSurfaceKHR& vkSurfaceKHR,
@@ -113,9 +110,7 @@ namespace VkDeviceUtility {
         }
 
         return true;
-
     }
-
 }
 
 // Public
@@ -184,7 +179,7 @@ VkResult _VkDevice::create() {
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    if (_pValidation->vkValidationEnabled) {
+    if (_pValidation->validationEnabled) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(_pValidation->size());
         createInfo.ppEnabledLayerNames = _pValidation->data();
     }

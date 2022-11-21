@@ -37,7 +37,7 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes{};
 };
 
-struct _VkDevice {
+struct _VkDevice : VulkanWrapper {
 
 	_VkDevice() {}
 	~_VkDevice();

@@ -8,32 +8,33 @@
 struct _VkSemaphore : VulkanWrapper {
 
 	_VkSemaphore();
-	~_VkSemaphore();
+	~_VkSemaphore() override;
 
 	VkDevice* pDevice = nullptr;
 
 	VkSemaphore vkSemaphore{};
 
-	VkResult create();
+	VkResult create() override;
 
 };
 
 struct _VkFence : VulkanWrapper {
 
 	_VkFence();
-	~_VkFence();
+	~_VkFence() override;
 
 	VkDevice* pDevice = nullptr;
 
 	VkFence vkFence{};
 
-	VkResult create();
+	VkResult create() override;
 
 };
 
 struct _VkRenderSync : VulkanWrapper {
 
 	_VkRenderSync();
+	~_VkRenderSync() override;
 
 	VkDevice* pDevice = nullptr;
 
@@ -41,6 +42,6 @@ struct _VkRenderSync : VulkanWrapper {
 	_VkSemaphore _vkImageSemaphore{};
 	_VkSemaphore _vkRenderSemaphore{};
 
-	VkResult create();
+	VkResult create() override;
 
 };

@@ -59,6 +59,10 @@ _VkRenderSync::_VkRenderSync() {
 
 }
 
+_VkRenderSync::~_VkRenderSync() {
+
+}
+
 VkResult _VkRenderSync::create() {
     auto _vkLogger = _VkLogger::Instance();
 

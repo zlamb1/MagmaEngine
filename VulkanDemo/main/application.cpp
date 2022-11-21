@@ -16,7 +16,7 @@ int Application::run() {
         initVulkan();
         mainLoop();
     }
-    catch (const std::runtime_error& error) {
+    catch (const std::exception& error) {
         std::cout << error.what() << std::endl;
         exit_status = EXIT_FAILURE;
     }   
@@ -38,6 +38,11 @@ void Application::initWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+
+    const GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+    glfwSetWindowPos(window, mode->width - WIDTH, 30);
 }
 
 void Application::initVulkan() {
