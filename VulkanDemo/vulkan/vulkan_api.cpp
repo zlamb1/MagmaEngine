@@ -12,12 +12,6 @@ VulkanAPI::VulkanAPI(GLFWwindow& _window) :
 VulkanAPI::~VulkanAPI() {
     // allows for clean exit 
     vkDeviceWaitIdle(_vkDevice->vkDevice);
-    // delete shaders
-    for (auto _vkShaderHandle : _vkCreatedShaderHandles) {
-        delete _vkShaderHandle;
-    }
-    // swapchain has custom lifetime
-    delete _vkSwapchain;
     // unwrap the deque
     deque.unwrap();
     // debug wrapper isn't VulkanWrapper
@@ -37,13 +31,37 @@ void VulkanAPI::initSetup() {
         _vkDebugWrapper->init();
     }
 
-    initSurface();
-    initDevice();
-    createSwapchain();
+    // init member fields
+    _vkSurface = new _VkSurface();
+    deque.addWrapper(_vkSurface);
+    _vkDevice = new _VkDevice();
+    deque.addWrapper(_vkDevice);
+    _vkSwapchain = new _VkSwapchain();
+    deque.addWrapper(_vkSwapchain);
+    _vkPipeline = new _VkPipeline();
+    deque.addWrapper(_vkPipeline);
+
+    // create fields
+    _vkSurface->pWindow = &glfwWindow;
+    _vkSurface->pInstance = &vkInstance;
+    _vkSurface->create();
+
+    _vkDevice->pInstance = &vkInstance;
+    _vkDevice->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
+    _vkDevice->_pValidation = &_vkValidation;
+    _vkDevice->create();
+
+    _vkSwapchain->pWindow = &glfwWindow;
+    _vkSwapchain->_pDevice = _vkDevice;
+    _vkSwapchain->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
+    _vkSwapchain->create();
 }
 
 void VulkanAPI::initRender() {
-    initPipeline();
+    _vkPipeline->_pDevice = _vkDevice;
+    _vkPipeline->_pSwapchain = _vkSwapchain;
+    _vkPipeline->create();
+
     initCmd();
     initSync();
 }
@@ -133,9 +151,13 @@ _VkShader* VulkanAPI::createShaderHandle(_VkShaderInfo _vkShaderInfo) {
     _vkShaderHandle->pShaderCode = _vkShaderInfo.pCode;
     _vkShaderHandle->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
     if (_vkShaderHandle->create() == VK_SUCCESS) {
-        _vkCreatedShaderHandles.push_back(_vkShaderHandle);
+        deque.addWrapper(_vkShaderHandle);
     }
     return _vkShaderHandle;
+}
+
+void VulkanAPI::addVertexInputState(Vertex& vertex) {
+    
 }
 
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
@@ -143,7 +165,7 @@ void VulkanAPI::setFramebufferResized(bool framebufferResized) {
 }
 
 void VulkanAPI::addShaderHandle(_VkShader* _vkShaderHandle) {
-    _vkActiveShaderHandles.push_back(_vkShaderHandle);
+    _vkPipeline->addShader(_vkShaderHandle);
 }
 
 // Private Implementation
@@ -204,31 +226,6 @@ void VulkanAPI::initInstance() {
     }
 }
 
-void VulkanAPI::initSurface() {
-    _vkSurface = new _VkSurface();
-    _vkSurface->pWindow = &glfwWindow;
-    _vkSurface->pInstance = &vkInstance;
-    auto vkSurfaceCreateResult = _vkSurface->create();
-    deque.addWrapper(_vkSurface);
-}
-
-void VulkanAPI::initDevice() {
-    _vkDevice = new _VkDevice();
-    _vkDevice->pInstance = &vkInstance;
-    _vkDevice->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
-    _vkDevice->_pValidation = &_vkValidation;
-    auto vkDeviceCreateResult = _vkDevice->create();
-    deque.addWrapper(_vkDevice);
-}
-
-void VulkanAPI::createSwapchain() {
-    _vkSwapchain = new _VkSwapchain();
-    _vkSwapchain->pWindow = &glfwWindow;
-    _vkSwapchain->_pDevice = _vkDevice;
-    _vkSwapchain->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
-    _vkSwapchain->create();
-}
-
 void VulkanAPI::recreateSwapchain() {
     // pause program while minimized
     int width = 0, height = 0;
@@ -247,19 +244,6 @@ void VulkanAPI::recreateSwapchain() {
     _vkSwapchain->create();
     // reinit framebuffers
     _vkPipeline->initFramebuffers();
-}
-
-void VulkanAPI::initPipeline() {
-    _vkPipeline = new _VkPipeline();
-    _vkPipeline->_pDevice = _vkDevice;
-    _vkPipeline->_pSwapchain = _vkSwapchain;
-
-    for (auto _vkShaderHandle : _vkActiveShaderHandles) {
-        _vkPipeline->addShader(_vkShaderHandle);
-    }
-
-    _vkPipeline->create();
-    deque.addWrapper(_vkPipeline);
 }
 
 void VulkanAPI::initCmd() {

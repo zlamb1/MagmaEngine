@@ -47,10 +47,8 @@ struct _VkFixedFunctionState : VulkanWrapper {
 	_VkDevice* _pDevice = nullptr;
 	_VkSwapchain* _pSwapchain = nullptr;
 
-	uint32_t vertexBindingDescriptionCount = 0;
-	VkVertexInputBindingDescription* pVertexBindingDescriptions = nullptr;
-	uint32_t vertexAttributeDescriptionCount = 0;
-	VkVertexInputAttributeDescription* pVertexAttributeDescriptions = nullptr;
+	std::vector<VkVertexInputBindingDescription> pVertexBindingDescriptions{};
+	std::vector<VkVertexInputAttributeDescription> pVertexAttributeDescriptions{};
 
 	VkPipelineDynamicStateCreateInfo vkDynamicState{};
 	std::vector<VkDynamicState> vkDynamicStates = {

@@ -59,10 +59,12 @@ VkResult _VkFixedFunctionState::create() {
 	vkDynamicState.pDynamicStates = vkDynamicStates.data();
 
 	vkVertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vkVertexInputState.vertexBindingDescriptionCount = vertexBindingDescriptionCount;
-	vkVertexInputState.pVertexBindingDescriptions = pVertexBindingDescriptions; // optional
-	vkVertexInputState.vertexAttributeDescriptionCount = vertexAttributeDescriptionCount;
-	vkVertexInputState.pVertexAttributeDescriptions = pVertexAttributeDescriptions; // optional
+	vkVertexInputState.vertexBindingDescriptionCount = 
+		static_cast<uint32_t>(pVertexBindingDescriptions.size());
+	vkVertexInputState.pVertexBindingDescriptions = pVertexBindingDescriptions.data();
+	vkVertexInputState.vertexAttributeDescriptionCount = 
+		static_cast<uint32_t>(pVertexAttributeDescriptions.size());
+	vkVertexInputState.pVertexAttributeDescriptions = pVertexAttributeDescriptions.data();
 
 	vkInputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	vkInputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

@@ -18,6 +18,8 @@
 #include "vk_sync_wrapper.h"
 #include "vk_deque.h"
 
+#include "vertex.h"
+
 /*
 * Naming Conventions =>
 * vk = Vulkan class
@@ -38,6 +40,8 @@ public:
 	_VkShader* createShaderHandle(const char* code, _ShaderType);
 	_VkShader* createShaderHandle(_VkShaderInfo info);
 
+	void addVertexInputState(Vertex& vertex);
+
 	void setFramebufferResized(bool framebufferResized);
 	void addShaderHandle(_VkShader* _vkShader);
 
@@ -45,9 +49,6 @@ private:
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
-
-	std::vector<_VkShader*> _vkActiveShaderHandles{};
-	std::vector<_VkShader*> _vkCreatedShaderHandles{};
 
 	GLFWwindow& glfwWindow;
 	VkInstance vkInstance{};
@@ -62,17 +63,14 @@ private:
 
 	_VkDevice* _vkDevice = nullptr;
 	_VkSwapchain* _vkSwapchain = nullptr;
-	_VkPipeline* _vkPipeline = nullptr;
+	_VkPipeline* _vkPipeline{};
 		
 	std::vector<_VkCmdPool*> _vkCmdPools{};
 	std::vector<_VkCmdBuffer*> _vkCmdBuffers{};
 	std::vector<_VkRenderSync*> _vkRenderSyncs{};
 
 	void initInstance();
-	void initSurface();
-	void initDevice();
-	void createSwapchain();
-	void initPipeline();
+
 	void initCmd();
 	void initSync();
 
