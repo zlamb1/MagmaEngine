@@ -34,11 +34,17 @@ Application::~Application() {
 }
 
 void Application::initWindow() {
+    // init
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
+    // set callbacks
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+
+    // set window pos
     const GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
@@ -56,4 +62,9 @@ void Application::mainLoop() {
 
         glfwPollEvents();
     }
+}
+
+void Application::onFramebufferResize(GLFWwindow* window, int width, int height) {
+    Application* app = (Application*) glfwGetWindowUserPointer(window);
+    app->vulkanAPI->setFramebufferResized(true);
 }

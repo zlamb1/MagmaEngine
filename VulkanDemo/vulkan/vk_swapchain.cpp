@@ -1,4 +1,4 @@
-#include "vk_swap_chain_wrapper.h"
+#include "vk_swapchain.h"
 
 namespace _VkSwapchainUtility {
     
@@ -51,11 +51,8 @@ _VkSwapchain::_VkSwapchain() {
 
 _VkSwapchain::~_VkSwapchain() {
     if (_pDevice != nullptr) {
+        deleteImageViews();
         vkDestroySwapchainKHR(_pDevice->vkDevice, vkSwapchainKHR, nullptr);
-
-        for (auto vkImageView : vkImageViews) {
-            vkDestroyImageView(_pDevice->vkDevice, vkImageView, nullptr);
-        }
     }
 }
 
@@ -145,7 +142,6 @@ VkResult _VkSwapchain::create() {
     // Image View Init
 
     vkImageViews.resize(vkImages.size());
-
     for (size_t i = 0; i < vkImages.size(); i++) {
         VkImageViewCreateInfo vkImageViewCreateInfo{};
         vkImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -171,4 +167,11 @@ VkResult _VkSwapchain::create() {
     }
 
     return VK_SUCCESS;
+}
+
+void _VkSwapchain::deleteImageViews() {
+    for (auto vkImageView : vkImageViews) {
+        vkDestroyImageView(_pDevice->vkDevice, vkImageView, nullptr);
+    }
+    vkImageViews.clear();
 }

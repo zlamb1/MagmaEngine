@@ -8,7 +8,7 @@
 #include <vulkan/vulkan.h>
 
 #include "vk_device_wrapper.h"
-#include "vk_swap_chain_wrapper.h"
+#include "vk_swapchain.h"
 #include "vk_shader.h"
 
 struct _VkShaderPipeline : VulkanWrapper  {
@@ -35,6 +35,11 @@ struct _VkFixedFunctionState : VulkanWrapper {
 
 	_VkDevice* _pDevice = nullptr;
 	_VkSwapchain* _pSwapchain = nullptr;
+
+	uint32_t vertexBindingDescriptionCount = 0;
+	VkVertexInputBindingDescription* pVertexBindingDescriptions = nullptr;
+	uint32_t vertexAttributeDescriptionCount = 0;
+	VkVertexInputAttributeDescription* pVertexAttributeDescriptions = nullptr;
 
 	VkPipelineDynamicStateCreateInfo vkDynamicState{};
 	std::vector<VkDynamicState> vkDynamicStates = {

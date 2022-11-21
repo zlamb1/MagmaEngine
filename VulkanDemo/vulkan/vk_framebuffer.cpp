@@ -1,4 +1,4 @@
-#include "vk_framebuffer_wrapper.h"
+#include "vk_framebuffer.h"
 
 _VkFramebuffer::_VkFramebuffer() {
 

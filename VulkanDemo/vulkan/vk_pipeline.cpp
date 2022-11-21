@@ -1,10 +1,11 @@
-#include "vk_pipeline_wrapper.h"
+#include "vk_pipeline.h"
 
 _VkPipeline::_VkPipeline() : _vkLogger{ _VkLogger::Instance() } {
 
 }
 
 _VkPipeline::~_VkPipeline() {
+	delete _vkFramebuffer;
 	vkDestroyPipeline(_pDevice->vkDevice, vkPipeline, nullptr);
 }
 
@@ -112,16 +113,26 @@ VkResult _VkPipeline::create() {
 	}
 
 	// framebuffer init
-	_vkFramebuffer = std::make_unique<_VkFramebuffer>();
-
-	_vkFramebuffer->_pSwapchain = _pSwapchain;
-	_vkFramebuffer->pDevice = &_pDevice->vkDevice;
-	_vkFramebuffer->pRenderPass = &_vkRenderPass->vkRenderPass;
-
-	auto vkFramebufferResult = _vkFramebuffer->create();
+	auto vkFramebufferResult = initFramebuffers();
 	if (vkFramebufferResult != VK_SUCCESS) {
 		return vkFramebufferResult;
 	}
 
 	return VK_SUCCESS;
+}
+
+VkResult _VkPipeline::initFramebuffers() {
+	_vkFramebuffer = new _VkFramebuffer();
+	_vkFramebuffer->_pSwapchain = _pSwapchain;
+	_vkFramebuffer->pDevice = &_pDevice->vkDevice;
+	_vkFramebuffer->pRenderPass = &_vkRenderPass->vkRenderPass;
+	auto vkFramebufferResult = _vkFramebuffer->create();
+	return vkFramebufferResult;
+}
+
+void _VkPipeline::deleteFramebuffers() {
+	if (_vkFramebuffer != nullptr) {
+		delete _vkFramebuffer;
+		_vkFramebuffer = nullptr;
+	}
 }

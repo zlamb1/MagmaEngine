@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.h>
 
 #include "vk_obj.h"
-#include "vk_swap_chain_wrapper.h"
+#include "vk_swapchain.h"
 
 struct _VkFramebuffer : VulkanWrapper {
 

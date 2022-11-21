@@ -12,8 +12,8 @@
 #include "vk_device_wrapper.h"
 #include "vk_surface_wrapper.h"
 #include "vk_validation_wrapper.h"
-#include "vk_swap_chain_wrapper.h"
-#include "vk_pipeline_wrapper.h"
+#include "vk_swapchain.h"
+#include "vk_pipeline.h"
 #include "vk_cmd_wrapper.h"
 #include "vk_sync_wrapper.h"
 #include "vk_deque.h"
@@ -27,45 +27,49 @@
 
 class VulkanAPI {
 
-	public:
+public:
+	VulkanAPI(GLFWwindow& _window);
+	~VulkanAPI();
 
-		VulkanAPI(GLFWwindow& _window);
-		~VulkanAPI();
+	void init();
+	void onNewFrame();
 
-		void onNewFrame();
+	void setFramebufferResized(bool framebufferResized);
 
-		void init();
+private:
+	const int MAX_FRAMES_IN_FLIGHT = 2;
+	uint32_t currentFrame = 0;
+	bool framebufferResized = false;
 
-	private:
+	GLFWwindow& glfwWindow;
+	VkInstance vkInstance{};
 
-		GLFWwindow& glfwWindow;
-		VkInstance vkInstance{};
+	VulkanDeque deque{};
 
-		VulkanDeque deque{};
+	_VkValidation _vkValidation{};
+	VkDebugWrapper* _vkDebugWrapper = nullptr;
+	_VkLogger& _vkLogger;
 
-		_VkValidation _vkValidation{};
-		VkDebugWrapper* _vkDebugWrapper = nullptr;
-		_VkLogger& _vkLogger;
+	_VkSurface* _vkSurface = nullptr;
 
-		_VkSurface* _vkSurface = nullptr;
-
-		_VkDevice* _vkDevice = nullptr;
-		_VkSwapchain* _vkSwapchain = nullptr;
-		_VkPipeline* _vkPipeline = nullptr;
+	_VkDevice* _vkDevice = nullptr;
+	_VkSwapchain* _vkSwapchain = nullptr;
+	_VkPipeline* _vkPipeline = nullptr;
 		
-		_VkCmdPool* _vkCmdPool = nullptr;
-		_VkCmdBuffer* _vkCmdBuffer = nullptr;
+	std::vector<_VkCmdPool*> _vkCmdPools{};
+	std::vector<_VkCmdBuffer*> _vkCmdBuffers{};
+	std::vector<_VkRenderSync*> _vkRenderSyncs{};
 
-		_VkRenderSync* _vkRenderSync = nullptr;
+	void initInstance();
+	void initSurface();
+	void initDevice();
+	void createSwapchain();
+	void initPipeline();
+	void initCmd();
+	void initSync();
 
-		void initInstance();
-		void initSurface();
-		void initDevice();
-		void initSwapChain();
-		void initPipeline();
-		void initCmdWrapper();
-		void initSync();
+	void recreateSwapchain();
 
-		std::vector<const char*> getRequiredExtensions();
+	std::vector<const char*> getRequiredExtensions();
 
 };

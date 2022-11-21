@@ -16,28 +16,62 @@ VulkanAPI::VulkanAPI(GLFWwindow& _window) :
 }
 
 VulkanAPI::~VulkanAPI() {
+    // allows for clean exit 
+    vkDeviceWaitIdle(_vkDevice->vkDevice);
+    // swapchain has custom lifetime
+    delete _vkSwapchain;
+    // unwrap the deque
     deque.unwrap();
+    // debug wrapper isn't VulkanWrapper
     delete _vkDebugWrapper;
+    // destroy VkInstance
     vkDestroyInstance(vkInstance, nullptr);
+}
+
+void VulkanAPI::init() {
+    if (_vkValidation.validationEnabled) {
+        _vkDebugWrapper = new VkDebugWrapper(vkInstance);
+    }
+
+    initInstance();
+
+    if (_vkValidation.validationEnabled) {
+        _vkDebugWrapper->init();
+    }
+
+    initSurface();
+    initDevice();
+    createSwapchain();
+    initPipeline();
+    initCmd();
+    initSync();
 }
 
 void VulkanAPI::onNewFrame() {
     vkWaitForFences(_vkDevice->vkDevice, 1,
-        &_vkRenderSync->_vkFlightFence.vkFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(_vkDevice->vkDevice,
-        1, &_vkRenderSync->_vkFlightFence.vkFence);
+        &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence, VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(_vkDevice->vkDevice,
+    auto vkAcquireNextImageResult = vkAcquireNextImageKHR(_vkDevice->vkDevice,
         _vkSwapchain->vkSwapchainKHR, UINT64_MAX,
-        _vkRenderSync->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
+        _vkRenderSyncs[currentFrame]->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-    _vkPipeline->onNewFrame(*_vkCmdBuffer, imageIndex);
+    if (vkAcquireNextImageResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapchain();
+        return;
+    } else if (vkAcquireNextImageResult != VK_SUCCESS) {
+        _vkLogger.LogText("VulkanAPI:onNewFrame => failed to acquire new swapchain image!");
+        return;
+    }
+
+    vkResetFences(_vkDevice->vkDevice, 1, &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence);
+
+    _vkPipeline->onNewFrame(*_vkCmdBuffers[currentFrame], imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { _vkRenderSync->_vkImageSemaphore.vkSemaphore };
+    VkSemaphore waitSemaphores[] = { _vkRenderSyncs[currentFrame]->_vkImageSemaphore.vkSemaphore };
     VkPipelineStageFlags waitStages[] = { 
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT 
     };
@@ -46,16 +80,16 @@ void VulkanAPI::onNewFrame() {
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &_vkCmdBuffer->vkCmdBuffer;
+    submitInfo.pCommandBuffers = &_vkCmdBuffers[currentFrame]->vkCmdBuffer;
 
     VkSemaphore signalSemaphores[] = { 
-        _vkRenderSync->_vkRenderSemaphore.vkSemaphore
+        _vkRenderSyncs[currentFrame]->_vkRenderSemaphore.vkSemaphore
     };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     auto vkQueueSubmitResult = vkQueueSubmit(_vkDevice->vkGraphicsQueue, 1,
-        &submitInfo, _vkRenderSync->_vkFlightFence.vkFence);
+        &submitInfo, _vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence);
     _vkLogger.LogResult("vkQueueSubmitResult => ", vkQueueSubmitResult);
 
     VkPresentInfoKHR presentInfo{};
@@ -73,29 +107,23 @@ void VulkanAPI::onNewFrame() {
 
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(_vkDevice->vkPresentationQueue, &presentInfo);
+    auto vkQueuePresentResult = vkQueuePresentKHR(_vkDevice->vkPresentationQueue, &presentInfo);
+    if (vkQueuePresentResult == VK_ERROR_OUT_OF_DATE_KHR || 
+        vkQueuePresentResult == VK_SUBOPTIMAL_KHR
+        || framebufferResized) {
+        framebufferResized = false;
+        recreateSwapchain();
+    }
+    else if (vkQueuePresentResult != VK_SUCCESS) {
+        _vkLogger.LogText("VulkanAPI:onNewFrame => failed to present swapchain image!");
+        return;
+    }
 
-    // allows for clean exit 
-    vkDeviceWaitIdle(_vkDevice->vkDevice);
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanAPI::init() {
-    if (_vkValidation.validationEnabled) {
-        _vkDebugWrapper = new VkDebugWrapper(vkInstance);
-    }
-
-    initInstance();
-
-    if (_vkValidation.validationEnabled) {
-        _vkDebugWrapper->init();
-    }
-
-    initSurface();
-    initDevice();
-    initSwapChain();
-    initPipeline();
-    initCmdWrapper();
-    initSync();
+void VulkanAPI::setFramebufferResized(bool framebufferResized) {
+    this->framebufferResized = framebufferResized;
 }
 
 // Private
@@ -173,13 +201,32 @@ void VulkanAPI::initDevice() {
     deque.addWrapper(_vkDevice);
 }
 
-void VulkanAPI::initSwapChain() {
+void VulkanAPI::createSwapchain() {
     _vkSwapchain = new _VkSwapchain();
     _vkSwapchain->pWindow = &glfwWindow;
     _vkSwapchain->_pDevice = _vkDevice;
     _vkSwapchain->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
     _vkSwapchain->create();
-    deque.addWrapper(_vkSwapchain);
+}
+
+void VulkanAPI::recreateSwapchain() {
+    // pause program while minimized
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(&glfwWindow, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(&glfwWindow, &width, &height);
+        glfwWaitEvents();
+    }
+    // wait for the device to be idle
+    vkDeviceWaitIdle(_vkDevice->vkDevice);
+    // delete framebuffers
+    _vkPipeline->deleteFramebuffers();
+    // delete image views
+    _vkSwapchain->deleteImageViews();
+    // recreate swapchain and image views
+    _vkSwapchain->create();
+    // reinit framebuffers
+    _vkPipeline->initFramebuffers();
 }
 
 void VulkanAPI::initPipeline() {
@@ -190,27 +237,39 @@ void VulkanAPI::initPipeline() {
     deque.addWrapper(_vkPipeline);
 }
 
-void VulkanAPI::initCmdWrapper() {
-    _vkCmdPool = new _VkCmdPool();
-    _vkCmdPool->pDevice = &_vkDevice->vkDevice;
-    _vkCmdPool->pQueueFamily = &_vkDevice->vkQueueFamily;
-    auto vkCreateCommandPoolResult = _vkCmdPool->create();
-    _vkLogger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
-    deque.addWrapper(_vkCmdPool);
-
-    _vkCmdBuffer = new _VkCmdBuffer();
-    _vkCmdBuffer->pCmdPool = _vkCmdPool;
-    _vkCmdBuffer->pDevice = &_vkDevice->vkDevice;
-    auto vkAllocateCommandBuffersResult = _vkCmdBuffer->create();
-    _vkLogger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
-    deque.addWrapper(_vkCmdBuffer);
+void VulkanAPI::initCmd() {
+    _vkCmdPools.resize(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        auto _vkCmdPool = new _VkCmdPool();
+        _vkCmdPool->pDevice = &_vkDevice->vkDevice;
+        _vkCmdPool->pQueueFamily = &_vkDevice->vkQueueFamily;
+        auto vkCreateCommandPoolResult = _vkCmdPool->create();
+        _vkLogger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
+        deque.addWrapper(_vkCmdPool);
+        _vkCmdPools[i] = _vkCmdPool;
+    }
+    
+    _vkCmdBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        auto _vkCmdBuffer = new _VkCmdBuffer();
+        _vkCmdBuffer->pCmdPool = _vkCmdPools[i];
+        _vkCmdBuffer->pDevice = &_vkDevice->vkDevice;
+        auto vkAllocateCommandBuffersResult = _vkCmdBuffer->create();
+        _vkLogger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
+        deque.addWrapper(_vkCmdBuffer);
+        _vkCmdBuffers[i] = _vkCmdBuffer;
+    }
 }
 
 void VulkanAPI::initSync() {
-    _vkRenderSync = new _VkRenderSync();
-    _vkRenderSync->pDevice = &_vkDevice->vkDevice;
-    _vkLogger.LogResult("_VkRenderSync =>", _vkRenderSync->create());
-    deque.addWrapper(_vkRenderSync);
+    _vkRenderSyncs.resize(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        auto _vkRenderSync = new _VkRenderSync();
+        _vkRenderSync->pDevice = &_vkDevice->vkDevice;
+        _vkLogger.LogResult("_VkRenderSync =>", _vkRenderSync->create());
+        deque.addWrapper(_vkRenderSync);
+        _vkRenderSyncs[i] = _vkRenderSync;
+    }
 }
 
 std::vector<const char*> VulkanAPI::getRequiredExtensions() {

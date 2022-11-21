@@ -28,4 +28,6 @@ struct _VkSwapchain : VulkanWrapper {
 
 	VkResult create();
 
+	void deleteImageViews();
+
 };
