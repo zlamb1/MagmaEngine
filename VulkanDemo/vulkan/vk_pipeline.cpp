@@ -64,10 +64,9 @@ VkResult _VkPipeline::create() {
 	}
 
 	// member init
-	_vkShaderPipeline = std::make_unique<_VkShaderPipeline>();
-	_vkShaderPipeline->_pDevice = _pDevice;
-	_vkShaderPipeline->pAllocator = pAllocator;
-	_vkShaderPipeline->create();
+	_vkShaderPipeline._pDevice = _pDevice;
+	_vkShaderPipeline.pAllocator = pAllocator;
+	_vkShaderPipeline.create();
 
 	_vkFixedFunctionState = std::make_unique<_VkFixedFunctionState>();
 	_vkFixedFunctionState->_pDevice = _pDevice;
@@ -85,7 +84,7 @@ VkResult _VkPipeline::create() {
 	vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	vkPipelineInfo.stageCount = 2;
 
-	auto shaderStages = _vkShaderPipeline->getShaderStages();
+	auto shaderStages = _vkShaderPipeline.getShaderStages();
 	vkPipelineInfo.pStages = shaderStages.data();
 
 	vkPipelineInfo.pVertexInputState = &_vkFixedFunctionState->vkVertexInputState;
@@ -128,6 +127,10 @@ VkResult _VkPipeline::initFramebuffers() {
 	_vkFramebuffer->pRenderPass = &_vkRenderPass->vkRenderPass;
 	auto vkFramebufferResult = _vkFramebuffer->create();
 	return vkFramebufferResult;
+}
+
+void _VkPipeline::addShader(_VkShaderInfo _vkShaderInfo) {
+	_vkShaderPipeline.addShader(_vkShaderInfo);
 }
 
 void _VkPipeline::deleteFramebuffers() {

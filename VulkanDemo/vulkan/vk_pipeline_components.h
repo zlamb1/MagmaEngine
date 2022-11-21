@@ -11,6 +11,17 @@
 #include "vk_swapchain.h"
 #include "vk_shader.h"
 
+enum _ShaderType {
+	VERTEX = shaderc_shader_kind::shaderc_vertex_shader,
+	FRAGMENT = shaderc_shader_kind::shaderc_fragment_shader,
+	COMPUTE = shaderc_shader_kind::shaderc_compute_shader
+};
+
+struct _VkShaderInfo {
+	const char* pCode; 
+	_ShaderType pShaderType;
+};
+
 struct _VkShaderPipeline : VulkanWrapper  {
 
 	_VkShaderPipeline();
@@ -18,11 +29,12 @@ struct _VkShaderPipeline : VulkanWrapper  {
 
 	_VkDevice* _pDevice = nullptr;
 
+	std::vector<_VkShaderInfo> _vkShaderInfos{};
 	std::vector<_VkShader*> _vkShaders{};
 	
 	VkResult create();
 
-	void createShader(const char* shaderCode, shaderc_shader_kind shaderType);
+	void addShader(_VkShaderInfo _vkShaderInfo);
 
 	std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
 

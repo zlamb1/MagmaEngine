@@ -41,6 +41,8 @@ private:
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 
+	std::vector<_VkShaderInfo> _vkShaders; 
+
 	GLFWwindow& glfwWindow;
 	VkInstance vkInstance{};
 

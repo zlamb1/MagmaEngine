@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
-#include "attribute_description.h"
+#include "vk_attribute_description.h"
 
 struct Vertex {
 

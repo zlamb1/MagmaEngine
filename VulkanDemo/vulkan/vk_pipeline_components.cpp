@@ -1,29 +1,5 @@
 #include "vk_pipeline_components.h"
 
-const char* vertexShaderCode = R"(#version 450
-layout(location = 0) out vec3 fragColor;
-vec2 positions[3] = vec2[](
-    vec2(0.0, -0.5),
-    vec2(0.5, 0.5),
-    vec2(-0.5, 0.5)
-);
-vec3 colors[3] = vec3[](
-    vec3(1.0, 0.0, 0.0),
-    vec3(0.0, 1.0, 0.0),
-    vec3(0.0, 0.0, 1.0)
-);
-void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-    fragColor = colors[gl_VertexIndex];
-})";
-
-const char* fragmentShaderCode = R"(#version 450
-layout(location = 0) in vec3 fragColor;
-layout(location = 0) out vec4 outColor;
-void main() {
-    outColor = vec4(fragColor, 1.0);
-})";
-
 // _VkShaderPipeline Implementation
 
 _VkShaderPipeline::_VkShaderPipeline() {
@@ -49,27 +25,27 @@ std::vector<VkPipelineShaderStageCreateInfo> _VkShaderPipeline::getShaderStages(
 	return shaderStages;
 }
 
-void _VkShaderPipeline::createShader(const char* shaderCode, shaderc_shader_kind shaderType) {
+void _VkShaderPipeline::addShader(_VkShaderInfo _vkShaderInfo) {
+	_vkShaderInfos.push_back(_vkShaderInfo);
+}
+
+VkResult _VkShaderPipeline::create() {
 	auto _vkLogger = _VkLogger::Instance();
 
 	if (_pDevice == nullptr) {
 		_vkLogger.LogText("_VkShaderPipeline{createShader} => _pDevice is nullptr");
-		return;
+		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	// shader init is done in constructor
-	_VkShader* _vkShader = new _VkShader();
-	_vkShader->pDevice = &_pDevice->vkDevice;
-	_vkShader->pShaderCode = shaderCode;
-	_vkShader->pShaderType = shaderType;
-	_vkShader->create();
-
-	_vkShaders.push_back(_vkShader);
-}
-
-VkResult _VkShaderPipeline::create() {
-	createShader(vertexShaderCode, shaderc_shader_kind::shaderc_vertex_shader);
-	createShader(fragmentShaderCode, shaderc_shader_kind::shaderc_fragment_shader);
+	for (auto _vkShaderInfo : _vkShaderInfos) {
+		// shader init is done in constructor
+		_VkShader* _vkShader = new _VkShader();
+		_vkShader->pDevice = &_pDevice->vkDevice;
+		_vkShader->pShaderCode = _vkShaderInfo.pCode;
+		_vkShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
+		_vkShader->create();
+		_vkShaders.push_back(_vkShader);
+	}
 
 	return VK_SUCCESS;
 }
