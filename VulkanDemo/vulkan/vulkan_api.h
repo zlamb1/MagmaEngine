@@ -19,7 +19,7 @@
 #include "vk_deque.h"
 #include "vk_buffer.h"
 
-#include "vertex.h"
+#include "vk_vertex_state.h"
 
 /*
 * Naming Conventions =>
@@ -42,7 +42,7 @@ public:
 	_VkShader* createShaderHandle(_VkShaderInfo info);
 	_VkBuffer* createBufferHandle(uint32_t pSize);
 
-	void addVertexInputState(Vertex& vertex);
+	void addVertexInputState(_VkVertexState& _vkVertexState);
 
 	void setFramebufferResized(bool framebufferResized);
 	void addShaderHandle(_VkShader* _vkShaderHandle);

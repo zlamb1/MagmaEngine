@@ -165,10 +165,10 @@ _VkBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
     return _vkBuffer;
 }
 
-void VulkanAPI::addVertexInputState(Vertex& vertex) {
-    _vkPipeline->_pBindingDescriptions.push_back(vertex.getBindingDescription());
-    for (const auto& _vkAttributeDescription : vertex.getAttributeDescriptions()) {
-        _vkPipeline->_pAttributeDescriptions.push_back(_vkAttributeDescription);
+void VulkanAPI::addVertexInputState(_VkVertexState& _vkVertexState) {
+    _vkPipeline->pBindingDescriptions.push_back(_vkVertexState.getBindingDescription());
+    for (const auto& _vkAttributeDescription : _vkVertexState.getAttributeDescriptions()) {
+        _vkPipeline->pAttributeDescriptions.push_back(_vkAttributeDescription);
     }
 }
 

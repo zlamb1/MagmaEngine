@@ -6,7 +6,7 @@
 #include "vk_pipeline_components.h"
 #include "vk_framebuffer.h"
 #include "vk_cmd_wrapper.h"
-#include "vk_attribute_description.h"
+#include "vk_vertex_state.h"
 #include "vk_buffer.h"
 
 struct _VkPipeline : VulkanWrapper {
@@ -19,8 +19,8 @@ struct _VkPipeline : VulkanWrapper {
 	_VkDevice* _pDevice = nullptr;
 	_VkSwapchain* _pSwapchain = nullptr;
 
-	std::vector<VkVertexInputBindingDescription> _pBindingDescriptions{};
-	std::vector<_VkAttributeDescription> _pAttributeDescriptions{};
+	std::vector<VkVertexInputBindingDescription> pBindingDescriptions{};
+	std::vector<VkVertexInputAttributeDescription> pAttributeDescriptions{};
 
 	std::vector<_VkBuffer*> pBuffers{};
 

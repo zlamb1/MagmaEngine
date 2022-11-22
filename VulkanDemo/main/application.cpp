@@ -1,20 +1,23 @@
 #include "application.h"
 
-struct MyVertex : Vertex {
-    glm::vec2 pos;
-    glm::vec3 color;
-    std::vector<_VkAttributeDescription> getAttributeDescriptions() override {
-        std::vector<_VkAttributeDescription> attributeDescriptions{};
-        attributeDescriptions.resize(2);
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = _VkFormat::R32G32_SFLOAT;
-        attributeDescriptions[0].offset = 0;
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = _VkFormat::R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = sizeof(float) * 2;
-        return attributeDescriptions;
+struct MyVertexState : _VkVertexState {
+    VkVertexInputBindingDescription getBindingDescription() override {
+        pBindingDescription.binding = 0;
+        pBindingDescription.stride = sizeof(float) * 5;
+        return pBindingDescription.getBindingDescription();
+    }
+    
+    std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() override {
+        pAttributeDescriptions.resize(2);
+        pAttributeDescriptions[0].binding = 0;
+        pAttributeDescriptions[0].location = 0;
+        pAttributeDescriptions[0].format = _VkFormat::R32G32_SFLOAT;
+        pAttributeDescriptions[0].offset = 0;
+        pAttributeDescriptions[1].binding = 0;
+        pAttributeDescriptions[1].location = 1;
+        pAttributeDescriptions[1].format = _VkFormat::R32G32B32_SFLOAT;
+        pAttributeDescriptions[1].offset = sizeof(float) * 2;
+        return _VkVertexState::getAttributeDescriptions();
     }
 };
 
@@ -101,7 +104,7 @@ void Application::initVulkan() {
     auto fragmentShader = vulkanAPI->createShaderHandle(fragmentShaderCode, _ShaderType::FRAGMENT);
     vulkanAPI->addShaderHandle(fragmentShader);
     
-    auto myVertex = MyVertex{};
+    auto myVertex = MyVertexState{};
     vulkanAPI->addVertexInputState(myVertex);
 
     auto buffer = vulkanAPI->createBufferHandle(sizeof(float) * vertex_data.size());

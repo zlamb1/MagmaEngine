@@ -69,12 +69,11 @@ VkResult _VkPipeline::create() {
 	_vkFixedFunctionState->_pSwapchain = _pSwapchain;
 	_vkFixedFunctionState->pAllocator = pAllocator;
 
-	for (auto& _vkBindingDescription : _pBindingDescriptions) {
+	for (auto& _vkBindingDescription : pBindingDescriptions) {
 		_vkFixedFunctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
 	}
-	for (auto& _vkAttributeDescription : _pAttributeDescriptions) {
-		_vkFixedFunctionState->pVertexAttributeDescriptions.push_back(
-			_vkAttributeDescription.getAttributeDescription());
+	for (auto& _vkAttributeDescription : pAttributeDescriptions) {
+		_vkFixedFunctionState->pVertexAttributeDescriptions.push_back(_vkAttributeDescription);
 	}
 
 	_vkFixedFunctionState->create();
