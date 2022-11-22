@@ -7,6 +7,7 @@
 #include "vk_framebuffer.h"
 #include "vk_cmd_wrapper.h"
 #include "vk_attribute_description.h"
+#include "vk_buffer.h"
 
 struct _VkPipeline : VulkanWrapper {
 
@@ -18,8 +19,10 @@ struct _VkPipeline : VulkanWrapper {
 	_VkDevice* _pDevice = nullptr;
 	_VkSwapchain* _pSwapchain = nullptr;
 
-	std::vector<VkVertexInputBindingDescription> pBindingDescriptions{};
-	std::vector<_VkAttributeDescription> pAttributeDescriptions{};
+	std::vector<VkVertexInputBindingDescription> _pBindingDescriptions{};
+	std::vector<_VkAttributeDescription> _pAttributeDescriptions{};
+
+	std::vector<_VkBuffer*> pBuffers{};
 
 	_VkShaderPipeline _vkShaderPipeline;
 	std::unique_ptr<_VkFixedFunctionState> _vkFixedFunctionState;
@@ -34,6 +37,6 @@ struct _VkPipeline : VulkanWrapper {
 	void addShader(_VkShader* _vkShaderHandle);
 	void deleteFramebuffers();
 
-	void onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex);
+	void onNewFrame(_VkCmdBuffer& vkCmdBuffer, uint32_t imageIndex, uint32_t vertexCount);
 
 };

@@ -17,6 +17,7 @@
 #include "vk_cmd_wrapper.h"
 #include "vk_sync_wrapper.h"
 #include "vk_deque.h"
+#include "vk_buffer.h"
 
 #include "vertex.h"
 
@@ -35,15 +36,17 @@ public:
 
 	void initSetup();
 	void initRender();
-	void onNewFrame();
+	void onNewFrame(uint32_t vertexCount);
 	
 	_VkShader* createShaderHandle(const char* code, _ShaderType);
 	_VkShader* createShaderHandle(_VkShaderInfo info);
+	_VkBuffer* createBufferHandle(uint32_t pSize);
 
 	void addVertexInputState(Vertex& vertex);
 
 	void setFramebufferResized(bool framebufferResized);
-	void addShaderHandle(_VkShader* _vkShader);
+	void addShaderHandle(_VkShader* _vkShaderHandle);
+	void addBufferHandle(_VkBuffer* _vkBufferHandle);
 
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 2;

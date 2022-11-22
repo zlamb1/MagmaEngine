@@ -9,7 +9,8 @@ _VkPipeline::~_VkPipeline() {
 	vkDestroyPipeline(_pDevice->vkDevice, vkPipeline, nullptr);
 }
 
-void _VkPipeline::onNewFrame(_VkCmdBuffer& _vkCmdBuffer, uint32_t imageIndex) {
+void _VkPipeline::onNewFrame(_VkCmdBuffer& _vkCmdBuffer, uint32_t imageIndex,
+	uint32_t vertexCount) {
 	_vkCmdBuffer.resetCmdBuffer();
 	_vkCmdBuffer.recordCmdBuffer();
 
@@ -30,21 +31,16 @@ void _VkPipeline::onNewFrame(_VkCmdBuffer& _vkCmdBuffer, uint32_t imageIndex) {
 
 	vkCmdBindPipeline(_vkCmdBuffer.vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float)vkSwapchainExtent.width;
-	viewport.height = (float)vkSwapchainExtent.height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(_vkCmdBuffer.vkCmdBuffer, 0, 1, &viewport);
+	vkCmdSetViewport(_vkCmdBuffer.vkCmdBuffer, 0, 1, &_vkFixedFunctionState->vkViewport);
+	vkCmdSetScissor(_vkCmdBuffer.vkCmdBuffer, 0, 1, &_vkFixedFunctionState->vkScissor);
 
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = vkSwapchainExtent;
-	vkCmdSetScissor(_vkCmdBuffer.vkCmdBuffer, 0, 1, &scissor);
+	if (pBuffers.size() > 0) {
+		VkDeviceSize offsets[] = { 0 };
+		VkBuffer vertexBuffers[] = { pBuffers[0]->vkBuffer };
+		vkCmdBindVertexBuffers(_vkCmdBuffer.vkCmdBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdDraw(_vkCmdBuffer.vkCmdBuffer, vertexCount, 1, 0, 0);
+	}
 
-	vkCmdDraw(_vkCmdBuffer.vkCmdBuffer, 3, 1, 0, 0);
 
 	vkCmdEndRenderPass(_vkCmdBuffer.vkCmdBuffer);
 
@@ -72,6 +68,15 @@ VkResult _VkPipeline::create() {
 	_vkFixedFunctionState->_pDevice = _pDevice;
 	_vkFixedFunctionState->_pSwapchain = _pSwapchain;
 	_vkFixedFunctionState->pAllocator = pAllocator;
+
+	for (auto& _vkBindingDescription : _pBindingDescriptions) {
+		_vkFixedFunctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
+	}
+	for (auto& _vkAttributeDescription : _pAttributeDescriptions) {
+		_vkFixedFunctionState->pVertexAttributeDescriptions.push_back(
+			_vkAttributeDescription.getAttributeDescription());
+	}
+
 	_vkFixedFunctionState->create();
 
 	_vkRenderPass = std::make_unique<_VkRenderPass>();

@@ -1,20 +1,37 @@
 #include "application.h"
 
+struct MyVertex : Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+    std::vector<_VkAttributeDescription> getAttributeDescriptions() override {
+        std::vector<_VkAttributeDescription> attributeDescriptions{};
+        attributeDescriptions.resize(2);
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = _VkFormat::R32G32_SFLOAT;
+        attributeDescriptions[0].offset = 0;
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = _VkFormat::R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = sizeof(float) * 2;
+        return attributeDescriptions;
+    }
+};
+
+const std::vector<float> vertex_data = {
+    0.0f, -0.5f, 1.0f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+};
+
 const char* vertexShaderCode = R"(#version 450
+    layout(location = 0) in vec2 vertexPos;
+    layout(location = 1) in vec3 vertexColor;
     layout(location = 0) out vec3 fragColor;
-    vec2 positions[3] = vec2[](
-        vec2(0.0, -0.5),
-        vec2(0.5, 0.5),
-        vec2(-0.5, 0.5)
-    );
-    vec3 colors[3] = vec3[](
-        vec3(1.0, 0.0, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        vec3(0.0, 0.0, 1.0)
-    );
+
     void main() {
-        gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-        fragColor = colors[gl_VertexIndex];
+        gl_Position = vec4(vertexPos, 0.0, 1.0);
+        fragColor = vertexColor;
     })";
 
 const char* fragmentShaderCode = R"(#version 450
@@ -83,13 +100,20 @@ void Application::initVulkan() {
     vulkanAPI->addShaderHandle(vertexShader);
     auto fragmentShader = vulkanAPI->createShaderHandle(fragmentShaderCode, _ShaderType::FRAGMENT);
     vulkanAPI->addShaderHandle(fragmentShader);
+    
+    auto myVertex = MyVertex{};
+    vulkanAPI->addVertexInputState(myVertex);
+
+    auto buffer = vulkanAPI->createBufferHandle(sizeof(float) * vertex_data.size());
+    buffer->setData(vertex_data.data());
+    vulkanAPI->addBufferHandle(buffer);
 
     vulkanAPI->initRender();
 }
 
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
-        vulkanAPI->onNewFrame();
+        vulkanAPI->onNewFrame(3);
 
         glfwPollEvents();
     }

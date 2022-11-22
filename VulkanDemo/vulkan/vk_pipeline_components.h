@@ -59,7 +59,7 @@ struct _VkFixedFunctionState : VulkanWrapper {
 	VkPipelineVertexInputStateCreateInfo vkVertexInputState{};
 	VkPipelineInputAssemblyStateCreateInfo vkInputAssemblyState{};
 	VkViewport vkViewport{};
-	VkRect2D vkRect2D{};
+	VkRect2D vkScissor{};
 	VkPipelineViewportStateCreateInfo vkViewportState{};
 	VkPipelineRasterizationStateCreateInfo vkRasterizerState{};
 	VkPipelineMultisampleStateCreateInfo vkMultisamplingState{};

@@ -77,13 +77,13 @@ VkResult _VkFixedFunctionState::create() {
 	vkViewport.height = (float)vkSwapchainExtent.height;
 	vkViewport.minDepth = 0.0f;
 	vkViewport.maxDepth = 1.0f;
-	vkRect2D.offset = { 0, 0 };
-	vkRect2D.extent = vkSwapchainExtent;
+	vkScissor.offset = { 0, 0 };
+	vkScissor.extent = vkSwapchainExtent;
 	vkViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	vkViewportState.viewportCount = 1;
 	vkViewportState.pViewports = &vkViewport;
 	vkViewportState.scissorCount = 1;
-	vkViewportState.pScissors = &vkRect2D;
+	vkViewportState.pScissors = &vkScissor;
 
 	vkRasterizerState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	vkRasterizerState.depthClampEnable = VK_FALSE;

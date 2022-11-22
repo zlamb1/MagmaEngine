@@ -66,7 +66,7 @@ void VulkanAPI::initRender() {
     initSync();
 }
 
-void VulkanAPI::onNewFrame() {
+void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     vkWaitForFences(_vkDevice->vkDevice, 1,
         &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence, VK_TRUE, UINT64_MAX);
 
@@ -85,7 +85,7 @@ void VulkanAPI::onNewFrame() {
 
     vkResetFences(_vkDevice->vkDevice, 1, &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence);
 
-    _vkPipeline->onNewFrame(*_vkCmdBuffers[currentFrame], imageIndex);
+    _vkPipeline->onNewFrame(*_vkCmdBuffers[currentFrame], imageIndex, vertexCount);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -150,14 +150,26 @@ _VkShader* VulkanAPI::createShaderHandle(_VkShaderInfo _vkShaderInfo) {
     _vkShaderHandle->pDevice = &_vkDevice->vkDevice;
     _vkShaderHandle->pShaderCode = _vkShaderInfo.pCode;
     _vkShaderHandle->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
-    if (_vkShaderHandle->create() == VK_SUCCESS) {
-        deque.addWrapper(_vkShaderHandle);
-    }
+    _vkShaderHandle->create();
+    deque.addWrapper(_vkShaderHandle);
     return _vkShaderHandle;
 }
 
+_VkBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
+    _VkBuffer* _vkBuffer = new _VkBuffer();
+    _vkBuffer->pPhysicalDevice = &_vkDevice->vkPhysicalDevice;
+    _vkBuffer->pDevice = &_vkDevice->vkDevice;
+    _vkBuffer->pSize = pSize;
+    _vkLogger.LogResult("VulkanAPI:createBufferHandle => ", _vkBuffer->create());
+    deque.addWrapper(_vkBuffer);
+    return _vkBuffer;
+}
+
 void VulkanAPI::addVertexInputState(Vertex& vertex) {
-    
+    _vkPipeline->_pBindingDescriptions.push_back(vertex.getBindingDescription());
+    for (const auto& _vkAttributeDescription : vertex.getAttributeDescriptions()) {
+        _vkPipeline->_pAttributeDescriptions.push_back(_vkAttributeDescription);
+    }
 }
 
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
@@ -166,6 +178,12 @@ void VulkanAPI::setFramebufferResized(bool framebufferResized) {
 
 void VulkanAPI::addShaderHandle(_VkShader* _vkShaderHandle) {
     _vkPipeline->addShader(_vkShaderHandle);
+}
+
+void VulkanAPI::addBufferHandle(_VkBuffer* _vkBufferHandle) {
+    if (_vkBufferHandle != nullptr) {
+        _vkPipeline->pBuffers.push_back(_vkBufferHandle);
+    }
 }
 
 // Private Implementation

@@ -9,8 +9,6 @@
 
 struct Vertex {
 
-	std::vector<_VkAttributeDescription> attributeDescriptions{};
-
 	virtual VkVertexInputBindingDescription getBindingDescription();
 	virtual std::vector<_VkAttributeDescription> getAttributeDescriptions();
 
