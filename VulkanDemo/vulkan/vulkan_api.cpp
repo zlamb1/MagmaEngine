@@ -1,96 +1,119 @@
 #include "vulkan_api.h"
 
-// Public Implementation
-
-VulkanAPI::VulkanAPI(GLFWwindow& _window) : 
-    glfwWindow{ _window },
-    _vkLogger{ _VkLogger::Instance() }
-{
-
-}
+const char* defVertexShader = R"(#version 450
+    void main() {
+        gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+    })";
+const char* defFragmentShader = R"(#version 450
+    layout(location = 0) out vec3 fragColor;
+    void main() {
+        fragColor = vec3(1, 1, 1);
+    })";
 
 VulkanAPI::~VulkanAPI() {
     // allows for clean exit 
-    vkDeviceWaitIdle(_vkDevice->vkDevice);
+    vkDeviceWaitIdle(vulkanDevice->getDevice());
     // unwrap the deque
-    deque.unwrap();
-    // debug wrapper isn't VulkanWrapper
-    delete _vkDebugWrapper;
+    vulkanDeque.unwrap();
     // destroy VkInstance
-    vkDestroyInstance(vkInstance, nullptr);
+    vkDestroyInstance(vulkanInstance, nullptr);
 }
 
-void VulkanAPI::initSetup() {
-    if (_vkValidation.validationEnabled) {
-        _vkDebugWrapper = new VkDebugWrapper(vkInstance);
+void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
+    this->glfwWindow = glfwWindow;
+
+    if (vulkanValidater.isValidationEnabled()) {
+        vulkanDebugger = new VulkanDebugger(vulkanInstance);
+        vulkanDeque.addObject(vulkanDebugger);
     }
 
     initInstance();
 
-    if (_vkValidation.validationEnabled) {
-        _vkDebugWrapper->init();
+    if (vulkanValidater.isValidationEnabled()) {
+        vulkanDebugger->init();
     }
 
     // init member fields
-    _vkSurface = new _VkSurface();
-    deque.addWrapper(_vkSurface);
-    _vkDevice = new _VkDevice();
-    deque.addWrapper(_vkDevice);
-    _vkSwapchain = new _VkSwapchain();
-    deque.addWrapper(_vkSwapchain);
-    _vkPipeline = new _VkPipeline();
-    deque.addWrapper(_vkPipeline);
+    vulkanSurface = new VulkanSurface();
+    vulkanDeque.addObject(vulkanSurface);
+    vulkanDevice = new VulkanDevice();
+    vulkanDeque.addObject(vulkanDevice);
+    vulkanSwapchain = new VulkanSwapchain();
+    vulkanDeque.addObject(vulkanSwapchain);
+    vulkanPipeline = new VulkanPipeline();
+    vulkanDeque.addObject(vulkanPipeline);
 
     // create fields
-    _vkSurface->pWindow = &glfwWindow;
-    _vkSurface->pInstance = &vkInstance;
-    _vkSurface->create();
+    vulkanSurface->pWindow = glfwWindow;
+    vulkanSurface->pInstance = &vulkanInstance;
+    vulkanSurface->init();
 
-    _vkDevice->pInstance = &vkInstance;
-    _vkDevice->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
-    _vkDevice->_pValidation = &_vkValidation;
-    _vkDevice->create();
+    vulkanDevice->pInstance = &vulkanInstance;
+    vulkanDevice->pSurfaceKHR = &vulkanSurface->getSurfaceKHR();
+    vulkanDevice->pValidater = &vulkanValidater;
+    vulkanDevice->init();
 
-    _vkSwapchain->pWindow = &glfwWindow;
-    _vkSwapchain->_pDevice = _vkDevice;
-    _vkSwapchain->pSurfaceKHR = &_vkSurface->vkSurfaceKHR;
-    _vkSwapchain->create();
+    vulkanSwapchain->pWindow = glfwWindow;
+    vulkanSwapchain->pDevice = vulkanDevice;
+    vulkanSwapchain->pSurfaceKHR = &vulkanSurface->getSurfaceKHR();
+    vulkanSwapchain->init();
+
+    defaultVertexShader = createShaderHandle(defVertexShader, VulkanShaderType::VERTEX);
+    defaultFragmentShader = createShaderHandle(defFragmentShader, VulkanShaderType::FRAGMENT);
 }
 
 void VulkanAPI::initRender() {
-    _vkPipeline->_pDevice = _vkDevice;
-    _vkPipeline->_pSwapchain = _vkSwapchain;
-    _vkPipeline->create();
+    vulkanPipeline->pDevice = vulkanDevice;
+    vulkanPipeline->pSwapchain = vulkanSwapchain;
+    
+    if (vulkanShaderHandles.empty()) {
+        VulkanLogger::instance().enqueueText("VulkanAPI::initRender", 
+            "warning: no shaders provided, using defaults");
+        vulkanPipeline->addShader(defaultVertexShader);
+        vulkanPipeline->addShader(defaultFragmentShader);
+    }
 
-    initCmd();
+    for (auto _vkShaderHandle : vulkanShaderHandles) {
+        vulkanPipeline->addShader(_vkShaderHandle);
+    }
+
+    for (auto _vkBufferHandle : vulkanBufferHandles) {
+        vulkanPipeline->pBuffers.push_back(_vkBufferHandle);
+    }
+
+    vulkanPipeline->init();
+
+    initCommands();
     initSync();
 }
 
 void VulkanAPI::onNewFrame(uint32_t vertexCount) {
-    vkWaitForFences(_vkDevice->vkDevice, 1,
-        &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence, VK_TRUE, UINT64_MAX);
+    vkWaitForFences(vulkanDevice->getDevice(), 1,
+        &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence(), VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    auto vkAcquireNextImageResult = vkAcquireNextImageKHR(_vkDevice->vkDevice,
-        _vkSwapchain->vkSwapchainKHR, UINT64_MAX,
-        _vkRenderSyncs[currentFrame]->_vkImageSemaphore.vkSemaphore, VK_NULL_HANDLE, &imageIndex);
+    auto vkAcquireNextImageResult = vkAcquireNextImageKHR(vulkanDevice->getDevice(),
+        vulkanSwapchain->getSwapchainKHR(), UINT64_MAX,
+        vulkanRenderSyncs[currentFrame]->getImageSemaphore().getSemaphore(), VK_NULL_HANDLE, &imageIndex);
 
     if (vkAcquireNextImageResult == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapchain();
         return;
     } else if (vkAcquireNextImageResult != VK_SUCCESS) {
-        _vkLogger.LogText("VulkanAPI:onNewFrame => failed to acquire new swapchain image!");
+        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", 
+            "failed to acquire a new swapchain image!");
         return;
     }
 
-    vkResetFences(_vkDevice->vkDevice, 1, &_vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence);
+    vkResetFences(vulkanDevice->getDevice(), 1, 
+        &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
 
-    _vkPipeline->onNewFrame(*_vkCmdBuffers[currentFrame], imageIndex, vertexCount);
+    vulkanPipeline->onNewFrame(*vulkanCmdBuffers[currentFrame], imageIndex, vertexCount);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { _vkRenderSyncs[currentFrame]->_vkImageSemaphore.vkSemaphore };
+    VkSemaphore waitSemaphores[] = { vulkanRenderSyncs[currentFrame]->getImageSemaphore().getSemaphore() };
     VkPipelineStageFlags waitStages[] = { 
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT 
     };
@@ -99,17 +122,18 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &_vkCmdBuffers[currentFrame]->vkCmdBuffer;
+    submitInfo.pCommandBuffers = &vulkanCmdBuffers[currentFrame]->getCmdBuffer();
 
     VkSemaphore signalSemaphores[] = { 
-        _vkRenderSyncs[currentFrame]->_vkRenderSemaphore.vkSemaphore
+        vulkanRenderSyncs[currentFrame]->getRenderSemaphore().getSemaphore()
     };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    auto vkQueueSubmitResult = vkQueueSubmit(_vkDevice->vkGraphicsQueue, 1,
-        &submitInfo, _vkRenderSyncs[currentFrame]->_vkFlightFence.vkFence);
-    _vkLogger.LogResult("vkQueueSubmitResult => ", vkQueueSubmitResult);
+    auto queueSubmitResult = vkQueueSubmit(vulkanDevice->getGraphicsQueue(), 1,
+        &submitInfo, vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
+    VulkanLogger::instance().enqueueObject("VulkanAPI::onNewFrame::vkQueueSubmitResult", 
+        queueSubmitResult);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -118,7 +142,7 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     presentInfo.pWaitSemaphores = signalSemaphores;
 
     VkSwapchainKHR swapChains[] = { 
-        _vkSwapchain->vkSwapchainKHR
+        vulkanSwapchain->getSwapchainKHR()
     };
 
     presentInfo.swapchainCount = 1;
@@ -126,7 +150,7 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
 
     presentInfo.pImageIndices = &imageIndex;
 
-    auto vkQueuePresentResult = vkQueuePresentKHR(_vkDevice->vkPresentationQueue, &presentInfo);
+    auto vkQueuePresentResult = vkQueuePresentKHR(vulkanDevice->getPresentationQueue(), &presentInfo);
     if (vkQueuePresentResult == VK_ERROR_OUT_OF_DATE_KHR || 
         vkQueuePresentResult == VK_SUBOPTIMAL_KHR
         || framebufferResized) {
@@ -134,64 +158,64 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
         recreateSwapchain();
     }
     else if (vkQueuePresentResult != VK_SUCCESS) {
-        _vkLogger.LogText("VulkanAPI:onNewFrame => failed to present swapchain image!");
+        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", 
+            "failed to present swapchain image!");
         return;
     }
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-_VkShader* VulkanAPI::createShaderHandle(const char* code, _ShaderType type) {
-    return createShaderHandle({ code, type });
-}
-
-_VkShader* VulkanAPI::createShaderHandle(_VkShaderInfo _vkShaderInfo) {
-    _VkShader* _vkShaderHandle = new _VkShader();
-    _vkShaderHandle->pDevice = &_vkDevice->vkDevice;
-    _vkShaderHandle->pShaderCode = _vkShaderInfo.pCode;
-    _vkShaderHandle->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
-    _vkShaderHandle->create();
-    deque.addWrapper(_vkShaderHandle);
-    return _vkShaderHandle;
-}
-
-_VkBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
-    _VkBuffer* _vkBuffer = new _VkBuffer();
-    _vkBuffer->pPhysicalDevice = &_vkDevice->vkPhysicalDevice;
-    _vkBuffer->pDevice = &_vkDevice->vkDevice;
-    _vkBuffer->pSize = pSize;
-    _vkLogger.LogResult("VulkanAPI:createBufferHandle => ", _vkBuffer->create());
-    deque.addWrapper(_vkBuffer);
-    return _vkBuffer;
-}
-
-void VulkanAPI::addVertexInputState(_VkVertexState& _vkVertexState) {
-    _vkPipeline->pBindingDescriptions.push_back(_vkVertexState.getBindingDescription());
-    for (const auto& _vkAttributeDescription : _vkVertexState.getAttributeDescriptions()) {
-        _vkPipeline->pAttributeDescriptions.push_back(_vkAttributeDescription);
+void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
+    vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
+    for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {
+        vulkanPipeline->pAttributeDescriptions.push_back(vulkanAttributeDescription);
     }
+}
+
+std::vector<VulkanShader*>& VulkanAPI::getShaderHandles() {
+    return vulkanShaderHandles;
+}
+
+std::vector<VulkanBuffer*>& VulkanAPI::getBufferHandles() {
+    return vulkanBufferHandles;
 }
 
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
     this->framebufferResized = framebufferResized;
 }
 
-void VulkanAPI::addShaderHandle(_VkShader* _vkShaderHandle) {
-    _vkPipeline->addShader(_vkShaderHandle);
+VulkanShader* VulkanAPI::createShaderHandle(const char* code, VulkanShaderType type) {
+    return createShaderHandle({ code, type });
 }
 
-void VulkanAPI::addBufferHandle(_VkBuffer* _vkBufferHandle) {
-    if (_vkBufferHandle != nullptr) {
-        _vkPipeline->pBuffers.push_back(_vkBufferHandle);
-    }
+VulkanShader* VulkanAPI::createShaderHandle(VulkanShaderInfo _vkShaderInfo) {
+    VulkanShader* vulkanShaderHandle = new VulkanShader();
+    vulkanShaderHandle->pDevice = &vulkanDevice->getDevice();
+    vulkanShaderHandle->pShaderCode = _vkShaderInfo.pCode;
+    vulkanShaderHandle->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
+    vulkanShaderHandle->init();
+    vulkanDeque.addObject(vulkanShaderHandle);
+    return vulkanShaderHandle;
+}
+
+VulkanBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
+    VulkanBuffer* vulkanBuffer = new VulkanBuffer();
+    vulkanBuffer->pPhysicalDevice = &vulkanDevice->getPhysicalDevice();
+    vulkanBuffer->pDevice = &vulkanDevice->getDevice();
+    vulkanBuffer->pSize = pSize;
+    VulkanLogger::instance().enqueueObject("VulkanAPI::createBufferHandle", vulkanBuffer->init());
+    vulkanDeque.addObject(vulkanBuffer);
+    return vulkanBuffer;
 }
 
 // Private Implementation
 
 void VulkanAPI::initInstance() {
-    if (_vkValidation.validationEnabled && !_vkValidation.ensureRequiredLayers()) {
+    if (vulkanValidater.isValidationEnabled() && !vulkanValidater.ensureRequiredLayers()) {
         // TODO: add check to see if layers are strictly necessary
-        _vkLogger.LogText("Validation layers were requested but are not available!");
+        VulkanLogger::instance().enqueueText("VulkanAPI::initInstance",
+            "Validation layers were requested but are not available");
     }
 
     VkApplicationInfo appInfo{};
@@ -202,44 +226,48 @@ void VulkanAPI::initInstance() {
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    VkInstanceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
+    VkInstanceCreateInfo instanceCreateInfo{};
+    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo = &appInfo;
 
     auto extensions = getRequiredExtensions();
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
-    if (_vkValidation.validationEnabled) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(_vkValidation.size());
-        createInfo.ppEnabledLayerNames = _vkValidation.data();
+    if (vulkanValidater.isValidationEnabled()) {
+        instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(vulkanValidater.getLayerSize());
+        instanceCreateInfo.ppEnabledLayerNames = vulkanValidater.getLayerData();
 
-        _vkDebugWrapper->populateDebugMessengerCreateInfo(debugCreateInfo);
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+        vulkanDebugger->PopulateDebugMessengerCreateInfo(debugCreateInfo);
+        instanceCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
     } else {
-        createInfo.enabledLayerCount = 0;
-        createInfo.pNext = nullptr;
+        instanceCreateInfo.enabledLayerCount = 0;
+        instanceCreateInfo.pNext = nullptr;
     }
 
-    auto vkCreateInstanceResult = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-    switch (vkCreateInstanceResult) {
+    auto createInstanceResult = vkCreateInstance(&instanceCreateInfo, nullptr, &vulkanInstance);
+    switch (createInstanceResult) {
         case VK_ERROR_LAYER_NOT_PRESENT:
-            _vkLogger.LogText("vkCreateInstance => failed to find required layers");
-            _vkLogger.LogText("Trying vkCreateInstance again...");
+            VulkanLogger::instance().enqueueText("VulkanAPI::initInstance::vkCreateInstance", 
+                "failed to find required layers");
+            VulkanLogger::instance().enqueueText("VulkanAPI::initInstance", 
+                "Trying vkCreateInstance again...");
 
-            createInfo.enabledLayerCount = 0;
-            createInfo.ppEnabledLayerNames = nullptr;
+            instanceCreateInfo.enabledLayerCount = 0;
+            instanceCreateInfo.ppEnabledLayerNames = nullptr;
 
             // try to create instance again with no layers
-            vkCreateInstanceResult = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-            _vkLogger.LogResult("vkCreateInstance =>", vkCreateInstanceResult);
+            createInstanceResult = vkCreateInstance(&instanceCreateInfo, nullptr, &vulkanInstance);
+            VulkanLogger::instance().enqueueObject("VulkanAPI::initInstance::vkCreateInstance", 
+                createInstanceResult);
             break;
         case VK_SUCCESS:
             break;
         default:
-            _vkLogger.LogResult("vkCreateInstance =>", vkCreateInstanceResult);
+            VulkanLogger::instance().enqueueObject("VulkanAPI::initInstance::vkCreateInstance", 
+                createInstanceResult);
             break;
     }
 }
@@ -247,55 +275,56 @@ void VulkanAPI::initInstance() {
 void VulkanAPI::recreateSwapchain() {
     // pause program while minimized
     int width = 0, height = 0;
-    glfwGetFramebufferSize(&glfwWindow, &width, &height);
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
     while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(&glfwWindow, &width, &height);
+        glfwGetFramebufferSize(glfwWindow, &width, &height);
         glfwWaitEvents();
     }
     // wait for the device to be idle
-    vkDeviceWaitIdle(_vkDevice->vkDevice);
+    vkDeviceWaitIdle(vulkanDevice->getDevice());
     // delete framebuffers
-    _vkPipeline->deleteFramebuffers();
+    vulkanPipeline->deleteFramebuffers();
     // delete image views
-    _vkSwapchain->deleteImageViews();
+    vulkanSwapchain->deleteImageViews();
     // recreate swapchain and image views
-    _vkSwapchain->create();
+    vulkanSwapchain->init();
     // reinit framebuffers
-    _vkPipeline->initFramebuffers();
+    vulkanPipeline->initFramebuffers();
 }
 
-void VulkanAPI::initCmd() {
-    _vkCmdPools.resize(MAX_FRAMES_IN_FLIGHT);
+void VulkanAPI::initCommands() {
+    vulkanCmdPools.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto _vkCmdPool = new _VkCmdPool();
-        _vkCmdPool->pDevice = &_vkDevice->vkDevice;
-        _vkCmdPool->pQueueFamily = &_vkDevice->vkQueueFamily;
-        auto vkCreateCommandPoolResult = _vkCmdPool->create();
-        _vkLogger.LogResult("vkCreateCommandPool =>", vkCreateCommandPoolResult);
-        deque.addWrapper(_vkCmdPool);
-        _vkCmdPools[i] = _vkCmdPool;
+        auto vulkanCmdPool = new VulkanCmdPool();
+        vulkanCmdPool->pDevice = &vulkanDevice->getDevice();
+        vulkanCmdPool->pQueueFamily = &vulkanDevice->getQueueFamily();
+        VulkanLogger::instance().enqueueObject("VulkanAPI::initCommands::vulkanCmdPool", 
+            vulkanCmdPool->init());
+        vulkanDeque.addObject(vulkanCmdPool);
+        vulkanCmdPools[i] = vulkanCmdPool;
     }
     
-    _vkCmdBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    vulkanCmdBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto _vkCmdBuffer = new _VkCmdBuffer();
-        _vkCmdBuffer->pCmdPool = _vkCmdPools[i];
-        _vkCmdBuffer->pDevice = &_vkDevice->vkDevice;
-        auto vkAllocateCommandBuffersResult = _vkCmdBuffer->create();
-        _vkLogger.LogResult("vkAllocateCommandBuffers =>", vkAllocateCommandBuffersResult);
-        deque.addWrapper(_vkCmdBuffer);
-        _vkCmdBuffers[i] = _vkCmdBuffer;
+        auto vulkanCmdBuffer = new VulkanCmdBuffer();
+        vulkanCmdBuffer->pCmdPool = &vulkanCmdPools[i]->getCmdPool();
+        vulkanCmdBuffer->pDevice = &vulkanDevice->getDevice();
+        VulkanLogger::instance().enqueueObject("VulkanAPI::initCommands::vulkanCmdBuffer", 
+            vulkanCmdBuffer->init());
+        vulkanDeque.addObject(vulkanCmdBuffer);
+        vulkanCmdBuffers[i] = vulkanCmdBuffer;
     }
 }
 
 void VulkanAPI::initSync() {
-    _vkRenderSyncs.resize(MAX_FRAMES_IN_FLIGHT);
+    vulkanRenderSyncs.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto _vkRenderSync = new _VkRenderSync();
-        _vkRenderSync->pDevice = &_vkDevice->vkDevice;
-        _vkLogger.LogResult("_VkRenderSync =>", _vkRenderSync->create());
-        deque.addWrapper(_vkRenderSync);
-        _vkRenderSyncs[i] = _vkRenderSync;
+        auto vulkanRenderSync = new VulkanRenderSync();
+        vulkanRenderSync->pDevice = &vulkanDevice->getDevice();
+        VulkanLogger::instance().enqueueObject("VulkanAPI::initSync::vulkanRenderSync", 
+            vulkanRenderSync->init());
+        vulkanDeque.addObject(vulkanRenderSync);
+        vulkanRenderSyncs[i] = vulkanRenderSync;
     }
 }
 
@@ -306,7 +335,7 @@ std::vector<const char*> VulkanAPI::getRequiredExtensions() {
 
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (_vkValidation.validationEnabled) {
+    if (vulkanValidater.isValidationEnabled()) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 

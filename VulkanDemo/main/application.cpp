@@ -1,6 +1,6 @@
 #include "application.h"
 
-struct MyVertexState : _VkVertexState {
+struct MyVertexState : VulkanVertexState {
     VkVertexInputBindingDescription getBindingDescription() override {
         pBindingDescription.binding = 0;
         pBindingDescription.stride = sizeof(float) * 5;
@@ -11,18 +11,18 @@ struct MyVertexState : _VkVertexState {
         pAttributeDescriptions.resize(2);
         pAttributeDescriptions[0].binding = 0;
         pAttributeDescriptions[0].location = 0;
-        pAttributeDescriptions[0].format = _VkFormat::R32G32_SFLOAT;
+        pAttributeDescriptions[0].format = VulkanDataFormat::R32G32_SFLOAT;
         pAttributeDescriptions[0].offset = 0;
         pAttributeDescriptions[1].binding = 0;
         pAttributeDescriptions[1].location = 1;
-        pAttributeDescriptions[1].format = _VkFormat::R32G32B32_SFLOAT;
+        pAttributeDescriptions[1].format = VulkanDataFormat::R32G32B32_SFLOAT;
         pAttributeDescriptions[1].offset = sizeof(float) * 2;
-        return _VkVertexState::getAttributeDescriptions();
+        return VulkanVertexState::getAttributeDescriptions();
     }
 };
 
-const std::vector<float> vertex_data = {
-    0.0f, -0.5f, 1.0f, 1.0f, 1.0f,
+std::vector<float> vertex_data = {
+    0.0f, -0.5f, 1.0f, 0.0f, 0.0f,
     0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
     -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
 };
@@ -96,33 +96,45 @@ void Application::initWindow() {
 }
 
 void Application::initVulkan() {
-    vulkanAPI = std::make_unique<VulkanAPI>(*window);
-    vulkanAPI->initSetup();
+    vulkanAPI.initSetup(window);
 
-    auto vertexShader = vulkanAPI->createShaderHandle(vertexShaderCode, _ShaderType::VERTEX);
-    vulkanAPI->addShaderHandle(vertexShader);
-    auto fragmentShader = vulkanAPI->createShaderHandle(fragmentShaderCode, _ShaderType::FRAGMENT);
-    vulkanAPI->addShaderHandle(fragmentShader);
+    auto vertexShader = vulkanAPI.createShaderHandle(vertexShaderCode, VulkanShaderType::VERTEX);
+    vulkanAPI.getShaderHandles().push_back(vertexShader);
+    auto fragmentShader = vulkanAPI.createShaderHandle(fragmentShaderCode, VulkanShaderType::FRAGMENT);
+    vulkanAPI.getShaderHandles().push_back(fragmentShader);
     
     auto myVertex = MyVertexState{};
-    vulkanAPI->addVertexInputState(myVertex);
+    vulkanAPI.addVertexInputState(myVertex);
 
-    auto buffer = vulkanAPI->createBufferHandle(sizeof(float) * vertex_data.size());
-    buffer->setData(vertex_data.data());
-    vulkanAPI->addBufferHandle(buffer);
+    vulkanBufferHandle = vulkanAPI.createBufferHandle(sizeof(float) * vertex_data.size());
+    vulkanAPI.getBufferHandles().push_back(vulkanBufferHandle);
 
-    vulkanAPI->initRender();
+    vulkanAPI.initRender();
+}
+
+namespace MapUtility {
+    static float map(float in, float min, float max, float dMin, float dMax) {
+        double slope = 1.0 * (dMax - dMin) / (max - min);
+        return dMin + slope * (in - min);
+    }
 }
 
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
-        vulkanAPI->onNewFrame(3);
+        vertex_data[2] = MapUtility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[8] = MapUtility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[14] = MapUtility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        vulkanBufferHandle->setData(vertex_data.data());
+
+        vulkanAPI.onNewFrame(3);
 
         glfwPollEvents();
+
+        x += 0.001f;
     }
 }
 
 void Application::onFramebufferResize(GLFWwindow* window, int width, int height) {
     Application* app = (Application*) glfwGetWindowUserPointer(window);
-    app->vulkanAPI->setFramebufferResized(true);
+    app->vulkanAPI.setFramebufferResized(true);
 }

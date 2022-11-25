@@ -7,74 +7,70 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vk_logger.h"
-#include "vk_debug_wrapper.h"
-#include "vk_device_wrapper.h"
-#include "vk_surface_wrapper.h"
-#include "vk_validation_wrapper.h"
-#include "vk_swapchain.h"
-#include "vk_pipeline.h"
-#include "vk_cmd_wrapper.h"
-#include "vk_sync_wrapper.h"
-#include "vk_deque.h"
-#include "vk_buffer.h"
+#include "vulkan_logger.h"
+#include "vulkan_debugger.h"
+#include "vulkan_device.h"
+#include "vulkan_surface.h"
+#include "vulkan_validater.h"
+#include "vulkan_swapchain.h"
+#include "vulkan_pipeline.h"
+#include "vulkan_cmd.h"
+#include "vulkan_sync.h"
+#include "vulkan_deque.h"
+#include "vulkan_buffer.h"
 
-#include "vk_vertex_state.h"
-
-/*
-* Naming Conventions =>
-* vk = Vulkan class
-* _vk prefix = Vulkan wrapper class (classes in this API)
-* camelCase
-*/
+#include "vulkan_vertex_state.h"
 
 class VulkanAPI {
 
 public:
-	VulkanAPI(GLFWwindow& _window);
+	VulkanAPI() = default;
 	~VulkanAPI();
 
-	void initSetup();
+	void initSetup(GLFWwindow* glfwWindow);
 	void initRender();
 	void onNewFrame(uint32_t vertexCount);
+
+	std::vector<VulkanShader*>& getShaderHandles();
+	std::vector<VulkanBuffer*>& getBufferHandles();
 	
-	_VkShader* createShaderHandle(const char* code, _ShaderType);
-	_VkShader* createShaderHandle(_VkShaderInfo info);
-	_VkBuffer* createBufferHandle(uint32_t pSize);
-
-	void addVertexInputState(_VkVertexState& _vkVertexState);
-
+	void addVertexInputState(VulkanVertexState& vertexState);
 	void setFramebufferResized(bool framebufferResized);
-	void addShaderHandle(_VkShader* _vkShaderHandle);
-	void addBufferHandle(_VkBuffer* _vkBufferHandle);
+	
+	VulkanShader* createShaderHandle(const char* code, VulkanShaderType type);
+	VulkanShader* createShaderHandle(VulkanShaderInfo info);
+	VulkanBuffer* createBufferHandle(uint32_t pSize);
 
 private:
-	const int MAX_FRAMES_IN_FLIGHT = 2;
+	const int MAX_FRAMES_IN_FLIGHT = 1;
+
 	uint32_t currentFrame = 0;
+
 	bool framebufferResized = false;
 
-	GLFWwindow& glfwWindow;
-	VkInstance vkInstance{};
+	GLFWwindow* glfwWindow = nullptr;
+	VkInstance vulkanInstance{};
 
-	VulkanDeque deque{};
-
-	_VkValidation _vkValidation{};
-	VkDebugWrapper* _vkDebugWrapper = nullptr;
-	_VkLogger& _vkLogger;
-
-	_VkSurface* _vkSurface = nullptr;
-
-	_VkDevice* _vkDevice = nullptr;
-	_VkSwapchain* _vkSwapchain = nullptr;
-	_VkPipeline* _vkPipeline{};
+	VulkanDeque vulkanDeque{};
+	VulkanValidater vulkanValidater{};
+	VulkanDebugger* vulkanDebugger = nullptr;
+	VulkanSurface* vulkanSurface = nullptr;
+	VulkanDevice* vulkanDevice = nullptr;
+	VulkanSwapchain* vulkanSwapchain = nullptr;
+	VulkanPipeline* vulkanPipeline = nullptr;
 		
-	std::vector<_VkCmdPool*> _vkCmdPools{};
-	std::vector<_VkCmdBuffer*> _vkCmdBuffers{};
-	std::vector<_VkRenderSync*> _vkRenderSyncs{};
+	std::vector<VulkanCmdPool*> vulkanCmdPools{};
+	std::vector<VulkanCmdBuffer*> vulkanCmdBuffers{};
+	std::vector<VulkanRenderSync*> vulkanRenderSyncs{};
+	
+	std::vector<VulkanShader*> vulkanShaderHandles{};
+	std::vector<VulkanBuffer*> vulkanBufferHandles{};
+
+	VulkanShader *defaultVertexShader = nullptr, *defaultFragmentShader = nullptr;
 
 	void initInstance();
 
-	void initCmd();
+	void initCommands();
 	void initSync();
 
 	void recreateSwapchain();

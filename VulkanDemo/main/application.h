@@ -18,7 +18,13 @@ private:
 	const uint32_t HEIGHT = 600;
 
 	GLFWwindow* window;
-	std::unique_ptr<VulkanAPI> vulkanAPI;
+	VulkanAPI vulkanAPI{};
+
+	VulkanBuffer* vulkanBufferHandle;
+
+	float x = 0.0f;
+	float y = 1.0f;
+	float z = 2.0f;
 
 	~Application();
 
