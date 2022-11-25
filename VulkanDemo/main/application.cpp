@@ -11,11 +11,11 @@ struct MyVertexState : VulkanVertexState {
         pAttributeDescriptions.resize(2);
         pAttributeDescriptions[0].binding = 0;
         pAttributeDescriptions[0].location = 0;
-        pAttributeDescriptions[0].format = VulkanDataFormat::R32G32_SFLOAT;
+        pAttributeDescriptions[0].format = VulkanFormat::R32G32_SFLOAT;
         pAttributeDescriptions[0].offset = 0;
         pAttributeDescriptions[1].binding = 0;
         pAttributeDescriptions[1].location = 1;
-        pAttributeDescriptions[1].format = VulkanDataFormat::R32G32B32_SFLOAT;
+        pAttributeDescriptions[1].format = VulkanFormat::R32G32B32_SFLOAT;
         pAttributeDescriptions[1].offset = sizeof(float) * 2;
         return VulkanVertexState::getAttributeDescriptions();
     }

@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
-enum VulkanDataFormat {
+enum class VulkanFormat {
 	R32_SFLOAT = VK_FORMAT_R32_SFLOAT,
 	R32G32_SFLOAT = VK_FORMAT_R32G32_SFLOAT,
 	R32G32B32_SFLOAT = VK_FORMAT_R32G32B32_SFLOAT,
@@ -28,7 +28,7 @@ class VulkanAttributeDescription {
 
 public:
 	uint32_t binding, location, offset;
-	VulkanDataFormat format;
+	VulkanFormat format;
 
 	VkVertexInputAttributeDescription getAttributeDescription();
 

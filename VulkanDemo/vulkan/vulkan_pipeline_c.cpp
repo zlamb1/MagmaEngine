@@ -13,8 +13,8 @@ std::vector<VkPipelineShaderStageCreateInfo> VulkanShaderPipeline::getShaderStag
 	return shaderStages;
 }
 
-void VulkanShaderPipeline::addShader(VulkanShader* _vkShaderHandle) {
-	vulkanShaderHandles.push_back(_vkShaderHandle);
+void VulkanShaderPipeline::addShader(VulkanShader* vulkanShaderHandle) {
+	vulkanShaderHandles.push_back(vulkanShaderHandle);
 }
 
 VkResult VulkanShaderPipeline::init() {
