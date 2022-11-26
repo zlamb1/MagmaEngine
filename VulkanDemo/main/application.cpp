@@ -117,12 +117,8 @@ void Application::initVulkan() {
         VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::VERTEX,
         VulkanMemoryType::GPU_EFFICIENT);
 
-    VulkanBufferCopy vulkanBufferCopy{};
-    vulkanBufferCopy.pDevice = vulkanAPI.getVulkanDevice();
-    vulkanBufferCopy.pSize = bufferSize;
-    vulkanBufferCopy.pSrc = stagingBuffer->getBuffer();
-    vulkanBufferCopy.pDst = vertexBuffer->getBuffer();
-    vulkanBufferCopy.init();
+    BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
+        stagingBuffer->getBuffer(), vertexBuffer->getBuffer());
 
     vulkanAPI.getBufferHandles().push_back(vertexBuffer);
 
@@ -143,12 +139,8 @@ void Application::mainLoop() {
         vertex_data[14] = map_utility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
         stagingBuffer->setData(vertex_data.data());
 
-        VulkanBufferCopy vulkanBufferCopy{};
-        vulkanBufferCopy.pDevice = vulkanAPI.getVulkanDevice();
-        vulkanBufferCopy.pSize = stagingBuffer->pSize;
-        vulkanBufferCopy.pSrc = stagingBuffer->getBuffer();
-        vulkanBufferCopy.pDst = vertexBuffer->getBuffer();
-        vulkanBufferCopy.init();
+        BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
+            stagingBuffer->getBuffer(), vertexBuffer->getBuffer());
 
         vulkanAPI.onNewFrame(3);
 
