@@ -1,6 +1,15 @@
 #include "application.h"
 
-struct MyVertexState : VulkanVertexState {
+namespace MapUtility {
+    static float map(float in, float min, float max, float dMin, float dMax) {
+        float slope = 1.0f * (dMax - dMin) / (max - min);
+        return dMin + slope * (in - min);
+    }
+}
+
+class MyVertexState : public VulkanVertexState {
+
+public:
     VkVertexInputBindingDescription getBindingDescription() override {
         pBindingDescription.binding = 0;
         pBindingDescription.stride = sizeof(float) * 5;
@@ -44,8 +53,6 @@ const char* fragmentShaderCode = R"(#version 450
         outColor = vec4(fragColor, 1.0);
     })";
 
-// Public Implementation
-
 Application& Application::instance() {
     static Application app;
     return app;
@@ -66,14 +73,13 @@ int Application::run() {
     }   
 
     system("pause");
-
-    return EXIT_SUCCESS;
+    return exit_status;
 }
 
 // Private
 
 Application::~Application() {
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
@@ -82,21 +88,21 @@ void Application::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    glfwWindow = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
     // set callbacks
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+    glfwSetWindowUserPointer(glfwWindow, this);
+    glfwSetFramebufferSizeCallback(glfwWindow, onFramebufferResize);
 
     // set window pos
     const GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    glfwSetWindowPos(window, mode->width - WIDTH, 30);
+    glfwSetWindowPos(glfwWindow, mode->width - WIDTH, 30);
 }
 
 void Application::initVulkan() {
-    vulkanAPI.initSetup(window);
+    vulkanAPI.initSetup(glfwWindow);
 
     auto vertexShader = vulkanAPI.createShaderHandle(vertexShaderCode, VulkanShaderType::VERTEX);
     vulkanAPI.getShaderHandles().push_back(vertexShader);
@@ -118,29 +124,22 @@ void Application::initVulkan() {
         VulkanMemoryType::GPU_EFFICIENT);
 
     BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
-        stagingBuffer->getBuffer(), vertexBuffer->getBuffer());
+        stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
     vulkanAPI.getBufferHandles().push_back(vertexBuffer);
 
     vulkanAPI.initRender();
 }
 
-namespace map_utility {
-    static float map(float in, float min, float max, float dMin, float dMax) {
-        double slope = 1.0 * (dMax - dMin) / (max - min);
-        return dMin + slope * (in - min);
-    }
-}
-
 void Application::mainLoop() {
-    while (!glfwWindowShouldClose(window)) {
-        vertex_data[2] = map_utility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[8] = map_utility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[14] = map_utility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+    while (!glfwWindowShouldClose(glfwWindow)) {
+        vertex_data[2] = MapUtility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[8] = MapUtility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[14] = MapUtility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
         stagingBuffer->setData(vertex_data.data());
 
         BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
-            stagingBuffer->getBuffer(), vertexBuffer->getBuffer());
+            stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
         vulkanAPI.onNewFrame(3);
 

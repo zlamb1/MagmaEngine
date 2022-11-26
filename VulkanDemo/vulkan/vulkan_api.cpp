@@ -40,6 +40,8 @@ void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
     vulkanDeque.addObject(vulkanDevice);
     vulkanSwapchain = new VulkanSwapchain();
     vulkanDeque.addObject(vulkanSwapchain);
+    vulkanDrawer = new VulkanDrawer();
+    vulkanDeque.addObject(vulkanDrawer);
     vulkanPipeline = new VulkanPipeline();
     vulkanDeque.addObject(vulkanPipeline);
 
@@ -65,20 +67,21 @@ void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
 void VulkanAPI::initRender() {
     vulkanPipeline->pDevice = vulkanDevice;
     vulkanPipeline->pSwapchain = vulkanSwapchain;
+    vulkanPipeline->pVulkanDrawer = vulkanDrawer;
     
-    if (vulkanShaderHandles.empty()) {
+    if (vulkanShaders.empty()) {
         VulkanLogger::instance().enqueueText("VulkanAPI::initRender", 
             "warning: no shaders provided, using defaults");
         vulkanPipeline->addShader(defaultVertexShader);
         vulkanPipeline->addShader(defaultFragmentShader);
     }
 
-    for (auto _vkShaderHandle : vulkanShaderHandles) {
-        vulkanPipeline->addShader(_vkShaderHandle);
+    for (auto vulkanShader : vulkanShaders) {
+        vulkanPipeline->addShader(vulkanShader);
     }
 
-    for (auto _vkBufferHandle : vulkanBufferHandles) {
-        vulkanPipeline->pBuffers.push_back(_vkBufferHandle);
+    for (auto vulkanBuffer : vulkanBuffers) {
+        vulkanDrawer->pVertexBuffers.push_back(vulkanBuffer);
     }
 
     vulkanPipeline->init();
@@ -108,7 +111,8 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     vkResetFences(vulkanDevice->getDevice(), 1, 
         &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
 
-    vulkanPipeline->onNewFrame(*vulkanCmdBuffers[currentFrame], imageIndex, vertexCount);
+    vulkanDrawer->pVertexCount = vertexCount;
+    vulkanPipeline->onNewFrame(*vulkanCmdBuffers[currentFrame], imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -178,11 +182,11 @@ void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
 }
 
 std::vector<VulkanShader*>& VulkanAPI::getShaderHandles() {
-    return vulkanShaderHandles;
+    return vulkanShaders;
 }
 
 std::vector<VulkanBuffer*>& VulkanAPI::getBufferHandles() {
-    return vulkanBufferHandles;
+    return vulkanBuffers;
 }
 
 void VulkanAPI::setFramebufferResized(bool framebufferResized) {
@@ -203,7 +207,7 @@ VulkanShader* VulkanAPI::createShaderHandle(VulkanShaderInfo _vkShaderInfo) {
     return vulkanShaderHandle;
 }
 
-VulkanBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
+VulkanBuffer* VulkanAPI::createBufferHandle(VkDeviceSize pSize) {
     VulkanBuffer* vulkanBuffer = new VulkanBuffer();
     vulkanBuffer->pPhysicalDevice = &vulkanDevice->getPhysicalDevice();
     vulkanBuffer->pDevice = &vulkanDevice->getDevice();

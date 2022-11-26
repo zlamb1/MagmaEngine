@@ -42,7 +42,7 @@ public:
 	VulkanShader* createShaderHandle(const char* code, VulkanShaderType type);
 	VulkanShader* createShaderHandle(VulkanShaderInfo info);
 
-	VulkanBuffer* createBufferHandle(uint32_t pSize);
+	VulkanBuffer* createBufferHandle(VkDeviceSize pSize);
 	VulkanBuffer* createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
 		VulkanMemoryType pMemType);
 
@@ -62,14 +62,15 @@ private:
 	VulkanSurface* vulkanSurface = nullptr;
 	VulkanDevice* vulkanDevice = nullptr;
 	VulkanSwapchain* vulkanSwapchain = nullptr;
+	VulkanDrawer* vulkanDrawer = nullptr; 
 	VulkanPipeline* vulkanPipeline = nullptr;
 		
 	std::vector<VulkanCmdPool*> vulkanCmdPools{};
 	std::vector<VulkanCmdBuffer*> vulkanCmdBuffers{};
 	std::vector<VulkanRenderSync*> vulkanRenderSyncs{};
 	
-	std::vector<VulkanShader*> vulkanShaderHandles{};
-	std::vector<VulkanBuffer*> vulkanBufferHandles{};
+	std::vector<VulkanShader*> vulkanShaders{};
+	std::vector<VulkanBuffer*> vulkanBuffers{};
 
 	VulkanShader *defaultVertexShader = nullptr, *defaultFragmentShader = nullptr;
 

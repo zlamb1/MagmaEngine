@@ -3,24 +3,22 @@
 #include "vulkan_operation.h"
 
 namespace BufferCopy {
-	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize, VkBuffer pSrc, VkBuffer pDst);
+	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize, VkBuffer& pSrc, VkBuffer& pDst);
 	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize,
-		VkBuffer pSrc, VkBuffer pDst, VkDeviceSize pSrcOffset);
+		VkBuffer& pSrc, VkBuffer& pDst, VkDeviceSize pSrcOffset);
 	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize,
-		VkBuffer pSrc, VkBuffer pDst, VkDeviceSize pSrcOffset, VkDeviceSize pDstOffset);
+		VkBuffer& pSrc, VkBuffer& pDst, VkDeviceSize pSrcOffset, VkDeviceSize pDstOffset);
 }
 
 class VulkanBufferCopy : public VulkanOperation {
 
 public:
-	VulkanBufferCopy() = default;
+	VulkanBufferCopy(VulkanDevice& pDevice, VkBuffer& pSrc, VkBuffer& pDst);
 
-	VkBuffer pSrc{};
-	VkBuffer pDst{};
-	VkDeviceSize pSize{};
+	VkBuffer& pSrc;
+	VkBuffer& pDst;
 
-	VkDeviceSize pSrcOffset{};
-	VkDeviceSize pDstOffset{};
+	VkDeviceSize pSize = 0, pSrcOffset = 0, pDstOffset = 0;
 
 	VkResult init() override;
 

@@ -7,19 +7,15 @@
 class VulkanOperation {
 
 public:
-	VulkanOperation() = default; 
-	virtual ~VulkanOperation();
+	VulkanOperation(VulkanDevice& pDevice);
+	virtual ~VulkanOperation() = default;
 
-	VulkanDevice* pDevice = nullptr;
+	VulkanDevice& pDevice;
+	VulkanCmdPool pCmdPool{};
 
 	virtual VkResult init();
 
-	void setCmdPool(VulkanCmdPool* pCmdPool);
-
 protected:
-	VulkanCmdPool* pCmdPool = nullptr;
-	VulkanCmdBuffer* vulkanCmdBuffer = nullptr;
-
-	bool cmdPoolSet = false; 
+	VulkanCmdBuffer vulkanCmdBuffer;
 
 };

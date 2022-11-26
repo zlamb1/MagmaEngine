@@ -20,6 +20,7 @@ inline VulkanMemoryType operator|(VulkanMemoryType a, VulkanMemoryType b) {
 
 enum class VulkanBufferUsage {
 	VERTEX = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+	INDEX = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 	TRANSFER_SRC = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 	TRANSFER_DST = VK_BUFFER_USAGE_TRANSFER_DST_BIT
 };
@@ -36,7 +37,7 @@ public:
 
 	VkPhysicalDevice* pPhysicalDevice = nullptr;
 	VkDevice* pDevice = nullptr;
-	uint32_t pSize = 0; 
+	VkDeviceSize pSize = 0; 
 
 	// by default buffer usage is as a vertex buffer
 	VulkanBufferUsage pBufferUsageFlags = VulkanBufferUsage::VERTEX;

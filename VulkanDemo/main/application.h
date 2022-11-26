@@ -18,10 +18,10 @@ private:
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
 
-	GLFWwindow* window;
+	GLFWwindow* glfwWindow = nullptr;
 	VulkanAPI vulkanAPI{};
 
-	VulkanBuffer *stagingBuffer, *vertexBuffer;
+	VulkanBuffer *stagingBuffer = nullptr, *vertexBuffer = nullptr;
 
 	float x = 0.0f;
 	float y = 1.0f;
