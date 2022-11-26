@@ -105,14 +105,31 @@ void Application::initVulkan() {
     
     auto myVertex = MyVertexState{};
     vulkanAPI.addVertexInputState(myVertex);
+    
+    auto bufferSize = sizeof(float) * vertex_data.size();
 
-    vulkanBufferHandle = vulkanAPI.createBufferHandle(sizeof(float) * vertex_data.size());
-    vulkanAPI.getBufferHandles().push_back(vulkanBufferHandle);
+    stagingBuffer = vulkanAPI.createBufferHandle(bufferSize, VulkanBufferUsage::TRANSFER_SRC, 
+        VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES);
+
+    stagingBuffer->setData(vertex_data.data());
+
+    vertexBuffer = vulkanAPI.createBufferHandle(bufferSize,
+        VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::VERTEX,
+        VulkanMemoryType::GPU_EFFICIENT);
+
+    VulkanBufferCopy vulkanBufferCopy{};
+    vulkanBufferCopy.pDevice = vulkanAPI.getVulkanDevice();
+    vulkanBufferCopy.pSize = bufferSize;
+    vulkanBufferCopy.pSrc = stagingBuffer->getBuffer();
+    vulkanBufferCopy.pDst = vertexBuffer->getBuffer();
+    vulkanBufferCopy.init();
+
+    vulkanAPI.getBufferHandles().push_back(vertexBuffer);
 
     vulkanAPI.initRender();
 }
 
-namespace MapUtility {
+namespace map_utility {
     static float map(float in, float min, float max, float dMin, float dMax) {
         double slope = 1.0 * (dMax - dMin) / (max - min);
         return dMin + slope * (in - min);
@@ -121,10 +138,17 @@ namespace MapUtility {
 
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
-        vertex_data[2] = MapUtility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[8] = MapUtility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[14] = MapUtility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
-        vulkanBufferHandle->setData(vertex_data.data());
+        vertex_data[2] = map_utility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[8] = map_utility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[14] = map_utility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        stagingBuffer->setData(vertex_data.data());
+
+        VulkanBufferCopy vulkanBufferCopy{};
+        vulkanBufferCopy.pDevice = vulkanAPI.getVulkanDevice();
+        vulkanBufferCopy.pSize = stagingBuffer->pSize;
+        vulkanBufferCopy.pSrc = stagingBuffer->getBuffer();
+        vulkanBufferCopy.pDst = vertexBuffer->getBuffer();
+        vulkanBufferCopy.init();
 
         vulkanAPI.onNewFrame(3);
 

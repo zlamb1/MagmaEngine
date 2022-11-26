@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include "../vulkan/vulkan_api.h"
+#include "../vulkan/vulkan_buffer_copy.h"
 
 class Application {
 
@@ -20,7 +21,7 @@ private:
 	GLFWwindow* window;
 	VulkanAPI vulkanAPI{};
 
-	VulkanBuffer* vulkanBufferHandle;
+	VulkanBuffer *stagingBuffer, *vertexBuffer;
 
 	float x = 0.0f;
 	float y = 1.0f;

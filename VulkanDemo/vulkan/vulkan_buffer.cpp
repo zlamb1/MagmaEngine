@@ -37,33 +37,33 @@ VkResult VulkanBuffer::init() {
 		return VK_ERROR_INITIALIZATION_FAILED; 
 	}
 
-	VkBufferCreateInfo bufferInfo{};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = pSize;
-	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	VkBufferCreateInfo bufferCreateInfo{};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = pSize;
+	bufferCreateInfo.usage = (VkBufferUsageFlags) pBufferUsageFlags;
 	// sharing between queue families
-	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	// configures sparse buffer memory
-	bufferInfo.flags = 0; // optional
+	bufferCreateInfo.flags = 0; // optional
 
-	auto createBufferResult = vkCreateBuffer(*pDevice, &bufferInfo, pAllocator, &vkBuffer);
+	auto createBufferResult = vkCreateBuffer(*pDevice, &bufferCreateInfo, pAllocator, &vkBuffer);
+	VulkanLogger::instance().enqueueObject("VulkanBuffer::init::vkCreateBufferResult",
+		createBufferResult);
 	if (createBufferResult != VK_SUCCESS) {
-		VulkanLogger::instance().enqueueObject("VulkanBuffer::init::vkCreateBufferResult", 
-			createBufferResult);
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	// buffer allocation
 	auto memRequirements = queryMemRequirements();
 
-	VkMemoryAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = buffer_utility::findMemoryType(*pPhysicalDevice,
-		memRequirements.memoryTypeBits, pMemPropertyFlags);
+	VkMemoryAllocateInfo memAllocateInfo{};
+	memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memAllocateInfo.allocationSize = memRequirements.size;
+	memAllocateInfo.memoryTypeIndex = buffer_utility::findMemoryType(*pPhysicalDevice,
+		memRequirements.memoryTypeBits, (VkMemoryPropertyFlags) pMemPropertyFlags);
 
 	auto vkAllocateMemoryResult =
-		vkAllocateMemory(*pDevice, &allocInfo, pAllocator, &vkBufferMemory);
+		vkAllocateMemory(*pDevice, &memAllocateInfo, pAllocator, &vkBufferMemory);
 	if (vkAllocateMemoryResult != VK_SUCCESS) {
 		return vkAllocateMemoryResult;
 	}

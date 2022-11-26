@@ -5,6 +5,11 @@
 #include "vulkan_object.h"
 #include "vulkan_device.h"
 
+enum class VulkanCommandPoolCreateFlag {
+	RESET_COMMAND_BUFFER = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+	TRANSIENT = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+};
+
 class VulkanCmdPool : public VulkanObject {
 
 public:
@@ -13,6 +18,8 @@ public:
 
 	QueueFamily* pQueueFamily = nullptr;
 	VkDevice* pDevice = nullptr; 
+
+	VulkanCommandPoolCreateFlag pFlag = VulkanCommandPoolCreateFlag::RESET_COMMAND_BUFFER;
 
 	VkResult init() override;
 
@@ -27,7 +34,7 @@ class VulkanCmdBuffer : public VulkanObject {
 
 public:
 	VulkanCmdBuffer() = default;
-	~VulkanCmdBuffer() override = default;
+	~VulkanCmdBuffer() override;
 
 	VkDevice* pDevice = nullptr;
 	VkCommandPool* pCmdPool = nullptr;
@@ -35,6 +42,7 @@ public:
 	VkResult init() override;
 
 	VkResult record();
+	void end();
 	void reset();
 
 	VkCommandBuffer& getCmdBuffer();

@@ -31,6 +31,8 @@ public:
 	void initRender();
 	void onNewFrame(uint32_t vertexCount);
 
+	VulkanDevice* getVulkanDevice();
+
 	std::vector<VulkanShader*>& getShaderHandles();
 	std::vector<VulkanBuffer*>& getBufferHandles();
 	
@@ -39,7 +41,10 @@ public:
 	
 	VulkanShader* createShaderHandle(const char* code, VulkanShaderType type);
 	VulkanShader* createShaderHandle(VulkanShaderInfo info);
+
 	VulkanBuffer* createBufferHandle(uint32_t pSize);
+	VulkanBuffer* createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
+		VulkanMemoryType pMemType);
 
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 1;

@@ -22,7 +22,7 @@ VkResult VulkanCmdPool::init() {
 	VkCommandPoolCreateInfo poolInfo{};
 
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	poolInfo.flags = (VkCommandPoolCreateFlags) pFlag;
 	poolInfo.queueFamilyIndex = pQueueFamily->getGraphics();
 
 	return vkCreateCommandPool(*pDevice, &poolInfo, pAllocator, &vkCmdPool);
@@ -34,9 +34,13 @@ VkCommandPool& VulkanCmdPool::getCmdPool() {
 
 // VulkanCmdBuffer
 
-VkResult VulkanCmdBuffer::init() {
-	VkCommandBufferAllocateInfo allocInfo{};
+VulkanCmdBuffer::~VulkanCmdBuffer() {
+	if (pDevice != nullptr && pCmdPool != nullptr) {
+		vkFreeCommandBuffers(*pDevice, *pCmdPool, 1, &vkCmdBuffer);
+	}
+}
 
+VkResult VulkanCmdBuffer::init() {
 	if (pDevice == nullptr) {
 		VulkanLogger::instance().enqueueText("VulkanCmdBuffer::init", "pDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
@@ -47,12 +51,13 @@ VkResult VulkanCmdBuffer::init() {
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = *pCmdPool;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = 1;
+	VkCommandBufferAllocateInfo cmdBufferAllocInfo{};
+	cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cmdBufferAllocInfo.commandPool = *pCmdPool;
+	cmdBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmdBufferAllocInfo.commandBufferCount = 1;
 
-	return vkAllocateCommandBuffers(*pDevice, &allocInfo, &vkCmdBuffer);
+	return vkAllocateCommandBuffers(*pDevice, &cmdBufferAllocInfo, &vkCmdBuffer);
 }
 
 VkResult VulkanCmdBuffer::record() {
@@ -62,6 +67,10 @@ VkResult VulkanCmdBuffer::record() {
 	beginInfo.pInheritanceInfo = nullptr; // optional
 
 	return vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);
+}
+
+void VulkanCmdBuffer::end() {
+	vkEndCommandBuffer(vkCmdBuffer);
 }
 
 void VulkanCmdBuffer::reset() {

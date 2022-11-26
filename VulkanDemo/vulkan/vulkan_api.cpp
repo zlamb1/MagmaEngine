@@ -166,6 +166,10 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+VulkanDevice* VulkanAPI::getVulkanDevice() {
+    return vulkanDevice;
+}
+
 void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
     vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
     for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {
@@ -204,6 +208,19 @@ VulkanBuffer* VulkanAPI::createBufferHandle(uint32_t pSize) {
     vulkanBuffer->pPhysicalDevice = &vulkanDevice->getPhysicalDevice();
     vulkanBuffer->pDevice = &vulkanDevice->getDevice();
     vulkanBuffer->pSize = pSize;
+    VulkanLogger::instance().enqueueObject("VulkanAPI::createBufferHandle", vulkanBuffer->init());
+    vulkanDeque.addObject(vulkanBuffer);
+    return vulkanBuffer;
+}
+
+VulkanBuffer* VulkanAPI::createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
+    VulkanMemoryType pMemType) {
+    VulkanBuffer* vulkanBuffer = new VulkanBuffer();
+    vulkanBuffer->pPhysicalDevice = &vulkanDevice->getPhysicalDevice();
+    vulkanBuffer->pDevice = &vulkanDevice->getDevice();
+    vulkanBuffer->pSize = (uint32_t) pSize;
+    vulkanBuffer->pBufferUsageFlags = pBufferUsage;
+    vulkanBuffer->pMemPropertyFlags = pMemType;
     VulkanLogger::instance().enqueueObject("VulkanAPI::createBufferHandle", vulkanBuffer->init());
     vulkanDeque.addObject(vulkanBuffer);
     return vulkanBuffer;
