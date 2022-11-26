@@ -13,12 +13,10 @@
 class VulkanSwapchain : public VulkanObject {
 
 public:
-	VulkanSwapchain() = default;
+	VulkanSwapchain(std::shared_ptr<VulkanDevice> pVulkanDevice);
 	~VulkanSwapchain() override;
 
-	GLFWwindow* pWindow = nullptr;
-	VulkanDevice* pDevice = nullptr;
-	VkSurfaceKHR* pSurfaceKHR = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 
 	VkResult init() override;
 

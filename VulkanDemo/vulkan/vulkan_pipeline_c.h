@@ -31,27 +31,27 @@ public:
 	VulkanShaderPipeline() = default;
 	~VulkanShaderPipeline() override = default;
 
-	VulkanDevice* pDevice = nullptr;
-
 	VkResult init() override;
 
 	std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
 
-	void addShader(VulkanShader* vulkanShaderHandle);
+	void addShader(std::shared_ptr<VulkanShader> pVulkanShader);
 
 private:
-	std::vector<VulkanShader*> vulkanShaderHandles{};
+	std::vector<std::shared_ptr<VulkanShader>> pVulkanShaders{};
 
 };
 
 class VulkanFixedFunctionState : public VulkanObject {
 
 public:
-	VulkanFixedFunctionState() = default;
+	VulkanFixedFunctionState(std::shared_ptr<VulkanDevice> pVulkanDevice,
+		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain);
 	~VulkanFixedFunctionState() override;
 
-	VulkanDevice* pDevice = nullptr;
-	VulkanSwapchain* pSwapchain = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
+	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
+
 	std::vector<VkVertexInputBindingDescription> pVertexBindingDescriptions{};
 	std::vector<VkVertexInputAttributeDescription> pVertexAttributeDescriptions{};
 
@@ -98,11 +98,12 @@ private:
 class VulkanRenderPass : public VulkanObject {
 
 public:
-	VulkanRenderPass() = default;
+	VulkanRenderPass(std::shared_ptr<VulkanDevice> pVulkanDevice,
+		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain);
 	~VulkanRenderPass() override;
 
-	VulkanDevice* pDevice = nullptr;
-	VulkanSwapchain* pSwapchain = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
+	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
 
 	VkResult init() override;
 

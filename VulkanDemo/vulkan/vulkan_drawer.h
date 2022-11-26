@@ -13,8 +13,8 @@ public:
 	VulkanDrawer() = default;
 	~VulkanDrawer() override = default;
 
-	std::vector<VulkanBuffer*> pVertexBuffers{};
-	VulkanBuffer* pIndexBuffer = nullptr;
+	std::vector<std::shared_ptr<VulkanBuffer>> pVertexBuffers{};
+	std::shared_ptr<VulkanBuffer> pIndexBuffer = nullptr;
 
 	uint32_t pVertexCount = 0, pIndexCount = 0, pInstanceCount = 1;
 	uint32_t pFirstVertex = 0, pFirstInstance = 0, pFirstIndex = 0;

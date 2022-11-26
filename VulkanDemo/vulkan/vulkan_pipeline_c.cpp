@@ -4,17 +4,17 @@
 
 std::vector<VkPipelineShaderStageCreateInfo> VulkanShaderPipeline::getShaderStages() {
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-	for (auto vulkanShaderHandle : vulkanShaderHandles) {
-		if (vulkanShaderHandle != nullptr) {
-			shaderStages.push_back(vulkanShaderHandle->getShaderStageCreateInfo());
+	for (auto pVulkanShader : pVulkanShaders) {
+		if (pVulkanShader != nullptr) {
+			shaderStages.push_back(pVulkanShader->getShaderStageCreateInfo());
 		}
 	}
 
 	return shaderStages;
 }
 
-void VulkanShaderPipeline::addShader(VulkanShader* vulkanShaderHandle) {
-	vulkanShaderHandles.push_back(vulkanShaderHandle);
+void VulkanShaderPipeline::addShader(std::shared_ptr<VulkanShader> pVulkanShader) {
+	pVulkanShaders.push_back(pVulkanShader);
 }
 
 VkResult VulkanShaderPipeline::init() {
@@ -23,20 +23,24 @@ VkResult VulkanShaderPipeline::init() {
 
 // VulkanFixedFunctionState
 
+VulkanFixedFunctionState::VulkanFixedFunctionState(std::shared_ptr<VulkanDevice> pVulkanDevice,
+	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) : pVulkanDevice{ pVulkanDevice }, 
+	pVulkanSwapchain{ pVulkanSwapchain } {}
+
 VulkanFixedFunctionState::~VulkanFixedFunctionState() {
-	if (pDevice != nullptr) {
-		vkDestroyPipelineLayout(pDevice->getDevice(), vkPipelineLayout, nullptr);
+	if (pVulkanDevice != nullptr) {
+		vkDestroyPipelineLayout(pVulkanDevice->getDevice(), vkPipelineLayout, nullptr);
 	}
 }
 
 VkResult VulkanFixedFunctionState::init() {
-	if (pDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pDevice is nullptr");
+	if (pVulkanDevice == nullptr) {
+		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pVulkanDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	if (pSwapchain == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pSwapchain is nullptr");
+	if (pVulkanSwapchain == nullptr) {
+		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pVulkanSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -56,7 +60,7 @@ VkResult VulkanFixedFunctionState::init() {
 	vkInputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vkInputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
-	auto vkSwapchainExtent = pSwapchain->getSwapchainExtent();
+	auto vkSwapchainExtent = pVulkanSwapchain->getSwapchainExtent();
 	vkViewport.x = 0.0f;
 	vkViewport.y = 0.0f;
 	vkViewport.width = (float)vkSwapchainExtent.width;
@@ -119,7 +123,7 @@ VkResult VulkanFixedFunctionState::init() {
 	vkPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // optional
 	vkPipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // optional
 
-	auto createPipelineLayoutResult = vkCreatePipelineLayout(pDevice->getDevice(),
+	auto createPipelineLayoutResult = vkCreatePipelineLayout(pVulkanDevice->getDevice(),
 		&vkPipelineLayoutCreateInfo, nullptr, &vkPipelineLayout);
 	VulkanLogger::instance().enqueueObject("VulkanFixedFunctionState::init::vkCreatePipelineLayoutResult", 
 		createPipelineLayoutResult);
@@ -181,25 +185,29 @@ VkPipelineLayout& VulkanFixedFunctionState::getPipelineLayout() {
 
 // VulkanRenderPass
 
+VulkanRenderPass::VulkanRenderPass(std::shared_ptr<VulkanDevice> pVulkanDevice,
+	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) : pVulkanDevice{ pVulkanDevice },
+	pVulkanSwapchain{ pVulkanSwapchain } {}
+
 VulkanRenderPass::~VulkanRenderPass() {
-	if (pDevice != nullptr) {
-		vkDestroyRenderPass(pDevice->getDevice(), vkRenderPass, nullptr);
+	if (pVulkanDevice != nullptr) {
+		vkDestroyRenderPass(pVulkanDevice->getDevice(), vkRenderPass, nullptr);
 	}
 }
 
 VkResult VulkanRenderPass::init() {
-	if (pDevice == nullptr) {
+	if (pVulkanDevice == nullptr) {
 		VulkanLogger::instance().enqueueText("VulkanRenderPass::init", "pDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	if (pSwapchain == nullptr) {
+	if (pVulkanSwapchain == nullptr) {
 		VulkanLogger::instance().enqueueText("VulkanRenderPass::init", "pSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = pSwapchain->getSwapchainImageFormat();
+	colorAttachment.format = pVulkanSwapchain->getSwapchainImageFormat();
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -224,7 +232,7 @@ VkResult VulkanRenderPass::init() {
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 
-	auto createRenderPassResult = vkCreateRenderPass(pDevice->getDevice(), &renderPassInfo,
+	auto createRenderPassResult = vkCreateRenderPass(pVulkanDevice->getDevice(), &renderPassInfo,
 		nullptr, &vkRenderPass);
 	VulkanLogger::instance().enqueueObject("VulkanRenderPass::init::vkCreateRenderPass", 
 		createRenderPassResult);

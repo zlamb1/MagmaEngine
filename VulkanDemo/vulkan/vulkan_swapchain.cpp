@@ -1,6 +1,6 @@
 #include "vulkan_swapchain.h"
 
-namespace swapchain_utility {
+namespace SwapchainUtility {
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
@@ -44,36 +44,30 @@ namespace swapchain_utility {
     }
 }
 
+VulkanSwapchain::VulkanSwapchain(std::shared_ptr<VulkanDevice> pVulkanDevice) : 
+    pVulkanDevice{ pVulkanDevice } {}
+
 VulkanSwapchain::~VulkanSwapchain() {
-    if (pDevice != nullptr) {
+    if (pVulkanDevice != nullptr) {
         deleteImageViews();
-        vkDestroySwapchainKHR(pDevice->getDevice(), vkSwapchainKHR, nullptr);
+        vkDestroySwapchainKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, nullptr);
     }
 }
 
 VkResult VulkanSwapchain::init() {
-    if (pWindow == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "pWindow is nullptr");
-        return VK_ERROR_INITIALIZATION_FAILED;
-    }
-
-    if (pDevice == nullptr) {
+    if (pVulkanDevice == nullptr) {
         VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "pDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    if (pSurfaceKHR == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "pSurfaceKHR is nullptr");
-        return VK_ERROR_INITIALIZATION_FAILED;
-    }
+    auto pVulkanSurface = pVulkanDevice->pVulkanSurface;
+    auto vkSwapchainSupport = pVulkanDevice->querySwapchainSupport();
 
-    auto vkSwapchainSupport = pDevice->querySwapchainSupport();
-
-    VkSurfaceFormatKHR surfaceFormat = swapchain_utility::chooseSwapSurfaceFormat(
+    VkSurfaceFormatKHR surfaceFormat = SwapchainUtility::chooseSwapSurfaceFormat(
         vkSwapchainSupport.formats);
-    VkPresentModeKHR presentMode = swapchain_utility::chooseSwapPresentMode(
+    VkPresentModeKHR presentMode = SwapchainUtility::chooseSwapPresentMode(
         vkSwapchainSupport.presentModes);
-    VkExtent2D extent = swapchain_utility::chooseSwapExtent(*pWindow,
+    VkExtent2D extent = SwapchainUtility::chooseSwapExtent(*pVulkanSurface->pWindow,
         vkSwapchainSupport.capabilities);
 
     uint32_t imageCount = vkSwapchainSupport.capabilities.minImageCount + 1;
@@ -84,7 +78,7 @@ VkResult VulkanSwapchain::init() {
 
     VkSwapchainCreateInfoKHR vkCreateInfo{};
     vkCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    vkCreateInfo.surface = *pSurfaceKHR;
+    vkCreateInfo.surface = pVulkanSurface->getSurfaceKHR();
 
     vkCreateInfo.minImageCount = imageCount;
     vkCreateInfo.imageFormat = surfaceFormat.format;
@@ -93,7 +87,7 @@ VkResult VulkanSwapchain::init() {
     vkCreateInfo.imageArrayLayers = 1;
     vkCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    auto vkQueueFamily = pDevice->getQueueFamily();
+    auto vkQueueFamily = pVulkanDevice->getQueueFamily();
 
     uint32_t vkQueueIndices[] = {
         vkQueueFamily.getGraphics(),
@@ -118,15 +112,15 @@ VkResult VulkanSwapchain::init() {
 
     vkCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    auto createSwapchainResult = vkCreateSwapchainKHR(pDevice->getDevice(), &vkCreateInfo,
+    auto createSwapchainResult = vkCreateSwapchainKHR(pVulkanDevice->getDevice(), &vkCreateInfo,
         nullptr, &vkSwapchainKHR);
     VulkanLogger::instance().enqueueObject("VulkanSwapchain::init::vkCreateSwapchainResult",
         createSwapchainResult);
         
-    vkGetSwapchainImagesKHR(pDevice->getDevice(), vkSwapchainKHR, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, &imageCount, nullptr);
         
     vkImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(pDevice->getDevice(), vkSwapchainKHR, &imageCount, vkImages.data());
+    vkGetSwapchainImagesKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, &imageCount, vkImages.data());
 
     vkSwapchainImageFormat = surfaceFormat.format;
     vkSwapchainExtent = extent;
@@ -153,7 +147,7 @@ VkResult VulkanSwapchain::init() {
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        auto createImageViewResult = vkCreateImageView(pDevice->getDevice(),
+        auto createImageViewResult = vkCreateImageView(pVulkanDevice->getDevice(),
             &imageViewCreateInfo, pAllocator, &vkImageViews[i]);
         VulkanLogger::instance().enqueueObject("VulkanSwapchain::init::vkCreateImageView",
             createImageViewResult);
@@ -184,7 +178,7 @@ std::vector<VkImageView>& VulkanSwapchain::getImageViews() {
 
 void VulkanSwapchain::deleteImageViews() {
     for (auto vkImageView : vkImageViews) {
-        vkDestroyImageView(pDevice->getDevice(), vkImageView, nullptr);
+        vkDestroyImageView(pVulkanDevice->getDevice(), vkImageView, nullptr);
     }
     vkImageViews.clear();
 }

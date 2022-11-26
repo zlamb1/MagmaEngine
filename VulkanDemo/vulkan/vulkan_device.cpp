@@ -1,6 +1,6 @@
 #include "vulkan_device.h"
 
-namespace vulkan_device {
+namespace DeviceUtility {
     static SwapchainSupportDetails querySwapchainSupport(
         VkPhysicalDevice& device, VkSurfaceKHR& surface) {
 
@@ -87,18 +87,18 @@ namespace vulkan_device {
         VkPhysicalDeviceFeatures deviceFeatures;
         vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-        if (!vulkan_device::findQueueFamily(
+        if (!DeviceUtility::findQueueFamily(
             device, vkSurfaceKHR, VK_QUEUE_GRAPHICS_BIT).isComplete()) {
             return false;
         }
 
-        bool extensionsSupported = vulkan_device::checkDeviceExtensionsSupport(
+        bool extensionsSupported = DeviceUtility::checkDeviceExtensionsSupport(
             device, vkReqExtensions);
         if (!extensionsSupported) {
             return false;
         }
 
-        SwapchainSupportDetails swapchainSupport = vulkan_device::querySwapchainSupport(
+        SwapchainSupportDetails swapchainSupport = DeviceUtility::querySwapchainSupport(
             device, vkSurfaceKHR);
         if (swapchainSupport.formats.empty() || swapchainSupport.presentModes.empty()) {
             return false;
@@ -132,19 +132,35 @@ bool QueueFamily::isComplete() {
 
 // VulkanDevice
 
+VulkanDevice::VulkanDevice(std::shared_ptr<VulkanInstance> pVulkanInstance, 
+    std::shared_ptr<VulkanSurface> pVulkanSurface, std::shared_ptr<VulkanValidater> pVulkanValidater) :
+    pVulkanInstance{ pVulkanInstance }, pVulkanSurface{ pVulkanSurface }, 
+    pVulkanValidater{ pVulkanValidater } {}
+
 VulkanDevice::~VulkanDevice() {
-    vkDestroyDevice(device, nullptr);
+    vkDestroyDevice(device, pAllocator);
 }
 
 VkResult VulkanDevice::init() {
-    physicalDevice = VK_NULL_HANDLE;
-
-    if (pInstance == nullptr || pSurfaceKHR == nullptr) {
+    if (pVulkanInstance == nullptr) {
+        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pInstance is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
+    if (pVulkanSurface == nullptr) {
+        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pVulkanSurface is nullptr");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (pVulkanValidater == nullptr) {
+        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pVulkanValidater is nullptr");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    physicalDevice = VK_NULL_HANDLE;
+
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(*pInstance, &deviceCount, nullptr);
+    vkEnumeratePhysicalDevices(pVulkanInstance->getInstance(), &deviceCount, nullptr);
 
     if (deviceCount == 0) {
         VulkanLogger::instance().enqueueText("VulkanDevice", "Could not find a GPU with Vulkan support!");
@@ -152,10 +168,10 @@ VkResult VulkanDevice::init() {
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(*pInstance, &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(pVulkanInstance->getInstance(), &deviceCount, devices.data());
 
     for (auto& device : devices) {
-        if (vulkan_device::isDeviceSuitable(device, *pSurfaceKHR, reqExtensions)) {
+        if (DeviceUtility::isDeviceSuitable(device, pVulkanSurface->getSurfaceKHR(), reqExtensions)) {
             physicalDevice = device;
             break;
         }
@@ -168,8 +184,8 @@ VkResult VulkanDevice::init() {
 
     // Create Logical Device
 
-    queueFamily = vulkan_device::findQueueFamily(
-        physicalDevice, *pSurfaceKHR, VK_QUEUE_GRAPHICS_BIT);
+    queueFamily = DeviceUtility::findQueueFamily(
+        physicalDevice, pVulkanSurface->getSurfaceKHR(), VK_QUEUE_GRAPHICS_BIT);
 
     VkDeviceQueueCreateInfo queueCreateInfo{};
 
@@ -192,9 +208,9 @@ VkResult VulkanDevice::init() {
     deviceCreateInfo.ppEnabledExtensionNames = reqExtensions.data();
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
-    if (pValidater->isValidationEnabled()) {
-        deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(pValidater->getLayerSize());
-        deviceCreateInfo.ppEnabledLayerNames = pValidater->getLayerData();
+    if (pVulkanValidater->isValidationEnabled()) {
+        deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(pVulkanValidater->getLayerSize());
+        deviceCreateInfo.ppEnabledLayerNames = pVulkanValidater->getLayerData();
     }
     else {
         deviceCreateInfo.enabledLayerCount = 0;
@@ -235,5 +251,5 @@ VkQueue& VulkanDevice::getPresentationQueue() {
 }
 
 SwapchainSupportDetails VulkanDevice::querySwapchainSupport() {
-    return vulkan_device::querySwapchainSupport(physicalDevice, *pSurfaceKHR);
+    return DeviceUtility::querySwapchainSupport(physicalDevice, pVulkanSurface->getSurfaceKHR());
 }

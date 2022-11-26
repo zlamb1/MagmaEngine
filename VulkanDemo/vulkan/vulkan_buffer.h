@@ -32,11 +32,11 @@ inline VulkanBufferUsage operator|(VulkanBufferUsage a, VulkanBufferUsage b) {
 class VulkanBuffer : public VulkanObject {
 	
 public:
-	VulkanBuffer() = default;
+	VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice);
 	~VulkanBuffer() override;
 
-	VkPhysicalDevice* pPhysicalDevice = nullptr;
-	VkDevice* pDevice = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
+
 	VkDeviceSize pSize = 0; 
 
 	// by default buffer usage is as a vertex buffer
@@ -48,11 +48,12 @@ public:
 
 	VkResult init() override;
 
+	VkMemoryRequirements queryMemRequirements();
+
 	VkBuffer& getBuffer();
 	VkDeviceMemory& getBufferMemory();
 
 	VkResult setData(const void* buffer_data);
-	VkMemoryRequirements queryMemRequirements();
 
 private:
 	VkBuffer vkBuffer{};

@@ -1,6 +1,6 @@
 #include "vulkan_buffer.h"
 
-namespace buffer_utility {
+namespace BufferUtility {
 	static uint32_t findMemoryType(VkPhysicalDevice& vkPhysicalDevice,
 		uint32_t typeFilter, 
 		VkMemoryPropertyFlags properties) {
@@ -19,22 +19,20 @@ namespace buffer_utility {
 	}
 }
 
+VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
+	pVulkanDevice{ pVulkanDevice } {}
+
 VulkanBuffer::~VulkanBuffer() {
-	if (pDevice != nullptr) {
-		vkDestroyBuffer(*pDevice, vkBuffer, pAllocator);
-		vkFreeMemory(*pDevice, vkBufferMemory, pAllocator);
+	if (pVulkanDevice != nullptr) {
+		vkFreeMemory(pVulkanDevice->getDevice(), vkBufferMemory, pAllocator);
+		vkDestroyBuffer(pVulkanDevice->getDevice(), vkBuffer, pAllocator);
 	}
 }
 
 VkResult VulkanBuffer::init() {
-	if (pPhysicalDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanBuffer::init", "pPhysicalDevice is nullptr");
+	if (pVulkanDevice == nullptr) {
+		VulkanLogger::instance().enqueueText("VulkanBuffer::init", "pVulkanDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
-	}
-
-	if (pDevice == nullptr) {
-		VulkanLogger::instance().enqueueObject("VulkanBuffer::init", "pDevice is nullptr");
-		return VK_ERROR_INITIALIZATION_FAILED; 
 	}
 
 	VkBufferCreateInfo bufferCreateInfo{};
@@ -46,11 +44,12 @@ VkResult VulkanBuffer::init() {
 	// configures sparse buffer memory
 	bufferCreateInfo.flags = 0; // optional
 
-	auto createBufferResult = vkCreateBuffer(*pDevice, &bufferCreateInfo, pAllocator, &vkBuffer);
+	auto createBufferResult = vkCreateBuffer(pVulkanDevice->getDevice(), &bufferCreateInfo, 
+		pAllocator, &vkBuffer);
 	VulkanLogger::instance().enqueueObject("VulkanBuffer::init::vkCreateBufferResult",
 		createBufferResult);
 	if (createBufferResult != VK_SUCCESS) {
-		return VK_ERROR_INITIALIZATION_FAILED;
+		return createBufferResult;
 	}
 
 	// buffer allocation
@@ -59,16 +58,24 @@ VkResult VulkanBuffer::init() {
 	VkMemoryAllocateInfo memAllocateInfo{};
 	memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memAllocateInfo.allocationSize = memRequirements.size;
-	memAllocateInfo.memoryTypeIndex = buffer_utility::findMemoryType(*pPhysicalDevice,
+	memAllocateInfo.memoryTypeIndex = BufferUtility::findMemoryType(pVulkanDevice->getPhysicalDevice(),
 		memRequirements.memoryTypeBits, (VkMemoryPropertyFlags) pMemPropertyFlags);
 
 	auto vkAllocateMemoryResult =
-		vkAllocateMemory(*pDevice, &memAllocateInfo, pAllocator, &vkBufferMemory);
+		vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator, &vkBufferMemory);
 	if (vkAllocateMemoryResult != VK_SUCCESS) {
 		return vkAllocateMemoryResult;
 	}
 	
-	return vkBindBufferMemory(*pDevice, vkBuffer, vkBufferMemory, 0);
+	return vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkBufferMemory, 0);
+}
+
+VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
+	VkMemoryRequirements memRequirements{};
+	if (pVulkanDevice != nullptr) {
+		vkGetBufferMemoryRequirements(pVulkanDevice->getDevice(), vkBuffer, &memRequirements);
+	}
+	return memRequirements;
 }
 
 VkBuffer& VulkanBuffer::getBuffer() {
@@ -80,25 +87,12 @@ VkDeviceMemory& VulkanBuffer::getBufferMemory() {
 }
 
 VkResult VulkanBuffer::setData(const void* buffer_data) {
-	if (pDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanBuffer::setData", "pDevice is nullptr");
-		return VK_ERROR_INITIALIZATION_FAILED;
-	}
-
 	void* data;
-	auto vkMapMemoryResult = vkMapMemory(*pDevice, vkBufferMemory, 0, pSize, 0, &data);
+	auto vkMapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkBufferMemory, 0, pSize, 0, &data);
 	if (vkMapMemoryResult != VK_SUCCESS) {
 		return vkMapMemoryResult;
 	}
 	memcpy(data, buffer_data, (size_t)pSize);
-	vkUnmapMemory(*pDevice, vkBufferMemory);
+	vkUnmapMemory(pVulkanDevice->getDevice(), vkBufferMemory);
 	return VK_SUCCESS;
-}
-
-VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
-	VkMemoryRequirements memRequirements{};
-	if (pDevice != nullptr) {
-		vkGetBufferMemoryRequirements(*pDevice, vkBuffer, &memRequirements);
-	}
-	return memRequirements; 
 }

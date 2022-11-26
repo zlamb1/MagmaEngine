@@ -13,12 +13,10 @@ enum class VulkanCommandPoolCreateFlag {
 class VulkanCmdPool : public VulkanObject {
 
 public:
-	VulkanCmdPool() = default;
+	VulkanCmdPool(std::shared_ptr<VulkanDevice> pVulkanDevice);
 	~VulkanCmdPool() override;
-
-	QueueFamily* pQueueFamily = nullptr;
-	VkDevice* pDevice = nullptr; 
-
+	
+	std::shared_ptr<VulkanDevice> pVulkanDevice;
 	VulkanCommandPoolCreateFlag pFlag = VulkanCommandPoolCreateFlag::RESET_COMMAND_BUFFER;
 
 	VkResult init() override;
@@ -33,11 +31,12 @@ private:
 class VulkanCmdBuffer : public VulkanObject {
 
 public:
-	VulkanCmdBuffer() = default;
+	VulkanCmdBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice, 
+		std::shared_ptr<VulkanCmdPool> pVulkanCmdPool);
 	~VulkanCmdBuffer() override;
 
-	VkDevice* pDevice = nullptr;
-	VkCommandPool* pCmdPool = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice;
+	std::shared_ptr<VulkanCmdPool> pVulkanCmdPool;
 
 	VkResult init() override;
 
@@ -48,6 +47,6 @@ public:
 	VkCommandBuffer& getCmdBuffer();
 
 private:
-	VkCommandBuffer vkCmdBuffer; 
+	VkCommandBuffer vkCmdBuffer{};
 
 };

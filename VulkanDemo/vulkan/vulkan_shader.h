@@ -11,10 +11,11 @@
 class VulkanShader : public VulkanObject {
 
 public:
-	VulkanShader() = default;
+	VulkanShader(std::shared_ptr<VulkanDevice> pVulkanDevice);
 	~VulkanShader() override;
 
-	VkDevice* pDevice = nullptr;
+	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
+
 	const char* pShaderCode = nullptr;
 	shaderc_shader_kind pShaderType = shaderc_shader_kind::shaderc_vertex_shader; 
 

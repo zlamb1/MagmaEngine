@@ -10,7 +10,7 @@ class VulkanDebugger : public VulkanObject {
 
 public:
 
-	VulkanDebugger(VkInstance& _instance);
+	VulkanDebugger(VkInstance& vkInstance);
 	~VulkanDebugger() override;
 
 	VkResult init() override;

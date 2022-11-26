@@ -1,6 +1,6 @@
 #include "vulkan_shader.h"
 
-namespace shader_utility {
+namespace ShaderUtility {
 	static std::vector<uint32_t> compileShader(shaderc::Compiler& compiler,
 		const char* shaderCode, shaderc_shader_kind shaderType) {
 		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(shaderCode,
@@ -14,14 +14,17 @@ namespace shader_utility {
 
 // VulkanShader
 
+VulkanShader::VulkanShader(std::shared_ptr<VulkanDevice> pVulkanDevice) :
+	pVulkanDevice{ pVulkanDevice } {}
+
 VulkanShader::~VulkanShader() {
-	if (pDevice != nullptr) {
-		vkDestroyShaderModule(*pDevice, vkShaderModule, nullptr);
+	if (pVulkanDevice != nullptr) {
+		vkDestroyShaderModule(pVulkanDevice->getDevice(), vkShaderModule, pAllocator);
 	}
 }
 
 VkResult VulkanShader::init() {
-	if (pDevice == nullptr) {
+	if (pVulkanDevice == nullptr) {
 		VulkanLogger::instance().enqueueText("VulkanShader::init", "pDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
@@ -32,7 +35,7 @@ VkResult VulkanShader::init() {
 	}
 
 	// VkShaderModule init
-	std::vector<uint32_t> vkShaderResult = shader_utility::compileShader(pCompiler,
+	std::vector<uint32_t> vkShaderResult = ShaderUtility::compileShader(pCompiler,
 		pShaderCode, pShaderType);
 
 	VkShaderModuleCreateInfo vkShaderModuleCreateInfo{};
@@ -40,8 +43,8 @@ VkResult VulkanShader::init() {
 	vkShaderModuleCreateInfo.codeSize = vkShaderResult.size() * sizeof(uint32_t);
 	vkShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(vkShaderResult.data());
 
-	auto createShaderModuleResult = vkCreateShaderModule(*pDevice, &vkShaderModuleCreateInfo,
-		nullptr, &vkShaderModule);
+	auto createShaderModuleResult = vkCreateShaderModule(pVulkanDevice->getDevice(), 
+		&vkShaderModuleCreateInfo, pAllocator, &vkShaderModule);
 	VulkanLogger::instance().enqueueObject("VulkanShader::init::vkCreateShaderModule", 
 		createShaderModuleResult);
 

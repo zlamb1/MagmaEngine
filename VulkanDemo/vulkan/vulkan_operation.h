@@ -7,15 +7,15 @@
 class VulkanOperation {
 
 public:
-	VulkanOperation(VulkanDevice& pDevice);
+	VulkanOperation(std::shared_ptr<VulkanDevice> pVulkanDevice);
 	virtual ~VulkanOperation() = default;
 
-	VulkanDevice& pDevice;
-	VulkanCmdPool pCmdPool{};
+	std::shared_ptr<VulkanDevice> pVulkanDevice;
+	std::shared_ptr<VulkanCmdPool> pVulkanCmdPool;
 
 	virtual VkResult init();
 
 protected:
-	VulkanCmdBuffer vulkanCmdBuffer;
+	std::shared_ptr<VulkanCmdBuffer> vulkanCmdBuffer;
 
 };

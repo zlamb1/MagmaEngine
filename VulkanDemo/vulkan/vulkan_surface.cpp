@@ -1,8 +1,11 @@
 #include "vulkan_surface.h"
 
+VulkanSurface::VulkanSurface(GLFWwindow* pWindow, std::shared_ptr<VulkanInstance> pVulkanInstance) :
+    pWindow{ pWindow }, pVulkanInstance{ pVulkanInstance } {}
+
 VulkanSurface::~VulkanSurface() {
-    if (pInstance != nullptr) {
-        vkDestroySurfaceKHR(*pInstance, vkSurfaceKHR, nullptr);
+    if (pVulkanInstance != nullptr) {
+        vkDestroySurfaceKHR(pVulkanInstance->getInstance(), vkSurfaceKHR, nullptr);
     }
 }
 
@@ -12,13 +15,13 @@ VkResult VulkanSurface::init() {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    if (pInstance == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSurface::init", "pInstance is nullptr");
+    if (pVulkanInstance == nullptr) {
+        VulkanLogger::instance().enqueueText("VulkanSurface::init", "pVulkanInstance is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     auto createWindowSurface = glfwCreateWindowSurface(
-        *pInstance, pWindow, nullptr, &vkSurfaceKHR);
+        pVulkanInstance->getInstance(), pWindow, nullptr, &vkSurfaceKHR);
     VulkanLogger::instance().enqueueObject("VulkanSurface::init::glfwCreateWindowSurface", 
         createWindowSurface);
 

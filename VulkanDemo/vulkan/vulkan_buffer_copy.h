@@ -3,17 +3,18 @@
 #include "vulkan_operation.h"
 
 namespace BufferCopy {
-	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize, VkBuffer& pSrc, VkBuffer& pDst);
-	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize,
+	extern VkResult copyBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice, VkDeviceSize pSize,
+		VkBuffer& pSrc, VkBuffer& pDst);
+	extern VkResult copyBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice, VkDeviceSize pSize,
 		VkBuffer& pSrc, VkBuffer& pDst, VkDeviceSize pSrcOffset);
-	extern VkResult copyBuffer(VulkanDevice* pDevice, VkDeviceSize pSize,
+	extern VkResult copyBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice, VkDeviceSize pSize,
 		VkBuffer& pSrc, VkBuffer& pDst, VkDeviceSize pSrcOffset, VkDeviceSize pDstOffset);
 }
 
 class VulkanBufferCopy : public VulkanOperation {
 
 public:
-	VulkanBufferCopy(VulkanDevice& pDevice, VkBuffer& pSrc, VkBuffer& pDst);
+	VulkanBufferCopy(std::shared_ptr<VulkanDevice> pVulkanDevice, VkBuffer& pSrc, VkBuffer& pDst);
 
 	VkBuffer& pSrc;
 	VkBuffer& pDst;

@@ -1,31 +1,27 @@
 #include "vulkan_pipeline.h"
 
+VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) :
+	pVulkanSwapchain{ pVulkanSwapchain } {}
+
 VulkanPipeline::~VulkanPipeline() {
-	delete vulkanFramebuffer;
-	if (pDevice != nullptr) {
-		vkDestroyPipeline(pDevice->getDevice(), vkPipeline, nullptr);
+	if (pVulkanSwapchain != nullptr && pVulkanSwapchain->pVulkanDevice != nullptr) {
+		vkDestroyPipeline(pVulkanSwapchain->pVulkanDevice->getDevice(), vkPipeline, nullptr);
 	}
 }
 
 VkResult VulkanPipeline::init() {
-	if (pDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanPipeline::init", "pDevice is nullptr");
+	if (pVulkanSwapchain == nullptr) {
+		VulkanLogger::instance().enqueueText("VulkanPipeline::init", "pVulkanSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	if (pSwapchain == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanPipeline::init", "pSwapchain is nullptr");
-		return VK_ERROR_INITIALIZATION_FAILED;
-	}
+	auto pVulkanDevice = pVulkanSwapchain->pVulkanDevice;
 
 	// member init
-	vulkanShaderPipeline.pDevice = pDevice;
 	vulkanShaderPipeline.pAllocator = pAllocator;
 	vulkanShaderPipeline.init();
 
-	vulkanFixedFuctionState = std::make_unique<VulkanFixedFunctionState>();
-	vulkanFixedFuctionState->pDevice = pDevice;
-	vulkanFixedFuctionState->pSwapchain = pSwapchain;
+	vulkanFixedFuctionState = std::make_unique<VulkanFixedFunctionState>(pVulkanDevice, pVulkanSwapchain);
 	vulkanFixedFuctionState->pAllocator = pAllocator;
 
 	for (auto& _vkBindingDescription : pBindingDescriptions) {
@@ -36,9 +32,7 @@ VkResult VulkanPipeline::init() {
 	}
 	vulkanFixedFuctionState->init();
 
-	vulkanRenderPass = std::make_unique<VulkanRenderPass>();
-	vulkanRenderPass->pDevice = pDevice;
-	vulkanRenderPass->pSwapchain = pSwapchain;
+	vulkanRenderPass = std::make_unique<VulkanRenderPass>(pVulkanDevice, pVulkanSwapchain);
 	vulkanRenderPass->init();
 
 	// pipeline init
@@ -66,7 +60,7 @@ VkResult VulkanPipeline::init() {
 	pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
 	pipelineCreateInfo.basePipelineIndex = -1; // optional
 
-	auto createGraphicsPipelineResult = vkCreateGraphicsPipelines(pDevice->getDevice(),
+	auto createGraphicsPipelineResult = vkCreateGraphicsPipelines(pVulkanDevice->getDevice(),
 		VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &vkPipeline);
 	VulkanLogger::instance().enqueueObject("VulkanPipeline::init::vkCreateGraphicsPipeline", 
 		createGraphicsPipelineResult);
@@ -78,21 +72,21 @@ VkResult VulkanPipeline::init() {
 }
 
 VkResult VulkanPipeline::initFramebuffers() {
-	vulkanFramebuffer = new VulkanFramebuffer();
-	vulkanFramebuffer->pSwapchain = pSwapchain;
-	vulkanFramebuffer->pDevice = &pDevice->getDevice();
-	vulkanFramebuffer->pRenderPass = &vulkanRenderPass->getRenderPass();
+	auto pVulkanDevice = pVulkanSwapchain->pVulkanDevice;
+	if (vulkanFramebuffer == nullptr) {
+		vulkanFramebuffer = std::make_shared<VulkanFramebuffer>(pVulkanDevice, pVulkanSwapchain);
+	}
+	vulkanFramebuffer->pVulkanRenderPass = vulkanRenderPass;
 	return vulkanFramebuffer->init();
 }
 
-void VulkanPipeline::addShader(VulkanShader* vulkanShaderHandle) {
-	vulkanShaderPipeline.addShader(vulkanShaderHandle);
+void VulkanPipeline::addShader(std::shared_ptr<VulkanShader> pVulkanShader) {
+	vulkanShaderPipeline.addShader(pVulkanShader);
 }
 
-void VulkanPipeline::deleteFramebuffers() {
+void VulkanPipeline::destroyFramebuffers() {
 	if (vulkanFramebuffer != nullptr) {
-		delete vulkanFramebuffer;
-		vulkanFramebuffer = nullptr;
+		vulkanFramebuffer->destroyFramebuffers();
 	}
 }
 
@@ -100,7 +94,7 @@ void VulkanPipeline::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t image
 	vulkanCmdBuffer.reset();
 	vulkanCmdBuffer.record();
 
-	auto vkSwapchainExtent = pSwapchain->getSwapchainExtent();
+	auto vkSwapchainExtent = pVulkanSwapchain->getSwapchainExtent();
 
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

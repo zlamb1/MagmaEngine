@@ -1,19 +1,14 @@
 #include "vulkan_operation.h"
 
-VulkanOperation::VulkanOperation(VulkanDevice& pDevice) : pDevice{ pDevice } {
-	
-}
+VulkanOperation::VulkanOperation(std::shared_ptr<VulkanDevice> pVulkanDevice) : 
+	pVulkanDevice{ pVulkanDevice }, pVulkanCmdPool{ std::make_shared<VulkanCmdPool>(pVulkanDevice) } {}
 
 VkResult VulkanOperation::init() {
-	pCmdPool.pDevice = &pDevice.getDevice();
-	pCmdPool.pFlag = VulkanCommandPoolCreateFlag::TRANSIENT;
-	pCmdPool.pQueueFamily = &pDevice.getQueueFamily();
-	pCmdPool.init();
+	pVulkanCmdPool->pFlag = VulkanCommandPoolCreateFlag::TRANSIENT;
+	pVulkanCmdPool->init();
 
-	vulkanCmdBuffer = VulkanCmdBuffer();
-	vulkanCmdBuffer.pDevice = &pDevice.getDevice();
-	vulkanCmdBuffer.pCmdPool = &pCmdPool.getCmdPool();
-	vulkanCmdBuffer.init();
+	vulkanCmdBuffer = std::make_shared<VulkanCmdBuffer>(pVulkanDevice, pVulkanCmdPool);
+	vulkanCmdBuffer->init();
 	
 	return VK_SUCCESS;
 }

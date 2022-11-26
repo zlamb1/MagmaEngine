@@ -16,8 +16,8 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_cmd.h"
 #include "vulkan_sync.h"
-#include "vulkan_deque.h"
 #include "vulkan_buffer.h"
+#include "vulkan_instance.h"
 
 #include "vulkan_vertex_state.h"
 
@@ -31,19 +31,19 @@ public:
 	void initRender();
 	void onNewFrame(uint32_t vertexCount);
 
-	VulkanDevice* getVulkanDevice();
+	std::shared_ptr<VulkanDevice> getVulkanDevice();
 
-	std::vector<VulkanShader*>& getShaderHandles();
-	std::vector<VulkanBuffer*>& getBufferHandles();
+	std::vector<std::shared_ptr<VulkanShader>>& getShaderHandles();
+	std::vector<std::shared_ptr<VulkanBuffer>>& getBufferHandles();
 	
 	void addVertexInputState(VulkanVertexState& vertexState);
 	void setFramebufferResized(bool framebufferResized);
 	
-	VulkanShader* createShaderHandle(const char* code, VulkanShaderType type);
-	VulkanShader* createShaderHandle(VulkanShaderInfo info);
+	std::shared_ptr<VulkanShader> createShaderHandle(const char* code, VulkanShaderType type);
+	std::shared_ptr<VulkanShader> createShaderHandle(VulkanShaderInfo info);
 
-	VulkanBuffer* createBufferHandle(VkDeviceSize pSize);
-	VulkanBuffer* createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
+	std::shared_ptr<VulkanBuffer> createBufferHandle(VkDeviceSize pSize);
+	std::shared_ptr<VulkanBuffer> createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
 		VulkanMemoryType pMemType);
 
 private:
@@ -54,27 +54,24 @@ private:
 	bool framebufferResized = false;
 
 	GLFWwindow* glfwWindow = nullptr;
-	VkInstance vulkanInstance{};
 
-	VulkanDeque vulkanDeque{};
-	VulkanValidater vulkanValidater{};
-	VulkanDebugger* vulkanDebugger = nullptr;
-	VulkanSurface* vulkanSurface = nullptr;
-	VulkanDevice* vulkanDevice = nullptr;
-	VulkanSwapchain* vulkanSwapchain = nullptr;
-	VulkanDrawer* vulkanDrawer = nullptr; 
-	VulkanPipeline* vulkanPipeline = nullptr;
+	std::shared_ptr<VulkanInstance> vulkanInstance;
+	std::shared_ptr<VulkanValidater> vulkanValidater;
+	std::shared_ptr<VulkanDebugger> vulkanDebugger;
+	std::shared_ptr<VulkanSurface> vulkanSurface;
+	std::shared_ptr<VulkanDevice> vulkanDevice;
+	std::shared_ptr<VulkanSwapchain> vulkanSwapchain;
+	std::shared_ptr<VulkanDrawer> vulkanDrawer; 
+	std::shared_ptr<VulkanPipeline> vulkanPipeline;
 		
-	std::vector<VulkanCmdPool*> vulkanCmdPools{};
-	std::vector<VulkanCmdBuffer*> vulkanCmdBuffers{};
-	std::vector<VulkanRenderSync*> vulkanRenderSyncs{};
+	std::vector<std::shared_ptr<VulkanCmdPool>> vulkanCmdPools{};
+	std::vector<std::shared_ptr<VulkanCmdBuffer>> vulkanCmdBuffers{};
+	std::vector<std::shared_ptr<VulkanRenderSync>> vulkanRenderSyncs{};
 	
-	std::vector<VulkanShader*> vulkanShaders{};
-	std::vector<VulkanBuffer*> vulkanBuffers{};
+	std::vector<std::shared_ptr<VulkanShader>> vulkanShaders{};
+	std::vector<std::shared_ptr<VulkanBuffer>> vulkanBuffers{};
 
-	VulkanShader *defaultVertexShader = nullptr, *defaultFragmentShader = nullptr;
-
-	void initInstance();
+	std::shared_ptr<VulkanShader> defaultVertexShader, defaultFragmentShader;
 
 	void initCommands();
 	void initSync();

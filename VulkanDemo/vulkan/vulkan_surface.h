@@ -10,21 +10,22 @@
 
 #include "vulkan_logger.h"
 #include "vulkan_object.h"
+#include "vulkan_instance.h"
 
 class VulkanSurface : public VulkanObject {
 
 public:
-	VulkanSurface() = default;
+	VulkanSurface(GLFWwindow* pWindow, std::shared_ptr<VulkanInstance> pVulkanInstance);
 	~VulkanSurface() override;
 
 	GLFWwindow* pWindow;
-	VkInstance* pInstance;
+	std::shared_ptr<VulkanInstance> pVulkanInstance;
 
 	VkResult init() override;
 
 	VkSurfaceKHR& getSurfaceKHR();
 
 private:
-	VkSurfaceKHR vkSurfaceKHR;
+	VkSurfaceKHR vkSurfaceKHR{};
 
 };
