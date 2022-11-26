@@ -127,8 +127,16 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    auto queueSubmitResult = vkQueueSubmit(vulkanDevice->getGraphicsQueue(), 1,
-        &submitInfo, vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
+    auto& deviceProfile = VulkanDeviceProfile::instance();
+    auto graphicsOptional = deviceProfile.getQueue(VulkanQueueType::GRAPHICS);
+
+    if (!graphicsOptional.has_value()) {
+        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", "could not find a graphics queue");
+        return;
+    }
+
+    auto queueSubmitResult = vkQueueSubmit(graphicsOptional.value(),
+        1, &submitInfo, vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
     VulkanLogger::instance().enqueueObject("VulkanAPI::onNewFrame::vkQueueSubmitResult", 
         queueSubmitResult);
 
@@ -147,7 +155,8 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
 
     presentInfo.pImageIndices = &imageIndex;
 
-    auto vkQueuePresentResult = vkQueuePresentKHR(vulkanDevice->getPresentationQueue(), &presentInfo);
+    // TODO: use presentation queue instead of graphics queue
+    auto vkQueuePresentResult = vkQueuePresentKHR(graphicsOptional.value(), &presentInfo);
     if (vkQueuePresentResult == VK_ERROR_OUT_OF_DATE_KHR || 
         vkQueuePresentResult == VK_SUBOPTIMAL_KHR
         || framebufferResized) {

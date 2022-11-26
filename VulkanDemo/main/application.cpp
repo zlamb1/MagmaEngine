@@ -75,7 +75,6 @@ int Application::run() {
         exit_status = EXIT_FAILURE;
     }   
 
-    system("pause");
     return exit_status;
 }
 
@@ -125,7 +124,6 @@ void Application::initVulkan() {
     vertexBuffer = vulkanAPI.createBufferHandle(bufferSize,
         VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::VERTEX,
         VulkanMemoryType::GPU_EFFICIENT);
-
     BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
         stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
@@ -148,8 +146,11 @@ void Application::initVulkan() {
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(glfwWindow)) {
         vertex_data[2] = MapUtility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[8] = MapUtility::map(sin(x + 1.0f), -1.0f, 1.0f, 0.0f, 1.0f);
-        vertex_data[14] = MapUtility::map(sin(x + 2.0f), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[8] = MapUtility::map(sin(y), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[14] = MapUtility::map(sin(z), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[17] = MapUtility::map(sin(x), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[18] = MapUtility::map(sin(y), -1.0f, 1.0f, 0.0f, 1.0f);
+        vertex_data[19] = MapUtility::map(sin(z), -1.0f, 1.0f, 0.0f, 1.0f);
         stagingBuffer->setData(vertex_data.data());
 
         BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
@@ -159,7 +160,9 @@ void Application::mainLoop() {
 
         glfwPollEvents();
 
-        x += 0.001f;
+        x += (float)rand() / RAND_MAX / 200.0f;
+        y += (float)rand() / RAND_MAX / 200.0f;
+        z += (float)rand() / RAND_MAX / 200.0f;
     }
 }
 

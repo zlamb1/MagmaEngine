@@ -43,12 +43,22 @@ VkResult VulkanBufferCopy::init() {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &vulkanCmdBuffer->getCmdBuffer();
 
-	auto queueSubmitResult = vkQueueSubmit(pVulkanDevice->getGraphicsQueue(), 1, 
+	auto& deviceProfile = VulkanDeviceProfile::instance();
+	auto graphicsOptional = deviceProfile.getQueue(VulkanQueueType::GRAPHICS);
+
+	if (!graphicsOptional.has_value()) {
+		VulkanLogger::instance().enqueueText("VulkanBufferCopy::init", "could not find graphics queue");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	auto graphicsQueue = graphicsOptional.value();
+
+	auto queueSubmitResult = vkQueueSubmit(graphicsQueue, 1,
 		&submitInfo, VK_NULL_HANDLE);
 	if (queueSubmitResult != VK_SUCCESS) {
 		return queueSubmitResult;
 	}
 
 	// VkFence will allow for scheduling multiple transfers simultaneously
-	return vkQueueWaitIdle(pVulkanDevice->getGraphicsQueue());
+	return vkQueueWaitIdle(graphicsQueue);
 }

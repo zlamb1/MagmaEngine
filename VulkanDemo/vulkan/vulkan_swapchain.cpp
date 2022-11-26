@@ -87,14 +87,21 @@ VkResult VulkanSwapchain::init() {
     vkCreateInfo.imageArrayLayers = 1;
     vkCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    auto vkQueueFamily = pVulkanDevice->getQueueFamily();
+    auto& deviceProfile = VulkanDeviceProfile::instance();
+    auto graphicsOptional = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
+    if (!graphicsOptional.has_value()) {
+        VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "could not find graphics queue");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    auto graphicsIndex = graphicsOptional.value();
 
     uint32_t vkQueueIndices[] = {
-        vkQueueFamily.getGraphics(),
-        vkQueueFamily.getPresentation()
+        graphicsIndex, graphicsIndex
     };
 
-    if (vkQueueFamily.getGraphics() != vkQueueFamily.getPresentation()) {
+    // TODO: get presentation queue
+    if (graphicsIndex != graphicsIndex) {
         vkCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         vkCreateInfo.queueFamilyIndexCount = 2;
         vkCreateInfo.pQueueFamilyIndices = vkQueueIndices;

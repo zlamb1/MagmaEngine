@@ -10,12 +10,19 @@ VulkanCmdPool::~VulkanCmdPool() {
 }
 
 VkResult VulkanCmdPool::init() {
-	VkCommandPoolCreateInfo poolInfo{};
+	auto& deviceProfile = VulkanDeviceProfile::instance();
 
+	auto graphicsOptional = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
+	if (!graphicsOptional.has_value()) {
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	auto graphicsIndex = graphicsOptional.value();
+
+	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.flags = (VkCommandPoolCreateFlags) pFlag;
-	poolInfo.queueFamilyIndex = pVulkanDevice->getQueueFamily().getGraphics();
-
+	poolInfo.queueFamilyIndex = graphicsIndex;
 	return vkCreateCommandPool(pVulkanDevice->getDevice(), &poolInfo, pAllocator, &vkCmdPool);
 }
 
