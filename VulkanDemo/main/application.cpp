@@ -31,10 +31,13 @@ public:
 };
 
 std::vector<float> vertex_data = {
-    0.0f, -0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+    -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f
 };
+
+std::vector<uint16_t> index_data{ 0, 1, 2, 2, 3, 0 };
 
 const char* vertexShaderCode = R"(#version 450
     layout(location = 0) in vec2 vertexPos;
@@ -128,6 +131,17 @@ void Application::initVulkan() {
 
     vulkanAPI.getBufferHandles().push_back(vertexBuffer);
 
+    stagingBuffer->setData(index_data.data());
+
+    indexBuffer = vulkanAPI.createBufferHandle(sizeof(uint16_t) * index_data.size(),
+        VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::INDEX, VulkanMemoryType::GPU_EFFICIENT);
+    BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), indexBuffer->pSize, stagingBuffer->getBuffer(),
+        indexBuffer->getBuffer(), 0, 0);
+
+    vulkanAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;
+    vulkanAPI.getVulkanDrawer()->pIndexCount = 6; 
+    vulkanAPI.getVulkanDrawer()->pUseIndexing = true;
+
     vulkanAPI.initRender();
 }
 
@@ -141,7 +155,7 @@ void Application::mainLoop() {
         BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
             stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
-        vulkanAPI.onNewFrame(3);
+        vulkanAPI.onNewFrame(0);
 
         glfwPollEvents();
 

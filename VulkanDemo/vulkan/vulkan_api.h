@@ -32,6 +32,7 @@ public:
 	void onNewFrame(uint32_t vertexCount);
 
 	std::shared_ptr<VulkanDevice> getVulkanDevice();
+	std::shared_ptr<VulkanDrawer> getVulkanDrawer(); 
 
 	std::vector<std::shared_ptr<VulkanShader>>& getShaderHandles();
 	std::vector<std::shared_ptr<VulkanBuffer>>& getBufferHandles();

@@ -26,7 +26,7 @@ public:
 	VkResult init() override;
 	VkResult initFramebuffers();
 
-	void addShader(std::shared_ptr<VulkanShader> _vkShaderHandle);
+	void addShader(std::shared_ptr<VulkanShader> pVulkanShader);
 	void destroyFramebuffers();
 
 	void onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t imageIndex);

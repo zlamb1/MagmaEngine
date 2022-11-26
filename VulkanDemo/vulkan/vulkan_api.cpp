@@ -167,6 +167,11 @@ std::shared_ptr<VulkanDevice> VulkanAPI::getVulkanDevice() {
     return vulkanDevice;
 }
 
+std::shared_ptr<VulkanDrawer> VulkanAPI::getVulkanDrawer() {
+    return vulkanDrawer;
+}
+
+
 void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
     vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
     for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {

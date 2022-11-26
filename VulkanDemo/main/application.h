@@ -21,7 +21,7 @@ private:
 	GLFWwindow* glfwWindow = nullptr;
 	VulkanAPI vulkanAPI{};
 
-	std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer;
+	std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer;
 
 	float x = 0.0f, y = 1.0f, z = 2.0f;
 
