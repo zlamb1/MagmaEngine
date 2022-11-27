@@ -4,6 +4,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vulkan_logger.h"
 #include "vulkan_object.h"
 
 class VulkanDebugger : public VulkanObject {

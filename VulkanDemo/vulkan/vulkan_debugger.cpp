@@ -15,7 +15,7 @@ VkResult VulkanDebugger::init() {
     PopulateDebugMessengerCreateInfo(createInfo);
 
     if (CreateDebugUtilsMessengerEXT(&createInfo, nullptr) != VK_SUCCESS) {
-        throw std::runtime_error("failed to set up debug messenger!");
+        Z_LOG_TXT("VulkanDebugger::init", "");
     }
 
     return VK_SUCCESS;
@@ -56,9 +56,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugger::DebugCallback(
     minSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
 
     if (messageSeverity >= minSeverity) {
-        std::cerr << "Validation Layer: " << std::endl;
-        std::cerr << "\tSeverity: " << messageSeverity << std::endl;
-        std::cerr << "\tMessage: " << pCallbackData->pMessage << std::endl;
+        Z_LOG_TXT("VulkanDebugger::ValidationLayer", pCallbackData->pMessage);
     }
 
     return VK_FALSE;

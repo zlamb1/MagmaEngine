@@ -13,7 +13,7 @@ VkResult VulkanSemaphore::init() {
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     if (pDevice == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSemaphore::init", "pDevice is nullptr");
+        Z_LOG_TXT("VulkanSemaphore::init", "pDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -34,7 +34,7 @@ VulkanFence::~VulkanFence() {
 
 VkResult VulkanFence::init() {    
     if (pDevice == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanFence::init", "pDevice is nullptr");
+        Z_LOG_TXT("VulkanFence::init", "pDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -53,27 +53,29 @@ VkFence& VulkanFence::getFence() {
 
 VkResult VulkanRenderSync::init() {
     if (pDevice == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanRenderSync::init", "pDevice is nullptr");
+        Z_LOG_TXT("VulkanRenderSync::init", "pDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     flightFence.pDevice = pDevice;
+
     auto flightFenceResult = flightFence.init();
-    VulkanLogger::instance().enqueueObject("VulkanRenderSync::init::flightFence", flightFenceResult);
+    Z_LOG_OBJ("VulkanRenderSync::init::flightFence", flightFenceResult);
+
     if (flightFenceResult != VK_SUCCESS) {
         return flightFenceResult;
     }
 
     imageSemaphore.pDevice = pDevice;
     auto imageSemaphoreResult = imageSemaphore.init();
-    VulkanLogger::instance().enqueueObject("VulkanRenderSync::init::imageSemaphore", imageSemaphoreResult);
+    Z_LOG_OBJ("VulkanRenderSync::init::imageSemaphore", imageSemaphoreResult);
     if (imageSemaphoreResult != VK_SUCCESS) {
         return imageSemaphoreResult;
     }
 
     renderSemaphore.pDevice = pDevice;
     auto renderSemaphoreResult = renderSemaphore.init();
-    VulkanLogger::instance().enqueueObject("VulkanRenderSync::init::renderSemaphore", renderSemaphoreResult);
+    Z_LOG_OBJ("VulkanRenderSync::init::renderSemaphore", renderSemaphoreResult);
     if (renderSemaphoreResult != VK_SUCCESS) {
         return renderSemaphoreResult;
     }

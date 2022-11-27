@@ -14,7 +14,7 @@ namespace BufferUtility {
 			}
 		}
 
-		VulkanLogger::instance().enqueueText("findMemoryType", "Could not find suitable memory type");
+		Z_LOG_TXT("VulkanBuffer::findMemoryType", "could not find suitable memory type");
 		return 0;
 	}
 }
@@ -31,7 +31,7 @@ VulkanBuffer::~VulkanBuffer() {
 
 VkResult VulkanBuffer::init() {
 	if (pVulkanDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanBuffer::init", "pVulkanDevice is nullptr");
+		Z_LOG_TXT("VulkanBuffer::init", "pVulkanDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -46,8 +46,7 @@ VkResult VulkanBuffer::init() {
 
 	auto createBufferResult = vkCreateBuffer(pVulkanDevice->getDevice(), &bufferCreateInfo, 
 		pAllocator, &vkBuffer);
-	VulkanLogger::instance().enqueueObject("VulkanBuffer::init::vkCreateBufferResult",
-		createBufferResult);
+	Z_LOG_OBJ("VulkanBuffer::init::vkCreateBufferResult", createBufferResult);
 	if (createBufferResult != VK_SUCCESS) {
 		return createBufferResult;
 	}
@@ -61,13 +60,17 @@ VkResult VulkanBuffer::init() {
 	memAllocateInfo.memoryTypeIndex = BufferUtility::findMemoryType(pVulkanDevice->getPhysicalDevice(),
 		memRequirements.memoryTypeBits, (VkMemoryPropertyFlags) pMemPropertyFlags);
 
-	auto vkAllocateMemoryResult =
-		vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator, &vkBufferMemory);
-	if (vkAllocateMemoryResult != VK_SUCCESS) {
-		return vkAllocateMemoryResult;
+	auto allocateMemoryResult = vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator, 
+		&vkBufferMemory);
+	Z_LOG_OBJ("VulkanBuffer::init::vkAllocateMemory", allocateMemoryResult);
+	if (allocateMemoryResult != VK_SUCCESS) {
+		return allocateMemoryResult;
 	}
 	
-	return vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkBufferMemory, 0);
+	auto bindMemoryResult = vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkBufferMemory, 0);
+	Z_LOG_OBJ("VulkanBuffer::init::vkBindBufferMemory", bindMemoryResult);
+
+	return bindMemoryResult;
 }
 
 VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
@@ -88,9 +91,10 @@ VkDeviceMemory& VulkanBuffer::getBufferMemory() {
 
 VkResult VulkanBuffer::setData(const void* buffer_data) {
 	void* data;
-	auto vkMapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkBufferMemory, 0, pSize, 0, &data);
-	if (vkMapMemoryResult != VK_SUCCESS) {
-		return vkMapMemoryResult;
+	auto mapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkBufferMemory, 0, pSize, 0, &data);
+	Z_LOG_OBJ("VulkanBuffer::setData::vkMapMemory", mapMemoryResult);
+	if (mapMemoryResult != VK_SUCCESS) {
+		return mapMemoryResult;
 	}
 	memcpy(data, buffer_data, (size_t)pSize);
 	vkUnmapMemory(pVulkanDevice->getDevice(), vkBufferMemory);

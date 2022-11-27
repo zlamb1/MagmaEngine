@@ -36,24 +36,20 @@ VkResult VulkanInstance::init() {
     auto createInstanceResult = vkCreateInstance(&instanceCreateInfo, pAllocator, &vkInstance);
     switch (createInstanceResult) {
     case VK_ERROR_LAYER_NOT_PRESENT:
-        VulkanLogger::instance().enqueueText("VulkanAPI::initInstance::vkCreateInstance",
-            "failed to find required layers");
-        VulkanLogger::instance().enqueueText("VulkanAPI::initInstance",
-            "Trying vkCreateInstance again...");
+        Z_LOG_TXT("VulkanAPI::initInstance::vkCreateInstance", "failed to find required layers");
+        Z_LOG_TXT("VulkanAPI::initInstance", "Trying vkCreateInstance again...");
 
         instanceCreateInfo.enabledLayerCount = 0;
         instanceCreateInfo.ppEnabledLayerNames = nullptr;
 
         // try to create instance again with no layers
         createInstanceResult = vkCreateInstance(&instanceCreateInfo, pAllocator, &vkInstance);
-        VulkanLogger::instance().enqueueObject("VulkanAPI::initInstance::vkCreateInstance",
-            createInstanceResult);
+        Z_LOG_OBJ("VulkanAPI::initInstance::vkCreateInstance", createInstanceResult);
         break;
     case VK_SUCCESS:
         break;
     default:
-        VulkanLogger::instance().enqueueObject("VulkanAPI::initInstance::vkCreateInstance",
-            createInstanceResult);
+        Z_LOG_OBJ("VulkanAPI::initInstance::vkCreateInstance", createInstanceResult);
         break;
     }
 

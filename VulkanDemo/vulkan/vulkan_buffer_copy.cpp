@@ -26,6 +26,7 @@ VulkanBufferCopy::VulkanBufferCopy(std::shared_ptr<VulkanDevice> pVulkanDevice,
 
 VkResult VulkanBufferCopy::init() {
 	auto initResult = VulkanOperation::init();
+
 	if (initResult != VK_SUCCESS) {
 		return initResult; 
 	}
@@ -46,7 +47,7 @@ VkResult VulkanBufferCopy::init() {
 	auto graphicsQueueOpt = DeviceProfile::getQueue(VulkanQueueType::GRAPHICS);
 
 	if (!graphicsQueueOpt.has_value()) {
-		VulkanLogger::instance().enqueueText("VulkanBufferCopy::init", "could not find graphics queue");
+		Z_LOG_TXT("VulkanBufferCopy::init", "could not find graphics queue");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 

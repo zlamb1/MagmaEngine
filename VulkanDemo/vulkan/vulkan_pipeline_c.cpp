@@ -35,12 +35,12 @@ VulkanFixedFunctionState::~VulkanFixedFunctionState() {
 
 VkResult VulkanFixedFunctionState::init() {
 	if (pVulkanDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pVulkanDevice is nullptr");
+		Z_LOG_TXT("VulkanFixedFunctionState::init", "pVulkanDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	if (pVulkanSwapchain == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanFixedFunctionState::init", "pVulkanSwapchain is nullptr");
+		Z_LOG_TXT("VulkanFixedFunctionState::init", "pVulkanSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -125,8 +125,7 @@ VkResult VulkanFixedFunctionState::init() {
 
 	auto createPipelineLayoutResult = vkCreatePipelineLayout(pVulkanDevice->getDevice(),
 		&vkPipelineLayoutCreateInfo, nullptr, &vkPipelineLayout);
-	VulkanLogger::instance().enqueueObject("VulkanFixedFunctionState::init::vkCreatePipelineLayoutResult", 
-		createPipelineLayoutResult);
+	Z_LOG_OBJ("VulkanFixedFunctionState::init::vkCreatePipelineLayoutResult", createPipelineLayoutResult);
 
 	return createPipelineLayoutResult;
 }
@@ -197,12 +196,12 @@ VulkanRenderPass::~VulkanRenderPass() {
 
 VkResult VulkanRenderPass::init() {
 	if (pVulkanDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanRenderPass::init", "pDevice is nullptr");
+		Z_LOG_TXT("VulkanRenderPass::init", "pDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	if (pVulkanSwapchain == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanRenderPass::init", "pSwapchain is nullptr");
+		Z_LOG_TXT("VulkanRenderPass::init", "pSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -234,8 +233,7 @@ VkResult VulkanRenderPass::init() {
 
 	auto createRenderPassResult = vkCreateRenderPass(pVulkanDevice->getDevice(), &renderPassInfo,
 		nullptr, &vkRenderPass);
-	VulkanLogger::instance().enqueueObject("VulkanRenderPass::init::vkCreateRenderPass", 
-		createRenderPassResult);
+	Z_LOG_OBJ("VulkanRenderPass::init::vkCreateRenderPass", createRenderPassResult);
 	
 	return createRenderPassResult;
 }

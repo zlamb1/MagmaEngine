@@ -25,12 +25,12 @@ VulkanShader::~VulkanShader() {
 
 VkResult VulkanShader::init() {
 	if (pVulkanDevice == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanShader::init", "pDevice is nullptr");
+		Z_LOG_TXT("VulkanShader::init", "pDevice is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	if (pShaderCode == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanShader::init", "pShaderCode is nullptr");
+		Z_LOG_TXT("VulkanShader::init", "pShaderCode is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -45,8 +45,7 @@ VkResult VulkanShader::init() {
 
 	auto createShaderModuleResult = vkCreateShaderModule(pVulkanDevice->getDevice(), 
 		&vkShaderModuleCreateInfo, pAllocator, &vkShaderModule);
-	VulkanLogger::instance().enqueueObject("VulkanShader::init::vkCreateShaderModule", 
-		createShaderModuleResult);
+	Z_LOG_OBJ("VulkanShader::init::vkCreateShaderModule", createShaderModuleResult);
 
 	if (createShaderModuleResult != VK_SUCCESS) {
 		return createShaderModuleResult;

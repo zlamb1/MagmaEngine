@@ -13,17 +13,17 @@ VulkanDevice::~VulkanDevice() {
 
 VkResult VulkanDevice::init() {
     if (pVulkanInstance == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pInstance is nullptr");
+        Z_LOG_TXT("VulkanDevice::init", "pInstance is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (pVulkanSurface == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pVulkanSurface is nullptr");
+        Z_LOG_TXT("VulkanDevice::init", "pVulkanSurface is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (pVulkanValidater == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanDevice::init", "pVulkanValidater is nullptr");
+        Z_LOG_TXT("VulkanDevice::init", "pVulkanValidater is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -33,7 +33,7 @@ VkResult VulkanDevice::init() {
     vkEnumeratePhysicalDevices(pVulkanInstance->getInstance(), &deviceCount, nullptr);
 
     if (deviceCount == 0) {
-        VulkanLogger::instance().enqueueText("VulkanDevice::init", "could not find a GPU with Vulkan support!");
+        Z_LOG_TXT("VulkanDevice::init", "could not find a GPU with Vulkan support!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -53,7 +53,7 @@ VkResult VulkanDevice::init() {
     }
 
     if (physicalDevice == VK_NULL_HANDLE) {
-        VulkanLogger::instance().enqueueText("VulkanDevice::init", "could not find a GPU that is suitable!");
+        Z_LOG_TXT("VulkanDevice::init", "could not find a GPU that is suitable!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -99,7 +99,8 @@ VkResult VulkanDevice::init() {
     }
 
     auto createDeviceResult = vkCreateDevice(physicalDevice, &deviceCreateInfo, pAllocator, &device);
-    VulkanLogger::instance().enqueueObject("VulkanDevice::init::vkCreateDevice", createDeviceResult);
+    Z_LOG_OBJ("VulkanDevice::init::vkCreateDevice", createDeviceResult);
+
     if (createDeviceResult != VK_SUCCESS) {
         return createDeviceResult;
     }

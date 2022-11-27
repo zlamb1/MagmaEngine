@@ -30,8 +30,7 @@ void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
     
     if (vulkanValidater->isValidationEnabled() && !vulkanValidater->ensureRequiredLayers()) {
         // TODO: add check to see if layers are strictly necessary
-        VulkanLogger::instance().enqueueText("VulkanAPI::initInstance",
-            "Validation layers were requested but are not available");
+        Z_LOG_TXT("VulkanAPI::initInstance", "Validation layers were requested but are not available");
     }
 
     vulkanInstance->pRequiredExtensions = getRequiredExtensions();
@@ -63,8 +62,7 @@ void VulkanAPI::initRender() {
     vulkanPipeline->pVulkanDrawer = vulkanDrawer;
     
     if (vulkanShaders.empty()) {
-        VulkanLogger::instance().enqueueText("VulkanAPI::initRender", 
-            "warning: no shaders provided, using defaults");
+        Z_LOG_TXT("VulkanAPI::initRender", "warning: no shaders provided, using defaults");
         vulkanPipeline->addShader(defaultVertexShader);
         vulkanPipeline->addShader(defaultFragmentShader);
     }
@@ -96,8 +94,7 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
         recreateSwapchain();
         return;
     } else if (vkAcquireNextImageResult != VK_SUCCESS) {
-        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", 
-            "failed to acquire a new swapchain image!");
+        Z_LOG_TXT("VulkanAPI::onNewFrame", "failed to acquire a new swapchain image!");
         return;
     }
 
@@ -129,14 +126,13 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
 
     auto graphicsQueueOpt = DeviceProfile::getQueue(VulkanQueueType::GRAPHICS);
     if (!graphicsQueueOpt.has_value()) {
-        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", "could not find a graphics queue");
+        Z_LOG_TXT("VulkanAPI::onNewFrame", "could not find a graphics queue");
         return;
     }
 
     auto queueSubmitResult = vkQueueSubmit(graphicsQueueOpt.value(),
         1, &submitInfo, vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
-    VulkanLogger::instance().enqueueObject("VulkanAPI::onNewFrame::vkQueueSubmitResult", 
-        queueSubmitResult);
+    Z_LOG_OBJ("VulkanAPI::onNewFrame::vkQueueSubmitResult", queueSubmitResult);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -162,8 +158,7 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
         recreateSwapchain();
     }
     else if (vkQueuePresentResult != VK_SUCCESS) {
-        VulkanLogger::instance().enqueueText("VulkanAPI::onNewFrame", 
-            "failed to present swapchain image!");
+        Z_LOG_TXT("VulkanAPI::onNewFrame", "failed to present swapchain image!");
         return;
     }
 
@@ -221,7 +216,7 @@ std::shared_ptr<VulkanBuffer> VulkanAPI::createBufferHandle(VkDeviceSize pSize, 
     vulkanBuffer->pSize = (uint32_t) pSize;
     vulkanBuffer->pBufferUsageFlags = pBufferUsage;
     vulkanBuffer->pMemPropertyFlags = pMemType;
-    VulkanLogger::instance().enqueueObject("VulkanAPI::createBufferHandle", vulkanBuffer->init());
+    Z_LOG_OBJ("VulkanAPI::createBufferHandle", vulkanBuffer->init());
     return vulkanBuffer;
 }
 
@@ -251,16 +246,14 @@ void VulkanAPI::initCommands() {
     vulkanCmdPools.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto vulkanCmdPool = std::make_shared<VulkanCmdPool>(vulkanDevice);
-        VulkanLogger::instance().enqueueObject("VulkanAPI::initCommands::vulkanCmdPool", 
-            vulkanCmdPool->init());
+        Z_LOG_OBJ("VulkanAPI::initCommands::vulkanCmdPool", vulkanCmdPool->init());
         vulkanCmdPools[i] = vulkanCmdPool;
     }
     
     vulkanCmdBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto vulkanCmdBuffer = std::make_shared<VulkanCmdBuffer>(vulkanDevice, vulkanCmdPools[i]);
-        VulkanLogger::instance().enqueueObject("VulkanAPI::initCommands::vulkanCmdBuffer", 
-            vulkanCmdBuffer->init());
+        Z_LOG_OBJ("VulkanAPI::initCommands::vulkanCmdBuffer", vulkanCmdBuffer->init());
         vulkanCmdBuffers[i] = vulkanCmdBuffer;
     }
 }
@@ -270,8 +263,7 @@ void VulkanAPI::initSync() {
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto vulkanRenderSync = std::make_shared<VulkanRenderSync>();
         vulkanRenderSync->pDevice = &vulkanDevice->getDevice();
-        VulkanLogger::instance().enqueueObject("VulkanAPI::initSync::vulkanRenderSync", 
-            vulkanRenderSync->init());
+        Z_LOG_OBJ("VulkanAPI::initSync::vulkanRenderSync", vulkanRenderSync->init());
         vulkanRenderSyncs[i] = vulkanRenderSync;
     }
 }

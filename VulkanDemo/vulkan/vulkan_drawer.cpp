@@ -14,7 +14,7 @@ void VulkanDrawer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer) {
 
 	if (pUseIndexing) {
 		if (pIndexBuffer == nullptr) {
-			VulkanLogger::instance().enqueueText("VulkanDrawer::onNewFrame", "pIndexBuffer is nullptr");
+			Z_LOG_TXT("VulkanDrawer::onNewFrame", "pIndexBuffer is nullptr");
 			return;
 		}
 

@@ -11,7 +11,7 @@ VulkanPipeline::~VulkanPipeline() {
 
 VkResult VulkanPipeline::init() {
 	if (pVulkanSwapchain == nullptr) {
-		VulkanLogger::instance().enqueueText("VulkanPipeline::init", "pVulkanSwapchain is nullptr");
+		Z_LOG_TXT("VulkanPipeline::init", "pVulkanSwapchain is nullptr");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
@@ -62,8 +62,7 @@ VkResult VulkanPipeline::init() {
 
 	auto createGraphicsPipelineResult = vkCreateGraphicsPipelines(pVulkanDevice->getDevice(),
 		VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &vkPipeline);
-	VulkanLogger::instance().enqueueObject("VulkanPipeline::init::vkCreateGraphicsPipeline", 
-		createGraphicsPipelineResult);
+	Z_LOG_OBJ("VulkanPipeline::init::vkCreateGraphicsPipeline", createGraphicsPipelineResult);
 	if (createGraphicsPipelineResult != VK_SUCCESS) {
 		return createGraphicsPipelineResult;
 	}
@@ -121,6 +120,5 @@ void VulkanPipeline::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t image
 	vkCmdEndRenderPass(vulkanCmdBuffer.getCmdBuffer());
 
 	auto endCommandBufferResult = vkEndCommandBuffer(vulkanCmdBuffer.getCmdBuffer());
-	VulkanLogger::instance().enqueueObject("VulkanPipeline::onNewFrame::vkEndCommandBuffer",
-		endCommandBufferResult);
+	Z_LOG_OBJ("VulkanPipeline::onNewFrame::vkEndCommandBuffer", endCommandBufferResult);
 }

@@ -4,7 +4,8 @@ namespace SwapchainUtility {
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && 
+                availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return availableFormat;
             }
         }
@@ -56,7 +57,7 @@ VulkanSwapchain::~VulkanSwapchain() {
 
 VkResult VulkanSwapchain::init() {
     if (pVulkanDevice == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "pDevice is nullptr");
+        Z_LOG_TXT("VulkanSwapchain::init", "pDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -92,7 +93,7 @@ VkResult VulkanSwapchain::init() {
 
 
     if (!graphicsQueueOpt.has_value()) {
-        VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "could not find graphics queue");
+        Z_LOG_TXT("VulkanSwapchain::init", "could not find graphics queue");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -123,9 +124,12 @@ VkResult VulkanSwapchain::init() {
 
     auto createSwapchainResult = vkCreateSwapchainKHR(pVulkanDevice->getDevice(), &vkCreateInfo,
         nullptr, &vkSwapchainKHR);
-    VulkanLogger::instance().enqueueObject("VulkanSwapchain::init::vkCreateSwapchainResult",
-        createSwapchainResult);
-        
+    Z_LOG_OBJ("VulkanSwapchain::init::vkCreateSwapchainResult", createSwapchainResult);
+    
+    if (createSwapchainResult != VK_SUCCESS) {
+        return createSwapchainResult;
+    }
+
     vkGetSwapchainImagesKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, &imageCount, nullptr);
         
     vkImages.resize(imageCount);
@@ -158,8 +162,7 @@ VkResult VulkanSwapchain::init() {
 
         auto createImageViewResult = vkCreateImageView(pVulkanDevice->getDevice(),
             &imageViewCreateInfo, pAllocator, &vkImageViews[i]);
-        VulkanLogger::instance().enqueueObject("VulkanSwapchain::init::vkCreateImageView",
-            createImageViewResult);
+        Z_LOG_OBJ("VulkanSwapchain::init::vkCreateImageView", createImageViewResult);
     }
 
     return VK_SUCCESS;

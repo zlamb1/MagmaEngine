@@ -8,6 +8,15 @@
 
 #include "singleton_logger.h"
 
+#ifndef DISTRIBUTION
+	#define Z_LOG_TXT(x, y) VulkanLogger::instance().enqueueText(x, y);
+	#define Z_LOG_OBJ(x, y) VulkanLogger::instance().enqueueObject(x, y);
+#else
+	// TODO: log to file
+	#define Z_LOG_TEXT(x, y)
+	#define Z_LOG_OBJ(x, y)
+#endif
+
 class VulkanLogger : public SingletonLogger {
 
 public:
@@ -17,7 +26,7 @@ public:
 	void enqueueObject(const std::string& prefix, const std::any& object) override;
 
 private:
-	VulkanLogger() = default;
+	VulkanLogger() { apiName = "[VulkanAPI]"; };
 	~VulkanLogger() = default;
 	VulkanLogger& operator=(VulkanLogger& o) = default;
 

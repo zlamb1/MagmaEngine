@@ -11,21 +11,20 @@ VulkanSurface::~VulkanSurface() {
 
 VkResult VulkanSurface::init() {
     if (pWindow == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSurface::init", "pWindow is nullptr");
+        Z_LOG_TXT("VulkanSurface::init", "pWindow is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (pVulkanInstance == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanSurface::init", "pVulkanInstance is nullptr");
+        Z_LOG_TXT("VulkanSurface::init", "pVulkanInstance is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    auto createWindowSurface = glfwCreateWindowSurface(
+    auto createWindowSurfaceResult = glfwCreateWindowSurface(
         pVulkanInstance->getInstance(), pWindow, nullptr, &vkSurfaceKHR);
-    VulkanLogger::instance().enqueueObject("VulkanSurface::init::glfwCreateWindowSurface", 
-        createWindowSurface);
+    Z_LOG_OBJ("VulkanSurface::init::glfwCreateWindowSurface", createWindowSurfaceResult);
 
-    return createWindowSurface;
+    return createWindowSurfaceResult;
 }
 
 VkSurfaceKHR& VulkanSurface::getSurfaceKHR() {

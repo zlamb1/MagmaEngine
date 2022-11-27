@@ -10,17 +10,17 @@ VulkanFramebuffer::~VulkanFramebuffer() {
 
 VkResult VulkanFramebuffer::init() {    
     if (pVulkanDevice == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanFramebuffer::init", "pVulkanDevice is nullptr");
+        Z_LOG_TXT("VulkanFramebuffer::init", "pVulkanDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (pVulkanSwapchain == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanFramebuffer::init", "pVulkanSwapchain is nullptr");
+        Z_LOG_TXT("VulkanFramebuffer::init", "pVulkanSwapchain is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (pVulkanRenderPass == nullptr) {
-        VulkanLogger::instance().enqueueText("VulkanFramebuffer::init", "pVulkanRenderPass is nullptr");
+        Z_LOG_TXT("VulkanFramebuffer::init", "pVulkanRenderPass is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -42,8 +42,7 @@ VkResult VulkanFramebuffer::init() {
 
         auto createFramebufferResult = vkCreateFramebuffer(pVulkanDevice->getDevice(), &framebufferInfo,
             nullptr, &vkFramebuffers[i]);
-        VulkanLogger::instance().enqueueObject("VulkanFramebuffer::init::vkCreateFramebuffer", 
-            createFramebufferResult);
+        Z_LOG_OBJ("VulkanFramebuffer::init::vkCreateFramebuffer", createFramebufferResult);
     }
     
     return VK_SUCCESS;

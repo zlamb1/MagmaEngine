@@ -15,7 +15,7 @@ VkResult VulkanCmdPool::init() {
 	auto graphicsQueueOpt = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
 
 	if (!graphicsQueueOpt.has_value()) {
-		VulkanLogger::instance().enqueueText("VulkanCmdPool::init", "could not find graphics queue");
+		Z_LOG_TXT("VulkanCmdPool::init", "could not find graphics queue");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
