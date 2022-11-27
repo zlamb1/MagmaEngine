@@ -23,18 +23,17 @@ namespace SwapchainUtility {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    static VkExtent2D chooseSwapExtent(GLFWwindow& glfwWindow,
+    static VkExtent2D chooseSwapExtent(VulkanWindow& windowImpl,
         const VkSurfaceCapabilitiesKHR& capabilities) {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
         }
         else {
-            int width, height;
-            glfwGetFramebufferSize(&glfwWindow, &width, &height);
+            auto framebufferSize = windowImpl.getFramebufferSize();
 
             VkExtent2D actualExtent = {
-                static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height)
+                static_cast<uint32_t>(framebufferSize.first),
+                static_cast<uint32_t>(framebufferSize.second)
             };
 
             actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
@@ -68,7 +67,7 @@ VkResult VulkanSwapchain::init() {
         vkSwapchainSupport.formats);
     VkPresentModeKHR presentMode = SwapchainUtility::chooseSwapPresentMode(
         vkSwapchainSupport.presentModes);
-    VkExtent2D extent = SwapchainUtility::chooseSwapExtent(*pVulkanSurface->pWindow,
+    VkExtent2D extent = SwapchainUtility::chooseSwapExtent(pVulkanSurface->pWindowImpl,
         vkSwapchainSupport.capabilities);
 
     uint32_t imageCount = vkSwapchainSupport.capabilities.minImageCount + 1;

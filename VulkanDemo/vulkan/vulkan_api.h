@@ -7,6 +7,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "glfw_window_impl.h"
+
 #include "vulkan_logger.h"
 #include "vulkan_debugger.h"
 #include "vulkan_device.h"
@@ -24,10 +26,10 @@
 class VulkanAPI {
 
 public:
-	VulkanAPI() = default;
+	VulkanAPI(VulkanWindow& windowImpl);
 	~VulkanAPI();
 
-	void initSetup(GLFWwindow* glfwWindow);
+	void initSetup();
 	void initRender();
 	void onNewFrame(uint32_t vertexCount);
 
@@ -63,7 +65,7 @@ private:
 
 	bool framebufferResized = false;
 
-	GLFWwindow* glfwWindow = nullptr;
+	VulkanWindow& windowImpl;
 
 	std::shared_ptr<VulkanInstance> vulkanInstance;
 	std::shared_ptr<VulkanValidater> vulkanValidater;

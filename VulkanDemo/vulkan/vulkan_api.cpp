@@ -4,20 +4,21 @@ const char* defVertexShader = R"(#version 450
     void main() {
         gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
     })";
+
 const char* defFragmentShader = R"(#version 450
     layout(location = 0) out vec3 fragColor;
     void main() {
         fragColor = vec3(1, 1, 1);
     })";
 
+VulkanAPI::VulkanAPI(VulkanWindow& windowImpl) : windowImpl{ windowImpl } {}
+
 VulkanAPI::~VulkanAPI() {
     // allows for clean exit 
     vkDeviceWaitIdle(vulkanDevice->getDevice());
 }
 
-void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
-    this->glfwWindow = glfwWindow;
-    
+void VulkanAPI::initSetup() {    
     vulkanValidater = std::make_shared<VulkanValidater>();
     vulkanInstance = std::make_shared<VulkanInstance>(vulkanValidater);
 
@@ -41,7 +42,7 @@ void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
     }
 
     // create fields
-    vulkanSurface = std::make_shared<VulkanSurface>(glfwWindow, vulkanInstance);
+    vulkanSurface = std::make_shared<VulkanSurface>(windowImpl, vulkanInstance);
     vulkanSurface->init();
 
     vulkanDevice = std::make_shared<VulkanDevice>(vulkanInstance, vulkanSurface, vulkanValidater);
@@ -247,11 +248,10 @@ void VulkanAPI::setDescriptorSetLayout(
 
 void VulkanAPI::recreateSwapchain() {
     // pause program while minimized
-    int width = 0, height = 0;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
-    while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(glfwWindow, &width, &height);
-        glfwWaitEvents();
+    auto framebufferSize = windowImpl.getFramebufferSize();
+    while (framebufferSize.first == 0 || framebufferSize.second == 0) {
+        framebufferSize = windowImpl.getFramebufferSize();
+        windowImpl.waitForEvents();
     }
     // wait for the device to be idle
     vkDeviceWaitIdle(vulkanDevice->getDevice());

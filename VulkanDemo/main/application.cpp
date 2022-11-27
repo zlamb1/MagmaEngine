@@ -96,7 +96,6 @@ int Application::run() {
 // Private
 
 Application::~Application() {
-    glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
@@ -122,25 +121,16 @@ void Application::updateUniformBuffer() {
 }
 
 void Application::initWindow() {
-    // init
+    // init glfw
     glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindow = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
-    // set callbacks
-    glfwSetWindowUserPointer(glfwWindow, this);
-    glfwSetFramebufferSizeCallback(glfwWindow, onFramebufferResize);
-
-    // set window pos
-    const GLFWmonitor* primary = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-    glfwSetWindowPos(glfwWindow, mode->width - WIDTH, 30);
+    // init window
+    windowImpl.init(1000, 1000);
+    windowImpl.setTitle("Vulkan");
 }
 
 void Application::initVulkan() {
-    vulkanAPI.initSetup(glfwWindow);
+    vulkanAPI.initSetup();
 
     // create shaders
     auto vertexShader = vulkanAPI.createVulkanShader(vertexShaderCode, ShadercType::VERTEX);
@@ -226,7 +216,7 @@ void Application::initVulkan() {
 }
 
 void Application::mainLoop() {
-    while (!glfwWindowShouldClose(glfwWindow)) {
+    while (!windowImpl.shouldWindowClose()) {
         x += 0.001f;
         vertexData[0].color.x = (sin(x) + 1.0f) / 2.0f;
         vertexData[0].color.y = (sin(x) + 1.0f) / 2.0f;
@@ -245,6 +235,16 @@ void Application::mainLoop() {
         vulkanAPI.onNewFrame(0);
 
         glfwPollEvents();
+
+        frames++;
+
+        double currentTime = glfwGetTime();
+        if (currentTime - lastTime > 1.0) {
+            lastTime = currentTime;
+            std::string title = "FPS: " + std::to_string(frames);
+            windowImpl.setTitle(title);
+            frames = 0;
+        }
     }
 }
 

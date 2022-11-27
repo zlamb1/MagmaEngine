@@ -3,10 +3,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <vulkan/vulkan.h>
+
+#include "vulkan_window.h"
 
 #include "vulkan_logger.h"
 #include "vulkan_object.h"
@@ -15,10 +14,11 @@
 class VulkanSurface : public VulkanObject {
 
 public:
-	VulkanSurface(GLFWwindow* pWindow, std::shared_ptr<VulkanInstance> pVulkanInstance);
+	VulkanSurface(VulkanWindow& pWindowImpl,
+		std::shared_ptr<VulkanInstance> pVulkanInstance);
 	~VulkanSurface() override;
 
-	GLFWwindow* pWindow;
+	VulkanWindow& pWindowImpl;
 	std::shared_ptr<VulkanInstance> pVulkanInstance;
 
 	VkResult init() override;

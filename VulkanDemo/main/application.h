@@ -12,6 +12,8 @@
 #include "../vulkan/vulkan_api.h"
 #include "../vulkan/vulkan_buffer_copy.h"
 
+#include "../vulkan/glfw_window_impl.h"
+
 class Application {
 
 public:
@@ -23,8 +25,8 @@ private:
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
 
-	GLFWwindow* glfwWindow = nullptr;
-	VulkanAPI vulkanAPI{};
+	GLFWWindowImpl windowImpl{};
+	VulkanAPI vulkanAPI{ windowImpl };
 
 	std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer, uboBuffer;
 	std::shared_ptr<VulkanDeviceMemory> stagingMemory, vertexMemory, indexMemory, uboMemory;
@@ -32,6 +34,9 @@ private:
 	std::shared_ptr<VulkanDescriptorSet> vulkanDescriptorSet;
 
 	float x = 0.0f;
+
+	int frames = 0;
+	double lastTime = 0;
 
 	~Application();
 
