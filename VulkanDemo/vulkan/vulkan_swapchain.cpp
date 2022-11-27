@@ -87,14 +87,16 @@ VkResult VulkanSwapchain::init() {
     vkCreateInfo.imageArrayLayers = 1;
     vkCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    auto& deviceProfile = VulkanDeviceProfile::instance();
-    auto graphicsOptional = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
-    if (!graphicsOptional.has_value()) {
+    auto& deviceProfile = DeviceProfile::instance();
+    auto graphicsQueueOpt = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
+
+
+    if (!graphicsQueueOpt.has_value()) {
         VulkanLogger::instance().enqueueText("VulkanSwapchain::init", "could not find graphics queue");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    auto graphicsIndex = graphicsOptional.value();
+    auto graphicsIndex = graphicsQueueOpt.value();
 
     uint32_t vkQueueIndices[] = {
         graphicsIndex, graphicsIndex

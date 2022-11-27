@@ -10,19 +10,19 @@ VulkanCmdPool::~VulkanCmdPool() {
 }
 
 VkResult VulkanCmdPool::init() {
-	auto& deviceProfile = VulkanDeviceProfile::instance();
+	auto& deviceProfile = DeviceProfile::instance();
 
-	auto graphicsOptional = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
-	if (!graphicsOptional.has_value()) {
+	auto graphicsQueueOpt = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
+
+	if (!graphicsQueueOpt.has_value()) {
+		VulkanLogger::instance().enqueueText("VulkanCmdPool::init", "could not find graphics queue");
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
-
-	auto graphicsIndex = graphicsOptional.value();
 
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.flags = (VkCommandPoolCreateFlags) pFlag;
-	poolInfo.queueFamilyIndex = graphicsIndex;
+	poolInfo.queueFamilyIndex = graphicsQueueOpt.value();
 	return vkCreateCommandPool(pVulkanDevice->getDevice(), &poolInfo, pAllocator, &vkCmdPool);
 }
 
