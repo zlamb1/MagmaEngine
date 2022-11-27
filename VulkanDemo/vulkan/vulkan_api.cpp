@@ -54,8 +54,8 @@ void VulkanAPI::initSetup(GLFWwindow* glfwWindow) {
 
     vulkanPipeline = std::make_shared<VulkanPipeline>(vulkanSwapchain);
 
-    defaultVertexShader = createShaderHandle(defVertexShader, VulkanShaderType::VERTEX);
-    defaultFragmentShader = createShaderHandle(defFragmentShader, VulkanShaderType::FRAGMENT);
+    defaultVertexShader = createVulkanShader(defVertexShader, ShadercType::VERTEX);
+    defaultFragmentShader = createVulkanShader(defFragmentShader, ShadercType::FRAGMENT);
 }
 
 void VulkanAPI::initRender() {
@@ -181,11 +181,11 @@ void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
     }
 }
 
-std::vector<std::shared_ptr<VulkanShader>>& VulkanAPI::getShaderHandles() {
+std::vector<std::shared_ptr<VulkanShader>>& VulkanAPI::getVulkanShaders() {
     return vulkanShaders;
 }
 
-std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getBufferHandles() {
+std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getVulkanBuffers() {
     return vulkanBuffers;
 }
 
@@ -193,11 +193,11 @@ void VulkanAPI::setFramebufferResized(bool framebufferResized) {
     this->framebufferResized = framebufferResized;
 }
 
-std::shared_ptr<VulkanShader> VulkanAPI::createShaderHandle(const char* code, VulkanShaderType type) {
-    return createShaderHandle({ code, type });
+std::shared_ptr<VulkanShader> VulkanAPI::createVulkanShader(const char* code, ShadercType type) {
+    return createVulkanShader({ code, type });
 }
 
-std::shared_ptr<VulkanShader> VulkanAPI::createShaderHandle(VulkanShaderInfo _vkShaderInfo) {
+std::shared_ptr<VulkanShader> VulkanAPI::createVulkanShader(VulkanShaderInfo _vkShaderInfo) {
     std::shared_ptr<VulkanShader> vulkanShader = std::make_shared<VulkanShader>(vulkanDevice);
     vulkanShader->pShaderCode = _vkShaderInfo.pCode;
     vulkanShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
@@ -205,22 +205,45 @@ std::shared_ptr<VulkanShader> VulkanAPI::createShaderHandle(VulkanShaderInfo _vk
     return vulkanShader;
 }
 
-std::shared_ptr<VulkanBuffer> VulkanAPI::createBufferHandle(VkDeviceSize pSize) {
-    return createBufferHandle(pSize, VulkanBufferUsage::VERTEX, VulkanMemoryType::CPU_VISIBLE |
-        VulkanMemoryType::FLUSH_WRITES);
+std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize) {
+    return createVulkanBuffer(pSize, VulkanBufferUsage::VERTEX);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanAPI::createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
-    VulkanMemoryType pMemType) {
+std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize, 
+    VulkanBufferUsage pBufferUsage) {
     std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VulkanBuffer>(vulkanDevice);
     vulkanBuffer->pSize = (uint32_t) pSize;
     vulkanBuffer->pBufferUsageFlags = pBufferUsage;
-    vulkanBuffer->pMemPropertyFlags = pMemType;
     Z_LOG_OBJ("VulkanAPI::createBufferHandle", vulkanBuffer->init());
     return vulkanBuffer;
 }
 
-// Private Implementation
+std::shared_ptr<VulkanDeviceMemory> VulkanAPI::createDeviceMemory(
+    std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType) {
+    std::shared_ptr<VulkanDeviceMemory> vulkanDeviceMemory = std::make_shared<VulkanDeviceMemory>(
+        vulkanDevice, expectedBufferSpec);
+    vulkanDeviceMemory->pMemPropertyFlags = pMemType;
+    vulkanDeviceMemory->init();
+    return vulkanDeviceMemory;
+}
+
+std::shared_ptr<VulkanDescriptorSetLayout> VulkanAPI::createDescriptorSetLayout(
+    std::vector<VulkanDescriptor> vulkanDescriptors) {
+    std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSet = 
+        std::make_shared<VulkanDescriptorSetLayout>(vulkanDevice);
+    for (auto& vulkanDescriptor : vulkanDescriptors) {
+        vulkanDescriptorSet->pDescriptors.push_back(vulkanDescriptor.getLayoutBinding());
+    }
+    vulkanDescriptorSet->init();
+    return vulkanDescriptorSet;
+}
+
+void VulkanAPI::setDescriptorSetLayout(
+    std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSetLayout) {
+    vulkanPipeline->pVulkanDescriptorSetLayout = vulkanDescriptorSetLayout;
+}
+
+// Private
 
 void VulkanAPI::recreateSwapchain() {
     // pause program while minimized

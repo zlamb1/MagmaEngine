@@ -21,16 +21,18 @@ VkResult VulkanPipeline::init() {
 	vulkanShaderPipeline.pAllocator = pAllocator;
 	vulkanShaderPipeline.init();
 
-	vulkanFixedFuctionState = std::make_unique<VulkanFixedFunctionState>(pVulkanDevice, pVulkanSwapchain);
-	vulkanFixedFuctionState->pAllocator = pAllocator;
+	vulkanFixedFunctionState = std::make_unique<VulkanFixedFunctionState>(pVulkanDevice, pVulkanSwapchain);
+	vulkanFixedFunctionState->pAllocator = pAllocator;
+	vulkanFixedFunctionState->pVulkanDescriptorSetLayout = pVulkanDescriptorSetLayout;
 
 	for (auto& _vkBindingDescription : pBindingDescriptions) {
-		vulkanFixedFuctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
+		vulkanFixedFunctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
 	}
 	for (auto& _vkAttributeDescription : pAttributeDescriptions) {
-		vulkanFixedFuctionState->pVertexAttributeDescriptions.push_back(_vkAttributeDescription);
+		vulkanFixedFunctionState->pVertexAttributeDescriptions.push_back(_vkAttributeDescription);
 	}
-	vulkanFixedFuctionState->init();
+
+	vulkanFixedFunctionState->init();
 
 	vulkanRenderPass = std::make_unique<VulkanRenderPass>(pVulkanDevice, pVulkanSwapchain);
 	vulkanRenderPass->init();
@@ -43,16 +45,16 @@ VkResult VulkanPipeline::init() {
 	auto shaderStages = vulkanShaderPipeline.getShaderStages();
 	pipelineCreateInfo.pStages = shaderStages.data();
 
-	pipelineCreateInfo.pVertexInputState = &vulkanFixedFuctionState->getVertexInputCreateInfo();
-	pipelineCreateInfo.pInputAssemblyState = &vulkanFixedFuctionState->getInputAssemblyCreateInfo();
-	pipelineCreateInfo.pViewportState = &vulkanFixedFuctionState->getViewportCreateInfo();
-	pipelineCreateInfo.pRasterizationState = &vulkanFixedFuctionState->getRasterizationCreateInfo();
-	pipelineCreateInfo.pMultisampleState = &vulkanFixedFuctionState->getMultisampleCreateInfo();
-	pipelineCreateInfo.pDepthStencilState = &vulkanFixedFuctionState->getDepthStencilCreateInfo(); // Optional
-	pipelineCreateInfo.pColorBlendState = &vulkanFixedFuctionState->getColorBlendCreateInfo();
-	pipelineCreateInfo.pDynamicState = &vulkanFixedFuctionState->getDynamicCreateInfo();
+	pipelineCreateInfo.pVertexInputState = &vulkanFixedFunctionState->getVertexInputCreateInfo();
+	pipelineCreateInfo.pInputAssemblyState = &vulkanFixedFunctionState->getInputAssemblyCreateInfo();
+	pipelineCreateInfo.pViewportState = &vulkanFixedFunctionState->getViewportCreateInfo();
+	pipelineCreateInfo.pRasterizationState = &vulkanFixedFunctionState->getRasterizationCreateInfo();
+	pipelineCreateInfo.pMultisampleState = &vulkanFixedFunctionState->getMultisampleCreateInfo();
+	pipelineCreateInfo.pDepthStencilState = &vulkanFixedFunctionState->getDepthStencilCreateInfo(); // Optional
+	pipelineCreateInfo.pColorBlendState = &vulkanFixedFunctionState->getColorBlendCreateInfo();
+	pipelineCreateInfo.pDynamicState = &vulkanFixedFunctionState->getDynamicCreateInfo();
 
-	pipelineCreateInfo.layout = vulkanFixedFuctionState->getPipelineLayout();
+	pipelineCreateInfo.layout = vulkanFixedFunctionState->getPipelineLayout();
 
 	pipelineCreateInfo.renderPass = vulkanRenderPass->getRenderPass();
 	pipelineCreateInfo.subpass = 0;
@@ -63,6 +65,7 @@ VkResult VulkanPipeline::init() {
 	auto createGraphicsPipelineResult = vkCreateGraphicsPipelines(pVulkanDevice->getDevice(),
 		VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &vkPipeline);
 	Z_LOG_OBJ("VulkanPipeline::init::vkCreateGraphicsPipeline", createGraphicsPipelineResult);
+
 	if (createGraphicsPipelineResult != VK_SUCCESS) {
 		return createGraphicsPipelineResult;
 	}
@@ -110,11 +113,12 @@ void VulkanPipeline::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t image
 
 	vkCmdBindPipeline(vulkanCmdBuffer.getCmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
-	vkCmdSetViewport(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFuctionState->getViewport());
-	vkCmdSetScissor(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFuctionState->getScissor());
+	vkCmdSetViewport(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFunctionState->getViewport());
+	vkCmdSetScissor(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFunctionState->getScissor());
 
 	if (pVulkanDrawer != nullptr) {
-		pVulkanDrawer->onNewFrame(vulkanCmdBuffer);
+		pVulkanDrawer->onNewFrame(vulkanCmdBuffer, 
+			vulkanFixedFunctionState->getPipelineLayout());
 	}
 
 	vkCmdEndRenderPass(vulkanCmdBuffer.getCmdBuffer());

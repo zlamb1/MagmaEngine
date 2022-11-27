@@ -24,7 +24,6 @@ VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
 
 VulkanBuffer::~VulkanBuffer() {
 	if (pVulkanDevice != nullptr) {
-		vkFreeMemory(pVulkanDevice->getDevice(), vkBufferMemory, pAllocator);
 		vkDestroyBuffer(pVulkanDevice->getDevice(), vkBuffer, pAllocator);
 	}
 }
@@ -47,30 +46,8 @@ VkResult VulkanBuffer::init() {
 	auto createBufferResult = vkCreateBuffer(pVulkanDevice->getDevice(), &bufferCreateInfo, 
 		pAllocator, &vkBuffer);
 	Z_LOG_OBJ("VulkanBuffer::init::vkCreateBufferResult", createBufferResult);
-	if (createBufferResult != VK_SUCCESS) {
-		return createBufferResult;
-	}
 
-	// buffer allocation
-	auto memRequirements = queryMemRequirements();
-
-	VkMemoryAllocateInfo memAllocateInfo{};
-	memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memAllocateInfo.allocationSize = memRequirements.size;
-	memAllocateInfo.memoryTypeIndex = BufferUtility::findMemoryType(pVulkanDevice->getPhysicalDevice(),
-		memRequirements.memoryTypeBits, (VkMemoryPropertyFlags) pMemPropertyFlags);
-
-	auto allocateMemoryResult = vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator, 
-		&vkBufferMemory);
-	Z_LOG_OBJ("VulkanBuffer::init::vkAllocateMemory", allocateMemoryResult);
-	if (allocateMemoryResult != VK_SUCCESS) {
-		return allocateMemoryResult;
-	}
-	
-	auto bindMemoryResult = vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkBufferMemory, 0);
-	Z_LOG_OBJ("VulkanBuffer::init::vkBindBufferMemory", bindMemoryResult);
-
-	return bindMemoryResult;
+	return createBufferResult;
 }
 
 VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
@@ -85,18 +62,88 @@ VkBuffer& VulkanBuffer::getBuffer() {
 	return vkBuffer;
 }
 
-VkDeviceMemory& VulkanBuffer::getBufferMemory() {
-	return vkBufferMemory;
+// VulkanDeviceMemory
+
+VulkanDeviceMemory::VulkanDeviceMemory(std::shared_ptr<VulkanDevice> pVulkanDevice,
+	std::shared_ptr<VulkanBuffer> pVulkanBuffer) :
+	pVulkanDevice{ pVulkanDevice }, pVulkanBuffer { pVulkanBuffer } {}
+
+VulkanDeviceMemory::~VulkanDeviceMemory() {
+	if (pVulkanDevice != nullptr) {
+		if (data != nullptr) {
+			unmapMemory();
+		}
+		vkDeviceWaitIdle(pVulkanDevice->getDevice());
+		vkFreeMemory(pVulkanDevice->getDevice(), vkDeviceMemory, pAllocator);
+	}
 }
 
-VkResult VulkanBuffer::setData(const void* buffer_data) {
-	void* data;
-	auto mapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkBufferMemory, 0, pSize, 0, &data);
-	Z_LOG_OBJ("VulkanBuffer::setData::vkMapMemory", mapMemoryResult);
-	if (mapMemoryResult != VK_SUCCESS) {
-		return mapMemoryResult;
+VkResult VulkanDeviceMemory::init() {
+	if (pVulkanDevice == nullptr) {
+		Z_LOG_TXT("VulkanDeviceMemory::init", "pVulkanDevice is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
 	}
-	memcpy(data, buffer_data, (size_t)pSize);
-	vkUnmapMemory(pVulkanDevice->getDevice(), vkBufferMemory);
+
+	if (pVulkanBuffer == nullptr) {
+		Z_LOG_TXT("VulkanDeviceMemory::init", "pVulkanBuffer is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	auto memRequirements = pVulkanBuffer->queryMemRequirements();
+	memorySize = memRequirements.size; 
+
+	VkMemoryAllocateInfo memAllocateInfo{};
+	memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memAllocateInfo.allocationSize = memRequirements.size;
+	memAllocateInfo.memoryTypeIndex = BufferUtility::findMemoryType(pVulkanDevice->getPhysicalDevice(),
+		memRequirements.memoryTypeBits, (VkMemoryPropertyFlags)pMemPropertyFlags);
+
+	auto allocateMemoryResult = vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator,
+		&vkDeviceMemory);
+	Z_LOG_OBJ("VulkanBuffer::init::vkAllocateMemory", allocateMemoryResult);
+		
+	return allocateMemoryResult;
+}
+
+VkDeviceMemory& VulkanDeviceMemory::getMemory() {
+	return vkDeviceMemory;
+}
+
+VkResult VulkanDeviceMemory::bindBufferMemory(VkBuffer& vkBuffer, VkDeviceSize memoryOffset) {
+	if (pVulkanDevice == nullptr) {
+		Z_LOG_TXT("VulkanDeviceMemory::bindBufferMemory", "pVulkanDevice is nullptr");
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+
+	return vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkDeviceMemory, memoryOffset);
+}
+
+VkResult VulkanDeviceMemory::mapMemory() {
+	if (data != nullptr) {
+		Z_LOG_TXT("VulkanDeviceMemory::mapMemory", 
+			"warning: attempting to map memory that is already mapped");
+	}
+
+	void* tmpData;
+	auto mapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkDeviceMemory, 0, 
+		memorySize, 0, &tmpData);
+	data = tmpData;
+	Z_LOG_OBJ("VulkanBuffer::setData::vkMapMemory", mapMemoryResult);
+
+	return mapMemoryResult;
+}
+
+void VulkanDeviceMemory::unmapMemory() {
+	vkUnmapMemory(pVulkanDevice->getDevice(), vkDeviceMemory);
+	data = nullptr;
+}
+
+VkResult VulkanDeviceMemory::setData(const void* bufferData) {
+	if (data == nullptr) {
+		Z_LOG_TXT("VulkanDeviceMemory::setData", 
+			"warning: trying to memcpy to nullptr destination")
+		return VK_ERROR_INITIALIZATION_FAILED;
+	}
+	memcpy(data, bufferData, (size_t)memorySize);
 	return VK_SUCCESS;
 }

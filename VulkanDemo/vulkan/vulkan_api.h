@@ -34,18 +34,27 @@ public:
 	std::shared_ptr<VulkanDevice> getVulkanDevice();
 	std::shared_ptr<VulkanDrawer> getVulkanDrawer(); 
 
-	std::vector<std::shared_ptr<VulkanShader>>& getShaderHandles();
-	std::vector<std::shared_ptr<VulkanBuffer>>& getBufferHandles();
+	std::vector<std::shared_ptr<VulkanShader>>& getVulkanShaders();
+	std::vector<std::shared_ptr<VulkanBuffer>>& getVulkanBuffers();
 	
 	void addVertexInputState(VulkanVertexState& vertexState);
+
 	void setFramebufferResized(bool framebufferResized);
 	
-	std::shared_ptr<VulkanShader> createShaderHandle(const char* code, VulkanShaderType type);
-	std::shared_ptr<VulkanShader> createShaderHandle(VulkanShaderInfo info);
+	std::shared_ptr<VulkanShader> createVulkanShader(const char* code, ShadercType type);
+	std::shared_ptr<VulkanShader> createVulkanShader(VulkanShaderInfo info);
 
-	std::shared_ptr<VulkanBuffer> createBufferHandle(VkDeviceSize pSize);
-	std::shared_ptr<VulkanBuffer> createBufferHandle(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage,
-		VulkanMemoryType pMemType);
+	std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize);
+	std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage);
+
+	std::shared_ptr<VulkanDeviceMemory> createDeviceMemory(
+		std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType);
+
+	std::shared_ptr<VulkanDescriptorSetLayout> createDescriptorSetLayout(
+		std::vector<VulkanDescriptor> vulkanDescriptors);
+
+	void setDescriptorSetLayout(
+		std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSetLayout);
 
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 1;

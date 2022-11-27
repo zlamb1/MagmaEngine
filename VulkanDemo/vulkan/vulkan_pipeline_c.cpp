@@ -44,9 +44,9 @@ VkResult VulkanFixedFunctionState::init() {
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
-	vkDynamiCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	vkDynamiCreateInfo.dynamicStateCount = static_cast<uint32_t>(vkDynamicStates.size());
-	vkDynamiCreateInfo.pDynamicStates = vkDynamicStates.data();
+	vkDynamicCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	vkDynamicCreateInfo.dynamicStateCount = static_cast<uint32_t>(vkDynamicStates.size());
+	vkDynamicCreateInfo.pDynamicStates = vkDynamicStates.data();
 
 	vkVertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vkVertexInputCreateInfo.vertexBindingDescriptionCount =
@@ -82,12 +82,16 @@ VkResult VulkanFixedFunctionState::init() {
 	vkRasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	vkRasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	vkRasterizationCreateInfo.lineWidth = 1.0f;
-	vkRasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	vkRasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+
+	// face culling
+	vkRasterizationCreateInfo.cullMode = VkCullModeFlagBits::VK_CULL_MODE_NONE;
+	vkRasterizationCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
 	vkRasterizationCreateInfo.depthBiasEnable = VK_FALSE;
 	vkRasterizationCreateInfo.depthBiasConstantFactor = 0.0f; // optional
 	vkRasterizationCreateInfo.depthBiasClamp = 0.0f; // optional
 	vkRasterizationCreateInfo.depthBiasSlopeFactor = 0.0f; // optional
+
 
 	vkMultisampleCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	vkMultisampleCreateInfo.sampleShadingEnable = VK_FALSE;
@@ -118,8 +122,17 @@ VkResult VulkanFixedFunctionState::init() {
 	vkColorBlendCreateInfo.blendConstants[3] = 0.0f; // optional
 
 	vkPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	vkPipelineLayoutCreateInfo.setLayoutCount = 0; // optional
-	vkPipelineLayoutCreateInfo.pSetLayouts = nullptr; // optional
+
+	if (pVulkanDescriptorSetLayout == nullptr) {
+		vkPipelineLayoutCreateInfo.setLayoutCount = 0;
+		vkPipelineLayoutCreateInfo.pSetLayouts = nullptr;
+	}
+	else {
+		vkPipelineLayoutCreateInfo.setLayoutCount = 1; 
+		vkPipelineLayoutCreateInfo.pSetLayouts = 
+			&pVulkanDescriptorSetLayout->getDescriptorSetLayout();
+	}
+
 	vkPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // optional
 	vkPipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // optional
 
@@ -131,7 +144,7 @@ VkResult VulkanFixedFunctionState::init() {
 }
 
 VkPipelineDynamicStateCreateInfo& VulkanFixedFunctionState::getDynamicCreateInfo() {
-	return vkDynamiCreateInfo;
+	return vkDynamicCreateInfo;
 }
 
 VkPipelineVertexInputStateCreateInfo& VulkanFixedFunctionState::getVertexInputCreateInfo() {

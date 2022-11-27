@@ -1,6 +1,7 @@
 #include "vulkan_drawer.h"
 
-void VulkanDrawer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer) {
+void VulkanDrawer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, 
+	VkPipelineLayout& vkPipelineLayout) {
 	VkDeviceSize offsets[] = { 0 };
 
 	std::vector<VkBuffer> vkBuffers{};
@@ -20,6 +21,13 @@ void VulkanDrawer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer) {
 
 		vkCmdBindIndexBuffer(vulkanCmdBuffer.getCmdBuffer(), pIndexBuffer->getBuffer(), 0, 
 			VkIndexType::VK_INDEX_TYPE_UINT16);
+
+		if (pDescriptorSets.size() > 0) {
+			vkCmdBindDescriptorSets(vulkanCmdBuffer.getCmdBuffer(),
+				VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout,
+				0, 1, &pDescriptorSets[0], 0, nullptr);
+		}
+
 		vkCmdDrawIndexed(vulkanCmdBuffer.getCmdBuffer(), pIndexCount, pInstanceCount, pFirstIndex, 
 			pVertexOffset, pFirstInstance);
 	}

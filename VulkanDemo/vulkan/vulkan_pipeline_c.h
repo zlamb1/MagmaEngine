@@ -7,11 +7,12 @@
 #include <shaderc/shaderc.h>
 #include <vulkan/vulkan.h>
 
+#include "vulkan_descriptor.h"
 #include "vulkan_device.h"
-#include "vulkan_swapchain.h"
 #include "vulkan_shader.h"
+#include "vulkan_swapchain.h"
 
-enum VulkanShaderType {
+enum ShadercType {
 	VERTEX = shaderc_shader_kind::shaderc_vertex_shader,
 	FRAGMENT = shaderc_shader_kind::shaderc_fragment_shader,
 	COMPUTE = shaderc_shader_kind::shaderc_compute_shader
@@ -21,7 +22,7 @@ class VulkanShaderInfo {
 
 public:
 	const char* pCode; 
-	VulkanShaderType pShaderType;
+	ShadercType pShaderType;
 
 };
 
@@ -55,6 +56,8 @@ public:
 	std::vector<VkVertexInputBindingDescription> pVertexBindingDescriptions{};
 	std::vector<VkVertexInputAttributeDescription> pVertexAttributeDescriptions{};
 
+	std::shared_ptr<VulkanDescriptorSetLayout> pVulkanDescriptorSetLayout = nullptr;
+
 	VkResult init() override;
 
 	VkPipelineDynamicStateCreateInfo& getDynamicCreateInfo();
@@ -72,7 +75,7 @@ public:
 	VkPipelineLayout& getPipelineLayout();
 
 private:
-	VkPipelineDynamicStateCreateInfo vkDynamiCreateInfo{};
+	VkPipelineDynamicStateCreateInfo vkDynamicCreateInfo{};
 
 	std::vector<VkDynamicState> vkDynamicStates = {
 		VK_DYNAMIC_STATE_VIEWPORT,

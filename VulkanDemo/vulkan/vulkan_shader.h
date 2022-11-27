@@ -31,3 +31,10 @@ private:
 	VkPipelineShaderStageCreateInfo vkShaderStageCreateInfo{};
 
 };
+
+enum class VulkanShaderType {
+	COMPUTE = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT,
+	GEOMETRY = VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT,
+	VERTEX = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
+	FRAGMENT = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT
+};
