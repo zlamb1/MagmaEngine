@@ -18,6 +18,7 @@ public:
 	void waitForEvents() override;
 
 	// getters
+	bool shouldWindowClose() override;
 	Window::Int32Size getMonitorResolution() override;
 	Window::Int32Size getSize() override;
 	const std::string& getTitle() override;  

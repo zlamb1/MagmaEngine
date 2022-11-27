@@ -2,10 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vulkan_debugger.h"
-#include "vulkan_logger.h"
-#include "vulkan_object.h"
-#include "vulkan_validater.h"
+#include "Vulktrix/Logging/vulkan_debugger.h"
+#include "Vulktrix/Logging/vulkan_validater.h"
 
 class VulkanInstance : public VulkanObject {
 

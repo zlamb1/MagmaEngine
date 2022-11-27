@@ -1,10 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include "vulkan_logger.h"
-#include "vulkan_object.h"
-#include "vulkan_cmd.h"
+#include "Vulktrix/Command/vulkan_cmd.h"
 
 enum class VulkanMemoryType {
 	GPU_EFFICIENT = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

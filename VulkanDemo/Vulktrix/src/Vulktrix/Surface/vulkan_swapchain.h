@@ -5,10 +5,11 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
+
 #include <vulkan/vulkan.h>
 
-#include "vulkan_device.h"
-#include "vulkan_object.h"
+#include "Vulktrix/Device/vulkan_device.h"
+#include "Vulktrix/Setup/vulkan_object.h"
 
 class VulkanSwapchain : public VulkanObject {
 

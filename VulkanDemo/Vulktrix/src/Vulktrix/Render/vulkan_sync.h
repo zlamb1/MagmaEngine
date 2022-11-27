@@ -2,8 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vulkan_object.h"
-#include "vulkan_device.h"
+#include "Vulktrix/Device/vulkan_device.h"
 
 class VulkanSemaphore : public VulkanObject {
 

@@ -3,13 +3,11 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <vulkan/vulkan.h>
+#include "Window/vulkan_window.h"
 
-#include "vulkan_window.h"
+#include "Vulktrix/Logging/vulkan_logger.h"
 
-#include "vulkan_logger.h"
-#include "vulkan_object.h"
-#include "vulkan_instance.h"
+#include "Vulktrix/Setup/vulkan_instance.h"
 
 class VulkanSurface : public VulkanObject {
 

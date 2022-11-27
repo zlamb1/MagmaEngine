@@ -1,20 +1,13 @@
 #pragma once
 
 #include <iostream>  
-#include <optional>
-#include <set>
 #include <stdexcept>
-#include <vector>
-
-#include <vulkan/vulkan.h>
 
 #include "device_profile.h"
 
-#include "vulkan_logger.h"
-#include "vulkan_surface.h"
-#include "vulkan_validater.h"
-#include "vulkan_object.h"
-#include "vulkan_instance.h"
+#include "Vulktrix/Logging/vulkan_validater.h"
+
+#include "Vulktrix/Setup/vulkan_instance.h"
 
 class VulkanDevice : public VulkanObject {
 

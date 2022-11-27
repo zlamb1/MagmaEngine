@@ -22,6 +22,10 @@ void GLFWWindowImpl::waitForEvents() {
 
 // getters
 
+bool GLFWWindowImpl::shouldWindowClose() {
+	return glfwWindowShouldClose(window);
+}
+
 std::pair<int32_t, int32_t> GLFWWindowImpl::getMonitorResolution() {
 	const GLFWmonitor* primary = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());

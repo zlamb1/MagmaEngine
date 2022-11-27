@@ -1,4 +1,4 @@
-#include "vulkan_api.h"
+#include "vulktrix.h"
 
 const char* defVertexShader = R"(#version 450
     void main() {
@@ -11,14 +11,21 @@ const char* defFragmentShader = R"(#version 450
         fragColor = vec3(1, 1, 1);
     })";
 
-VulkanAPI::VulkanAPI(VulkanWindow& windowImpl) : windowImpl{ windowImpl } {}
+VulktrixAPI::VulktrixAPI(VulkanWindow& windowImpl) : windowImpl{ windowImpl } {
 
-VulkanAPI::~VulkanAPI() {
+    // add framebuffer resized callback
+    windowImpl.addFramebufferSizeCallback([&](int32_t w, int32_t h) {
+        setFramebufferResized(true);
+    });
+
+}
+
+VulktrixAPI::~VulktrixAPI() {
     // allows for clean exit 
     vkDeviceWaitIdle(vulkanDevice->getDevice());
 }
 
-void VulkanAPI::initSetup() {    
+void VulktrixAPI::initSetup() {
     vulkanValidater = std::make_shared<VulkanValidater>();
     vulkanInstance = std::make_shared<VulkanInstance>(vulkanValidater);
 
@@ -59,7 +66,7 @@ void VulkanAPI::initSetup() {
     defaultFragmentShader = createVulkanShader(defFragmentShader, ShadercType::FRAGMENT);
 }
 
-void VulkanAPI::initRender() {
+void VulktrixAPI::initRender() {
     vulkanPipeline->pVulkanDrawer = vulkanDrawer;
     
     if (vulkanShaders.empty()) {
@@ -82,7 +89,7 @@ void VulkanAPI::initRender() {
     initSync();
 }
 
-void VulkanAPI::onNewFrame(uint32_t vertexCount) {
+void VulktrixAPI::onNewFrame(uint32_t vertexCount) {
     vkWaitForFences(vulkanDevice->getDevice(), 1,
         &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence(), VK_TRUE, UINT64_MAX);
 
@@ -166,39 +173,39 @@ void VulkanAPI::onNewFrame(uint32_t vertexCount) {
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-std::shared_ptr<VulkanDevice> VulkanAPI::getVulkanDevice() {
+std::shared_ptr<VulkanDevice> VulktrixAPI::getVulkanDevice() {
     return vulkanDevice;
 }
 
-std::shared_ptr<VulkanDrawer> VulkanAPI::getVulkanDrawer() {
+std::shared_ptr<VulkanDrawer> VulktrixAPI::getVulkanDrawer() {
     return vulkanDrawer;
 }
 
 
-void VulkanAPI::addVertexInputState(VulkanVertexState& vertexState) {
+void VulktrixAPI::addVertexInputState(VulkanVertexState& vertexState) {
     vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
     for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {
         vulkanPipeline->pAttributeDescriptions.push_back(vulkanAttributeDescription);
     }
 }
 
-std::vector<std::shared_ptr<VulkanShader>>& VulkanAPI::getVulkanShaders() {
+std::vector<std::shared_ptr<VulkanShader>>& VulktrixAPI::getVulkanShaders() {
     return vulkanShaders;
 }
 
-std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getVulkanBuffers() {
+std::vector<std::shared_ptr<VulkanBuffer>>& VulktrixAPI::getVulkanBuffers() {
     return vulkanBuffers;
 }
 
-void VulkanAPI::setFramebufferResized(bool framebufferResized) {
+void VulktrixAPI::setFramebufferResized(bool framebufferResized) {
     this->framebufferResized = framebufferResized;
 }
 
-std::shared_ptr<VulkanShader> VulkanAPI::createVulkanShader(const char* code, ShadercType type) {
+std::shared_ptr<VulkanShader> VulktrixAPI::createVulkanShader(const char* code, ShadercType type) {
     return createVulkanShader({ code, type });
 }
 
-std::shared_ptr<VulkanShader> VulkanAPI::createVulkanShader(VulkanShaderInfo _vkShaderInfo) {
+std::shared_ptr<VulkanShader> VulktrixAPI::createVulkanShader(VulkanShaderInfo _vkShaderInfo) {
     std::shared_ptr<VulkanShader> vulkanShader = std::make_shared<VulkanShader>(vulkanDevice);
     vulkanShader->pShaderCode = _vkShaderInfo.pCode;
     vulkanShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
@@ -206,11 +213,11 @@ std::shared_ptr<VulkanShader> VulkanAPI::createVulkanShader(VulkanShaderInfo _vk
     return vulkanShader;
 }
 
-std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize) {
+std::shared_ptr<VulkanBuffer> VulktrixAPI::createVulkanBuffer(VkDeviceSize pSize) {
     return createVulkanBuffer(pSize, VulkanBufferUsage::VERTEX);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize, 
+std::shared_ptr<VulkanBuffer> VulktrixAPI::createVulkanBuffer(VkDeviceSize pSize,
     VulkanBufferUsage pBufferUsage) {
     std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VulkanBuffer>(vulkanDevice);
     vulkanBuffer->pSize = (uint32_t) pSize;
@@ -219,7 +226,7 @@ std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize,
     return vulkanBuffer;
 }
 
-std::shared_ptr<VulkanDeviceMemory> VulkanAPI::createDeviceMemory(
+std::shared_ptr<VulkanDeviceMemory> VulktrixAPI::createDeviceMemory(
     std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType) {
     std::shared_ptr<VulkanDeviceMemory> vulkanDeviceMemory = std::make_shared<VulkanDeviceMemory>(
         vulkanDevice, expectedBufferSpec);
@@ -228,7 +235,7 @@ std::shared_ptr<VulkanDeviceMemory> VulkanAPI::createDeviceMemory(
     return vulkanDeviceMemory;
 }
 
-std::shared_ptr<VulkanDescriptorSetLayout> VulkanAPI::createDescriptorSetLayout(
+std::shared_ptr<VulkanDescriptorSetLayout> VulktrixAPI::createDescriptorSetLayout(
     std::vector<VulkanDescriptor> vulkanDescriptors) {
     std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSet = 
         std::make_shared<VulkanDescriptorSetLayout>(vulkanDevice);
@@ -239,14 +246,14 @@ std::shared_ptr<VulkanDescriptorSetLayout> VulkanAPI::createDescriptorSetLayout(
     return vulkanDescriptorSet;
 }
 
-void VulkanAPI::setDescriptorSetLayout(
+void VulktrixAPI::setDescriptorSetLayout(
     std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSetLayout) {
     vulkanPipeline->pVulkanDescriptorSetLayout = vulkanDescriptorSetLayout;
 }
 
 // Private
 
-void VulkanAPI::recreateSwapchain() {
+void VulktrixAPI::recreateSwapchain() {
     // pause program while minimized
     auto framebufferSize = windowImpl.getFramebufferSize();
     while (framebufferSize.first == 0 || framebufferSize.second == 0) {
@@ -265,7 +272,7 @@ void VulkanAPI::recreateSwapchain() {
     vulkanPipeline->initFramebuffers();
 }
 
-void VulkanAPI::initCommands() {
+void VulktrixAPI::initCommands() {
     vulkanCmdPools.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto vulkanCmdPool = std::make_shared<VulkanCmdPool>(vulkanDevice);
@@ -281,7 +288,7 @@ void VulkanAPI::initCommands() {
     }
 }
 
-void VulkanAPI::initSync() {
+void VulktrixAPI::initSync() {
     vulkanRenderSyncs.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         auto vulkanRenderSync = std::make_shared<VulkanRenderSync>();
@@ -291,7 +298,7 @@ void VulkanAPI::initSync() {
     }
 }
 
-std::vector<const char*> VulkanAPI::getRequiredExtensions() {
+std::vector<const char*> VulktrixAPI::getRequiredExtensions() {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);

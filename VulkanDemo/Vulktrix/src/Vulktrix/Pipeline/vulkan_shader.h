@@ -6,7 +6,7 @@
 #include <vulkan/vulkan.h>
 #include <shaderc/shaderc.hpp>
 
-#include "vulkan_device.h"
+#include "Vulktrix/Device/vulkan_device.h"
 
 class VulkanShader : public VulkanObject {
 

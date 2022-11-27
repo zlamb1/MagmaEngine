@@ -7,10 +7,11 @@
 #include <shaderc/shaderc.h>
 #include <vulkan/vulkan.h>
 
-#include "vulkan_descriptor.h"
-#include "vulkan_device.h"
 #include "vulkan_shader.h"
-#include "vulkan_swapchain.h"
+
+#include "Vulktrix/Memory/vulkan_descriptor.h"
+
+#include "Vulktrix/Surface/vulkan_swapchain.h"
 
 enum ShadercType {
 	VERTEX = shaderc_shader_kind::shaderc_vertex_shader,

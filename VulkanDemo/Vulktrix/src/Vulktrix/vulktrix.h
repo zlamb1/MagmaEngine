@@ -3,31 +3,47 @@
 #include <vector>
 #include <map>
 
-#include <GLFW/glfw3.h>
-
 #include <vulkan/vulkan.h>
 
-#include "glfw_window_impl.h"
+#include "Window/vulkan_window.h"
 
-#include "vulkan_logger.h"
-#include "vulkan_debugger.h"
-#include "vulkan_device.h"
-#include "vulkan_surface.h"
-#include "vulkan_validater.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_pipeline.h"
-#include "vulkan_cmd.h"
-#include "vulkan_sync.h"
-#include "vulkan_buffer.h"
-#include "vulkan_instance.h"
+// all Vulktrix includes
 
-#include "vulkan_vertex_state.h"
+#include "Vulktrix/Command/vulkan_cmd.h"
+#include "Vulktrix/Command/vulkan_operation.h"
 
-class VulkanAPI {
+#include "Vulktrix/Device/device_enums.h"
+#include "Vulktrix/Device/device_profile.h"
+#include "Vulktrix/Device/vulkan_device.h"
+
+#include "Vulktrix/Logging/vulkan_debugger.h"
+#include "Vulktrix/Logging/vulkan_logger.h"
+#include "Vulktrix/Logging/vulkan_validater.h"
+
+#include "Vulktrix/Memory/vulkan_buffer.h"
+#include "Vulktrix/Memory/vulkan_buffer_copy.h"
+#include "Vulktrix/Memory/vulkan_descriptor.h"
+#include "Vulktrix/Memory/vulkan_vertex_state.h"
+
+#include "Vulktrix/Pipeline/vulkan_pipeline.h"
+#include "Vulktrix/Pipeline/vulkan_pipeline_c.h"
+#include "Vulktrix/Pipeline/vulkan_shader.h"
+
+#include "Vulktrix/Render/vulkan_drawer.h"
+#include "Vulktrix/Render/vulkan_framebuffer.h"
+#include "Vulktrix/Render/vulkan_sync.h"
+
+#include "Vulktrix/Setup/vulkan_instance.h"
+#include "Vulktrix/Setup/vulkan_object.h"
+
+#include "Vulktrix/Surface/vulkan_surface.h"
+#include "Vulktrix/Surface/vulkan_swapchain.h"
+
+class VulktrixAPI {
 
 public:
-	VulkanAPI(VulkanWindow& windowImpl);
-	~VulkanAPI();
+	VulktrixAPI(VulkanWindow& windowImpl);
+	~VulktrixAPI();
 
 	void initSetup();
 	void initRender();

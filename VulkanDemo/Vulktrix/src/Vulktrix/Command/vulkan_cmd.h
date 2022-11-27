@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include "vulkan_object.h"
-#include "vulkan_device.h"
+#include "Vulktrix/Device/vulkan_device.h"
 
 enum class VulkanCommandPoolCreateFlag {
 	RESET_COMMAND_BUFFER = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,

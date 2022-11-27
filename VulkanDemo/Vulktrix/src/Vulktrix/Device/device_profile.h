@@ -2,10 +2,9 @@
 
 #include <set>
 
-#include <vulkan/vulkan.h>
-
 #include "device_enums.h"
-#include "vulkan_surface.h"
+
+#include "Vulktrix/Surface/vulkan_surface.h"
 
 class DeviceProfile {
 

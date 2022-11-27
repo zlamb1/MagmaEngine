@@ -1,10 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include "vulkan_logger.h"
-#include "vulkan_object.h"
-#include "vulkan_shader.h"
+#include "Vulktrix/Pipeline/vulkan_shader.h"
 
 class VulkanDescriptor : public VulkanObject {
 

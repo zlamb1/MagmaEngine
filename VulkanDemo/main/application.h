@@ -7,12 +7,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <GLFW/glfw3.h>
+#include "Window/glfw_window_impl.h"
 
-#include "../vulkan/vulkan_api.h"
-#include "../vulkan/vulkan_buffer_copy.h"
-
-#include "../vulkan/glfw_window_impl.h"
+#include "Vulktrix/vulktrix.h"
 
 class Application {
 
@@ -26,7 +23,7 @@ private:
 	const uint32_t HEIGHT = 600;
 
 	GLFWWindowImpl windowImpl{};
-	VulkanAPI vulkanAPI{ windowImpl };
+	VulktrixAPI vulktrixAPI{ windowImpl };
 
 	std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer, uboBuffer;
 	std::shared_ptr<VulkanDeviceMemory> stagingMemory, vertexMemory, indexMemory, uboMemory;
@@ -46,5 +43,4 @@ private:
 	void initVulkan();
 	void mainLoop();
 
-	static void onFramebufferResize(GLFWwindow* window, int width, int height);
 };

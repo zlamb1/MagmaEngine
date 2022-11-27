@@ -1,13 +1,8 @@
 #pragma once
 
-#include <vector>
+#include "Vulktrix/Pipeline/vulkan_pipeline_c.h"
 
-#include <vulkan/vulkan.h>
-
-#include "vulkan_object.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_logger.h"
-#include "vulkan_pipeline_c.h"
+#include "Vulktrix/Surface/vulkan_swapchain.h"
 
 class VulkanFramebuffer : VulkanObject {
 

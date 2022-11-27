@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan_operation.h"
+#include "Vulktrix/Command/vulkan_operation.h"
 
 namespace BufferCopy {
 	extern VkResult copyBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice, VkDeviceSize pSize,

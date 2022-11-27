@@ -4,8 +4,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vulkan_buffer.h"
-#include "vulkan_object.h"
+#include "Vulktrix/Memory/vulkan_buffer.h"
+
+#include "Vulktrix/Setup/vulkan_object.h"
 
 class VulkanDrawer : public VulkanObject {
 

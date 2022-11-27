@@ -107,12 +107,15 @@ void Application::updateUniformBuffer() {
         std::chrono::seconds::period>(currentTime - startTime).count();
 
     UBO ubo{};
+
     ubo.model = glm::rotate(glm::mat4(1.0f), 
         time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), 
         glm::vec3(1.0f, 0.0f, 0.0f));
+
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
         glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
     ubo.proj = glm::perspective(glm::radians(45.0f), 
         WIDTH / (float)HEIGHT, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
@@ -130,23 +133,24 @@ void Application::initWindow() {
 }
 
 void Application::initVulkan() {
-    vulkanAPI.initSetup();
+    vulktrixAPI.initSetup();
 
     // create shaders
-    auto vertexShader = vulkanAPI.createVulkanShader(vertexShaderCode, ShadercType::VERTEX);
-    vulkanAPI.getVulkanShaders().push_back(vertexShader);
-    auto fragmentShader = vulkanAPI.createVulkanShader(fragmentShaderCode, ShadercType::FRAGMENT);
-    vulkanAPI.getVulkanShaders().push_back(fragmentShader);
+    auto vertexShader = vulktrixAPI.createVulkanShader(vertexShaderCode, ShadercType::VERTEX);
+    vulktrixAPI.getVulkanShaders().push_back(vertexShader);
+    auto fragmentShader = vulktrixAPI.createVulkanShader(fragmentShaderCode, ShadercType::FRAGMENT);
+    vulktrixAPI.getVulkanShaders().push_back(fragmentShader);
     
     // specify vertex state
     auto myVertex = MyVertexState{};
-    vulkanAPI.addVertexInputState(myVertex);
+    vulktrixAPI.addVertexInputState(myVertex);
     
     auto vertexBufferSize = sizeof(MyVertex) * vertexData.size();
 
     // create staging buffer/memory
-    stagingBuffer = vulkanAPI.createVulkanBuffer(vertexBufferSize, VulkanBufferUsage::TRANSFER_SRC);
-    stagingMemory = vulkanAPI.createDeviceMemory(stagingBuffer,
+    stagingBuffer = vulktrixAPI.createVulkanBuffer(vertexBufferSize, 
+        VulkanBufferUsage::TRANSFER_SRC);
+    stagingMemory = vulktrixAPI.createDeviceMemory(stagingBuffer,
         VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES);
     stagingMemory->bindBufferMemory(stagingBuffer->getBuffer(), 0);
 
@@ -155,15 +159,16 @@ void Application::initVulkan() {
     stagingMemory->unmapMemory();
 
     // create vertex buffer/memory
-    vertexBuffer = vulkanAPI.createVulkanBuffer(vertexBufferSize,
+    vertexBuffer = vulktrixAPI.createVulkanBuffer(vertexBufferSize,
         VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::VERTEX);
-    vertexMemory = vulkanAPI.createDeviceMemory(vertexBuffer, VulkanMemoryType::GPU_EFFICIENT);
+    vertexMemory = vulktrixAPI.createDeviceMemory(vertexBuffer, 
+        VulkanMemoryType::GPU_EFFICIENT);
     vertexMemory->bindBufferMemory(vertexBuffer->getBuffer(), 0);
 
-    BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
+    BufferCopy::copyBuffer(vulktrixAPI.getVulkanDevice(), stagingBuffer->pSize,
         stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
-    vulkanAPI.getVulkanBuffers().push_back(vertexBuffer);
+    vulktrixAPI.getVulkanBuffers().push_back(vertexBuffer);
 
     auto indexBufferSize = sizeof(uint16_t) * index_data.size();
 
@@ -172,18 +177,18 @@ void Application::initVulkan() {
     stagingMemory->unmapMemory();
 
     // create index buffer/memory
-    indexBuffer = vulkanAPI.createVulkanBuffer(indexBufferSize, 
+    indexBuffer = vulktrixAPI.createVulkanBuffer(indexBufferSize,
         VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::INDEX);
-    indexMemory = vulkanAPI.createDeviceMemory(indexBuffer, VulkanMemoryType::GPU_EFFICIENT);
+    indexMemory = vulktrixAPI.createDeviceMemory(indexBuffer, VulkanMemoryType::GPU_EFFICIENT);
     indexMemory->bindBufferMemory(indexBuffer->getBuffer(), 0);
 
-    BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), indexBuffer->pSize, 
+    BufferCopy::copyBuffer(vulktrixAPI.getVulkanDevice(), indexBuffer->pSize,
         stagingBuffer->getBuffer(), indexBuffer->getBuffer(), 0, 0);
 
     // create ubo buffer/memory
-    uboBuffer = vulkanAPI.createVulkanBuffer(sizeof(UBO),
+    uboBuffer = vulktrixAPI.createVulkanBuffer(sizeof(UBO),
         VulkanBufferUsage::UNIFORM);
-    uboMemory = vulkanAPI.createDeviceMemory(uboBuffer, 
+    uboMemory = vulktrixAPI.createDeviceMemory(uboBuffer,
         VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES);
     uboMemory->bindBufferMemory(uboBuffer->getBuffer(), 0);
     uboMemory->mapMemory();
@@ -191,12 +196,12 @@ void Application::initVulkan() {
     // create VulkanDescriptorSetLayout
     std::vector<VulkanDescriptor> vulkanDescriptors{{}};
     vulkanDescriptors[0].init();
-    auto vulkanDescriptorSetLayout = vulkanAPI.createDescriptorSetLayout(vulkanDescriptors);
-    vulkanAPI.setDescriptorSetLayout(vulkanDescriptorSetLayout);
+    auto vulkanDescriptorSetLayout = vulktrixAPI.createDescriptorSetLayout(vulkanDescriptors);
+    vulktrixAPI.setDescriptorSetLayout(vulkanDescriptorSetLayout);
 
     // create VulkanDescriptorSet
     vulkanDescriptorSet = std::make_shared<VulkanDescriptorSet>();
-    vulkanDescriptorSet->pVulkanDevice = vulkanAPI.getVulkanDevice();
+    vulkanDescriptorSet->pVulkanDevice = vulktrixAPI.getVulkanDevice();
     vulkanDescriptorSet->pDescriptorSetLayouts.push_back(
         vulkanDescriptorSetLayout->getDescriptorSetLayout());
     vulkanDescriptorSet->pBuffer = uboBuffer->getBuffer();
@@ -204,15 +209,15 @@ void Application::initVulkan() {
     vulkanDescriptorSet->init();
 
     // upload it to the drawer
-    vulkanAPI.getVulkanDrawer()->pDescriptorSets = vulkanDescriptorSet->getDescriptorSets();
+    vulktrixAPI.getVulkanDrawer()->pDescriptorSets = vulkanDescriptorSet->getDescriptorSets();
 
     // set draw information
-    vulkanAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;
-    vulkanAPI.getVulkanDrawer()->pIndexCount = 6; 
-    vulkanAPI.getVulkanDrawer()->pUseIndexing = true;
+    vulktrixAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;
+    vulktrixAPI.getVulkanDrawer()->pIndexCount = 6;
+    vulktrixAPI.getVulkanDrawer()->pUseIndexing = true;
 
     // init render structures
-    vulkanAPI.initRender();
+    vulktrixAPI.initRender();
 }
 
 void Application::mainLoop() {
@@ -227,12 +232,12 @@ void Application::mainLoop() {
         stagingMemory->setData(vertexData.data());
         stagingMemory->unmapMemory();
 
-        BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
+        BufferCopy::copyBuffer(vulktrixAPI.getVulkanDevice(), stagingBuffer->pSize,
             stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
         updateUniformBuffer();
 
-        vulkanAPI.onNewFrame(0);
+        vulktrixAPI.onNewFrame(0);
 
         glfwPollEvents();
 
@@ -246,9 +251,4 @@ void Application::mainLoop() {
             frames = 0;
         }
     }
-}
-
-void Application::onFramebufferResize(GLFWwindow* window, int width, int height) {
-    Application* app = (Application*) glfwGetWindowUserPointer(window);
-    app->vulkanAPI.setFramebufferResized(true);
 }

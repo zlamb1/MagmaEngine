@@ -1,16 +1,11 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "Vulktrix/Command/vulkan_cmd.h"
 
-#include "vulkan_buffer.h"
-#include "vulkan_cmd.h"
-#include "vulkan_descriptor.h"
-#include "vulkan_device.h"
-#include "vulkan_drawer.h"
-#include "vulkan_framebuffer.h"
-#include "vulkan_pipeline_c.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_vertex_state.h"
+#include "Vulktrix/Memory/vulkan_vertex_state.h"
+
+#include "Vulktrix/Render/vulkan_drawer.h"
+#include "Vulktrix/Render/vulkan_framebuffer.h"
 
 class VulkanPipeline : public VulkanObject {
 
