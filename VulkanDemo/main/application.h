@@ -19,9 +19,6 @@ public:
 	int run();
 
 private:
-	const uint32_t WIDTH = 800;
-	const uint32_t HEIGHT = 600;
-
 	GLFWWindowImpl windowImpl{};
 	VulktrixAPI vulktrixAPI{ windowImpl };
 

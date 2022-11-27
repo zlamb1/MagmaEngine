@@ -79,7 +79,7 @@ VkResult VulkanSwapchain::init() {
     VkSwapchainCreateInfoKHR vkCreateInfo{};
     vkCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     vkCreateInfo.surface = pVulkanSurface->getSurfaceKHR();
-
+    
     vkCreateInfo.minImageCount = imageCount;
     vkCreateInfo.imageFormat = surfaceFormat.format;
     vkCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -89,7 +89,6 @@ VkResult VulkanSwapchain::init() {
 
     auto& deviceProfile = DeviceProfile::instance();
     auto graphicsQueueOpt = deviceProfile.getQueueIndices()[VulkanQueueType::GRAPHICS];
-
 
     if (!graphicsQueueOpt.has_value()) {
         Z_LOG_TXT("VulkanSwapchain::init", "could not find graphics queue");

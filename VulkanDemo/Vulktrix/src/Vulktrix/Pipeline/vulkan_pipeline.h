@@ -25,10 +25,12 @@ public:
 	VkResult initFramebuffers();
 
 	void addShader(std::shared_ptr<VulkanShader> pVulkanShader);
+
 	void destroyFramebuffers();
+	void destroyPipeline();
 
 	void onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t imageIndex);
-
+	
 private:
 	VulkanShaderPipeline vulkanShaderPipeline{};
 	std::shared_ptr<VulkanFixedFunctionState> vulkanFixedFunctionState = nullptr;

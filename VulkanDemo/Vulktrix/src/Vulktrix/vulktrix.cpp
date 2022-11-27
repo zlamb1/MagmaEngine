@@ -181,7 +181,6 @@ std::shared_ptr<VulkanDrawer> VulktrixAPI::getVulkanDrawer() {
     return vulkanDrawer;
 }
 
-
 void VulktrixAPI::addVertexInputState(VulkanVertexState& vertexState) {
     vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
     for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {
@@ -262,6 +261,9 @@ void VulktrixAPI::recreateSwapchain() {
     }
     // wait for the device to be idle
     vkDeviceWaitIdle(vulkanDevice->getDevice());
+    // TODO: move destruction and constructor into reinitialization method
+    // destroy existing pipeline
+    vulkanPipeline->destroyPipeline();
     // delete framebuffers
     vulkanPipeline->destroyFramebuffers();
     // delete image views
@@ -269,7 +271,7 @@ void VulktrixAPI::recreateSwapchain() {
     // recreate swapchain and image views
     vulkanSwapchain->init();
     // reinit framebuffers
-    vulkanPipeline->initFramebuffers();
+    vulkanPipeline->init();
 }
 
 void VulktrixAPI::initCommands() {

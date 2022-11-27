@@ -4,9 +4,7 @@ VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanSwapchain> pVulkanSwapchain
 	pVulkanSwapchain{ pVulkanSwapchain } {}
 
 VulkanPipeline::~VulkanPipeline() {
-	if (pVulkanSwapchain != nullptr && pVulkanSwapchain->pVulkanDevice != nullptr) {
-		vkDestroyPipeline(pVulkanSwapchain->pVulkanDevice->getDevice(), vkPipeline, nullptr);
-	}
+	destroyPipeline();
 }
 
 VkResult VulkanPipeline::init() {
@@ -28,13 +26,15 @@ VkResult VulkanPipeline::init() {
 	for (auto& _vkBindingDescription : pBindingDescriptions) {
 		vulkanFixedFunctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
 	}
+
 	for (auto& _vkAttributeDescription : pAttributeDescriptions) {
 		vulkanFixedFunctionState->pVertexAttributeDescriptions.push_back(_vkAttributeDescription);
 	}
 
 	vulkanFixedFunctionState->init();
 
-	vulkanRenderPass = std::make_unique<VulkanRenderPass>(pVulkanDevice, pVulkanSwapchain);
+	vulkanRenderPass = std::make_shared<VulkanRenderPass>(pVulkanDevice, 
+		pVulkanSwapchain);
 	vulkanRenderPass->init();
 
 	// pipeline init
@@ -89,6 +89,13 @@ void VulkanPipeline::addShader(std::shared_ptr<VulkanShader> pVulkanShader) {
 void VulkanPipeline::destroyFramebuffers() {
 	if (vulkanFramebuffer != nullptr) {
 		vulkanFramebuffer->destroyFramebuffers();
+	}
+}
+
+void VulkanPipeline::destroyPipeline() {
+	if (pVulkanSwapchain != nullptr && pVulkanSwapchain->pVulkanDevice != nullptr) {
+		vkDestroyPipeline(pVulkanSwapchain->pVulkanDevice->getDevice(),
+			vkPipeline, nullptr);
 	}
 }
 

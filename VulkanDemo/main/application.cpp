@@ -116,8 +116,9 @@ void Application::updateUniformBuffer() {
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
         glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
+    auto windowSize = windowImpl.getSize();
     ubo.proj = glm::perspective(glm::radians(45.0f), 
-        WIDTH / (float)HEIGHT, 0.1f, 10.0f);
+        windowSize.first / (float)windowSize.second, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
 
     uboMemory->setData(&ubo);
