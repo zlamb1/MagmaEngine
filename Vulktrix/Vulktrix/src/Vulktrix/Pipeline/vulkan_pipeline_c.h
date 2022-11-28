@@ -9,8 +9,6 @@
 #include "Vulktrix/Shader/shader_attributes.h"
 #include "Vulktrix/Shader/vulkan_shader.h"
 
-#include "Vulktrix/Memory/vulkan_descriptor.h"
-
 #include "Vulktrix/Surface/vulkan_swapchain.h"
 
 enum ShadercType {

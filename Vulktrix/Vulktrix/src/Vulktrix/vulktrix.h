@@ -22,7 +22,7 @@
 
 #include "Vulktrix/Memory/vulkan_buffer.h"
 #include "Vulktrix/Memory/vulkan_buffer_copy.h"
-#include "Vulktrix/Memory/vulkan_descriptor.h"
+#include "Vulktrix/Memory/descriptor.h"
 
 #include "Vulktrix/Pipeline/vulkan_pipeline.h"
 #include "Vulktrix/Pipeline/vulkan_pipeline_c.h"

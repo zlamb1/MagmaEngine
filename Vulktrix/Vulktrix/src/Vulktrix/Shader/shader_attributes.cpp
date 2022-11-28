@@ -10,18 +10,17 @@ const std::vector<ShaderAttributes::VkVertexAttribute>& ShaderAttributes::getVer
 
 const std::vector<VkDescriptorSetLayout> ShaderAttributes::getDescriptorSetLayouts() {
 	std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts{};
-	for (auto vkDescriptorSetLayout : descriptorSetLayouts) {
-		vkDescriptorSetLayouts.push_back(vkDescriptorSetLayout->getDescriptorSetLayout());
+	for (auto& descriptorSetLayout : descriptorSetLayouts) {
+		vkDescriptorSetLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
 	}
 	return vkDescriptorSetLayouts;
 }
 
 const std::vector<VkDescriptorSet> ShaderAttributes::getDescriptorSets() {
 	std::vector<VkDescriptorSet> vkDescriptorSets{};
-	for (auto descriptorSet : descriptorSets) {
-		for (auto vkDescriptorSet : descriptorSet->getDescriptorSets()) {
-			vkDescriptorSets.push_back(vkDescriptorSet);
-		}
+	for (auto& descriptorSet : this->descriptorSets) {
+		auto& sets = descriptorSet->getDescriptorSets();
+		vkDescriptorSets.insert(vkDescriptorSets.end(), sets.begin(), sets.end());
 	}
 	return vkDescriptorSets;
 }
@@ -47,9 +46,9 @@ ShaderAttributes::VkVertexAttribute ShaderAttributes::createVertexAttribute(
 	return vertexAttribute;
 }
 
-VulkanDescriptor ShaderAttributes::createDescriptor(uint32_t pBinding, uint32_t pCount,
+Descriptor ShaderAttributes::createDescriptor(uint32_t pBinding, uint32_t pCount,
 	VulkanShaderType pStageFlags) {
-	VulkanDescriptor vulkanDescriptor{};
+	Descriptor vulkanDescriptor{};
 	vulkanDescriptor.pBinding = pBinding;
 	vulkanDescriptor.pCount = pCount;
 	vulkanDescriptor.pStageFlags = pStageFlags;
@@ -58,9 +57,9 @@ VulkanDescriptor ShaderAttributes::createDescriptor(uint32_t pBinding, uint32_t 
 	return vulkanDescriptor;
 }
 
-std::shared_ptr<VulkanDescriptorSetLayout> ShaderAttributes::createDescriptorSetLayout() {
-	std::shared_ptr<VulkanDescriptorSetLayout> descriptorSetLayout =
-		std::make_shared<VulkanDescriptorSetLayout>();
+std::shared_ptr<DescriptorSetLayout> ShaderAttributes::createDescriptorSetLayout() {
+	std::shared_ptr<DescriptorSetLayout> descriptorSetLayout =
+		std::make_shared<DescriptorSetLayout>();
 	descriptorSetLayout->pVulkanDevice = pVulkanDevice;
 	for (auto& vulkanDescriptor : vulkanDescriptors) {
 		descriptorSetLayout->pDescriptors.push_back(vulkanDescriptor.getLayoutBinding());
@@ -70,9 +69,9 @@ std::shared_ptr<VulkanDescriptorSetLayout> ShaderAttributes::createDescriptorSet
 	return descriptorSetLayout;
 }
 
-std::shared_ptr<VulkanDescriptorSet> ShaderAttributes::createDescriptorSet(VkBuffer& pBuffer,
+std::shared_ptr<DescriptorSet> ShaderAttributes::createDescriptorSet(VkBuffer& pBuffer,
 	uint32_t pMaxSets, VkDeviceSize pSize) {
-	std::shared_ptr<VulkanDescriptorSet> descriptorSet = std::make_shared<VulkanDescriptorSet>();
+	std::shared_ptr<DescriptorSet> descriptorSet = std::make_shared<DescriptorSet>();
 	descriptorSet->pVulkanDevice = pVulkanDevice;
 
 	auto descriptorSetLayouts = getDescriptorSetLayouts();

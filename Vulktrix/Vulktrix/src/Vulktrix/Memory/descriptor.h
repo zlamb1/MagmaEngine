@@ -2,11 +2,11 @@
 
 #include "Vulktrix/Shader/vulkan_shader.h"
 
-class VulkanDescriptor : public VulkanObject {
+class Descriptor : public VulkanObject {
 
 public:
-	VulkanDescriptor() = default;
-	~VulkanDescriptor() override = default;
+	Descriptor() = default;
+	~Descriptor() override = default;
 
 	uint32_t pBinding = 0, pCount = 1;
 	VulkanShaderType pStageFlags = VulkanShaderType::VERTEX;
@@ -20,11 +20,11 @@ private:
 
 };
 
-class VulkanDescriptorSetLayout : public VulkanObject {
+class DescriptorSetLayout : public VulkanObject {
 
 public:
-	VulkanDescriptorSetLayout() = default;
-	~VulkanDescriptorSetLayout() override;
+	DescriptorSetLayout() = default;
+	~DescriptorSetLayout() override;
 
 	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 
@@ -39,19 +39,19 @@ private:
 
 };
 
-class VulkanDescriptorSet : public VulkanObject {
+class DescriptorSet : public VulkanObject {
 
 
 public:
-	VulkanDescriptorSet() = default;
-	~VulkanDescriptorSet() override;
+	DescriptorSet() = default;
+	~DescriptorSet() override;
 
 	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 
 	uint32_t pMaxSets = 1;
 	std::vector<VkDescriptorSetLayout> pDescriptorSetLayouts{};
 
-	VkBuffer pBuffer;
+	VkBuffer pBuffer{};
 	VkDeviceSize pSize = 0;
 
 	VkResult init() override;

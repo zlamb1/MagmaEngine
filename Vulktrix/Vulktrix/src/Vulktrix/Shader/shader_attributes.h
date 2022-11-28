@@ -1,13 +1,13 @@
 #pragma once
 
+#include <algorithm>
+#include <iostream>
 #include <memory>
 #include <vector>
 
-#include <iostream>
-
 #include "vulkan/vulkan.h"
 
-#include "Vulktrix/Memory/vulkan_descriptor.h"
+#include "Vulktrix/Memory/descriptor.h"
 
 #include "Vulktrix/Setup/vulkan_object.h"
 
@@ -49,12 +49,12 @@ public:
 		uint32_t offset = 0, 
 		VulkanFormat format = VulkanFormat::RGB_SFLOAT32);
 
-	VulkanDescriptor createDescriptor(uint32_t pBinding = 0, uint32_t pCount = 1,
+	Descriptor createDescriptor(uint32_t pBinding = 0, uint32_t pCount = 1,
 		VulkanShaderType pStageFlags = VulkanShaderType::VERTEX);
 
-	std::shared_ptr<VulkanDescriptorSetLayout> createDescriptorSetLayout();
+	std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout();
 
-	std::shared_ptr<VulkanDescriptorSet> createDescriptorSet(VkBuffer& pBuffer, 
+	std::shared_ptr<DescriptorSet> createDescriptorSet(VkBuffer& pBuffer, 
 		uint32_t pMaxSets = 1, VkDeviceSize pSize = 0);
 
 	void clearVertexBindings();
@@ -68,8 +68,10 @@ private:
 	std::vector<VkVertexBinding> vertexBindings{};
 	std::vector<VkVertexAttribute> vertexAttributes{};
 
-	std::vector<VulkanDescriptor> vulkanDescriptors{};
-	std::vector<std::shared_ptr<VulkanDescriptorSetLayout>> descriptorSetLayouts{};
-	std::vector<std::shared_ptr<VulkanDescriptorSet>> descriptorSets{};
+	std::vector<Descriptor> vulkanDescriptors{};
+
+	// these are shared pointers to manage their lifetime
+	std::vector<std::shared_ptr<DescriptorSetLayout>> descriptorSetLayouts{};
+	std::vector<std::shared_ptr<DescriptorSet>> descriptorSets{};
 
 };

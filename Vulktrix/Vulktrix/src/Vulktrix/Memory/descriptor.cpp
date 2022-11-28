@@ -1,8 +1,8 @@
-#include "vulkan_descriptor.h"
+#include "descriptor.h"
 
-// VulkanDescriptor
+// Descriptor
 
-VkResult VulkanDescriptor::init() {
+VkResult Descriptor::init() {
     vkDescriptorSetLayoutBinding.binding = pBinding;
     vkDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     vkDescriptorSetLayoutBinding.descriptorCount = pCount;
@@ -14,20 +14,20 @@ VkResult VulkanDescriptor::init() {
     return VK_SUCCESS;
 }
 
-VkDescriptorSetLayoutBinding& VulkanDescriptor::getLayoutBinding() {
+VkDescriptorSetLayoutBinding& Descriptor::getLayoutBinding() {
     return vkDescriptorSetLayoutBinding;
 }
 
-// VulkanDescriptorSetLayout
+// DescriptorSetLayout
 
-VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() {
+DescriptorSetLayout::~DescriptorSetLayout() {
     if (pVulkanDevice != nullptr) {
         vkDestroyDescriptorSetLayout(pVulkanDevice->getDevice(), vkDescriptorSetLayout, 
             pAllocator);
     }
 }
 
-VkResult VulkanDescriptorSetLayout::init() {
+VkResult DescriptorSetLayout::init() {
     if (pVulkanDevice == nullptr) {
         Z_LOG_TXT("VulkanDescriptorSetLayout::init", "pVulkanDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
@@ -45,20 +45,20 @@ VkResult VulkanDescriptorSetLayout::init() {
     return createDescriptorSeyLayoutResult;
 }
 
-VkDescriptorSetLayout& VulkanDescriptorSetLayout::getDescriptorSetLayout() {
+VkDescriptorSetLayout& DescriptorSetLayout::getDescriptorSetLayout() {
     return vkDescriptorSetLayout;
 }
 
-// VulkanDescriptorSet
+// DescriptorSet
 
-VulkanDescriptorSet::~VulkanDescriptorSet() {
+DescriptorSet::~DescriptorSet() {
     if (pVulkanDevice != nullptr) {
         vkDeviceWaitIdle(pVulkanDevice->getDevice());
         vkDestroyDescriptorPool(pVulkanDevice->getDevice(), vkDescriptorPool, nullptr);
     }
 }
 
-VkResult VulkanDescriptorSet::init() {
+VkResult DescriptorSet::init() {
     if (pVulkanDevice == nullptr) {
         Z_LOG_TXT("VulkanDescriptorSet::init", "pVulkanDevice is nullptr");
         return VK_ERROR_INITIALIZATION_FAILED;
@@ -122,6 +122,6 @@ VkResult VulkanDescriptorSet::init() {
     return VK_SUCCESS;
 }
 
-std::vector<VkDescriptorSet>& VulkanDescriptorSet::getDescriptorSets() {
+std::vector<VkDescriptorSet>& DescriptorSet::getDescriptorSets() {
     return vkDescriptorSets;
 }

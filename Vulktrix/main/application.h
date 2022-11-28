@@ -25,7 +25,7 @@ private:
 	std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer, uboBuffer;
 	std::shared_ptr<VulkanDeviceMemory> stagingMemory, vertexMemory, indexMemory, uboMemory;
 	
-	std::shared_ptr<VulkanDescriptorSet> vulkanDescriptorSet;
+	std::shared_ptr<DescriptorSet> vulkanDescriptorSet;
 
 	float x = 0.0f;
 
