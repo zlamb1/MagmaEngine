@@ -23,9 +23,9 @@ VkResult VulkanShaderPipeline::init() {
 
 // VulkanFixedFunctionState
 
-VulkanFixedFunctionState::VulkanFixedFunctionState(std::shared_ptr<VulkanDevice> pVulkanDevice,
-	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) : pVulkanDevice{ pVulkanDevice }, 
-	pVulkanSwapchain{ pVulkanSwapchain } {}
+VulkanFixedFunctionState::VulkanFixedFunctionState(
+	ShaderAttributes& pShaderAttributes) :
+	pShaderAttributes{ pShaderAttributes } {}
 
 VulkanFixedFunctionState::~VulkanFixedFunctionState() {
 	if (pVulkanDevice != nullptr) {
@@ -48,15 +48,21 @@ VkResult VulkanFixedFunctionState::init() {
 	vkDynamicCreateInfo.dynamicStateCount = static_cast<uint32_t>(vkDynamicStates.size());
 	vkDynamicCreateInfo.pDynamicStates = vkDynamicStates.data();
 
-	vkVertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vkVertexInputCreateInfo.vertexBindingDescriptionCount =
-		static_cast<uint32_t>(pVertexBindingDescriptions.size());
-	vkVertexInputCreateInfo.pVertexBindingDescriptions = pVertexBindingDescriptions.data();
-	vkVertexInputCreateInfo.vertexAttributeDescriptionCount =
-		static_cast<uint32_t>(pVertexAttributeDescriptions.size());
-	vkVertexInputCreateInfo.pVertexAttributeDescriptions = pVertexAttributeDescriptions.data();
+	vkVertexInputCreateInfo.sType = 
+		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-	vkInputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	vkVertexInputCreateInfo.vertexBindingDescriptionCount =
+		static_cast<uint32_t>(pShaderAttributes.getVertexBindings().size());
+	vkVertexInputCreateInfo.pVertexBindingDescriptions = 
+		pShaderAttributes.getVertexBindings().data();
+
+	vkVertexInputCreateInfo.vertexAttributeDescriptionCount =
+		static_cast<uint32_t>(pShaderAttributes.getVertexAttributes().size());
+	vkVertexInputCreateInfo.pVertexAttributeDescriptions =
+		pShaderAttributes.getVertexAttributes().data();
+
+	vkInputAssemblyCreateInfo.sType = 
+		VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	vkInputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vkInputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
@@ -123,14 +129,14 @@ VkResult VulkanFixedFunctionState::init() {
 
 	vkPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-	if (pVulkanDescriptorSetLayout == nullptr) {
+	auto& descriptorSetLayouts = pShaderAttributes.getDescriptorSetLayouts();
+	if (descriptorSetLayouts.size() == 0) {
 		vkPipelineLayoutCreateInfo.setLayoutCount = 0;
 		vkPipelineLayoutCreateInfo.pSetLayouts = nullptr;
 	}
 	else {
-		vkPipelineLayoutCreateInfo.setLayoutCount = 1; 
-		vkPipelineLayoutCreateInfo.pSetLayouts = 
-			&pVulkanDescriptorSetLayout->getDescriptorSetLayout();
+		vkPipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+		vkPipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
 	}
 
 	vkPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // optional

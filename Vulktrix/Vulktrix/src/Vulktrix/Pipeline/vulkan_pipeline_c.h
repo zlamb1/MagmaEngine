@@ -5,9 +5,9 @@
 
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
-#include <vulkan/vulkan.h>
 
-#include "vulkan_shader.h"
+#include "Vulktrix/Shader/shader_attributes.h"
+#include "Vulktrix/Shader/vulkan_shader.h"
 
 #include "Vulktrix/Memory/vulkan_descriptor.h"
 
@@ -47,17 +47,13 @@ private:
 class VulkanFixedFunctionState : public VulkanObject {
 
 public:
-	VulkanFixedFunctionState(std::shared_ptr<VulkanDevice> pVulkanDevice,
-		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain);
+	VulkanFixedFunctionState(ShaderAttributes& pShaderAttributes);
 	~VulkanFixedFunctionState() override;
 
 	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
 
-	std::vector<VkVertexInputBindingDescription> pVertexBindingDescriptions{};
-	std::vector<VkVertexInputAttributeDescription> pVertexAttributeDescriptions{};
-
-	std::shared_ptr<VulkanDescriptorSetLayout> pVulkanDescriptorSetLayout = nullptr;
+	ShaderAttributes& pShaderAttributes;
 
 	VkResult init() override;
 

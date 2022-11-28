@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulktrix/Pipeline/vulkan_shader.h"
+#include "Vulktrix/Shader/vulkan_shader.h"
 
 class VulkanDescriptor : public VulkanObject {
 
@@ -23,7 +23,7 @@ private:
 class VulkanDescriptorSetLayout : public VulkanObject {
 
 public:
-	VulkanDescriptorSetLayout(std::shared_ptr<VulkanDevice> pVulkanDevice);
+	VulkanDescriptorSetLayout() = default;
 	~VulkanDescriptorSetLayout() override;
 
 	std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;

@@ -23,11 +23,9 @@
 #include "Vulktrix/Memory/vulkan_buffer.h"
 #include "Vulktrix/Memory/vulkan_buffer_copy.h"
 #include "Vulktrix/Memory/vulkan_descriptor.h"
-#include "Vulktrix/Memory/vulkan_vertex_state.h"
 
 #include "Vulktrix/Pipeline/vulkan_pipeline.h"
 #include "Vulktrix/Pipeline/vulkan_pipeline_c.h"
-#include "Vulktrix/Pipeline/vulkan_shader.h"
 
 #include "Vulktrix/Render/vulkan_drawer.h"
 #include "Vulktrix/Render/vulkan_framebuffer.h"
@@ -35,6 +33,9 @@
 
 #include "Vulktrix/Setup/vulkan_instance.h"
 #include "Vulktrix/Setup/vulkan_object.h"
+
+#include "Vulktrix/Shader/vulkan_shader.h"
+#include "Vulktrix/Shader/shader_attributes.h"
 
 #include "Vulktrix/Surface/vulkan_surface.h"
 #include "Vulktrix/Surface/vulkan_swapchain.h"
@@ -55,8 +56,6 @@ public:
 	std::vector<std::shared_ptr<VulkanShader>>& getVulkanShaders();
 	std::vector<std::shared_ptr<VulkanBuffer>>& getVulkanBuffers();
 	
-	void addVertexInputState(VulkanVertexState& vertexState);
-
 	void setFramebufferResized(bool framebufferResized);
 	
 	std::shared_ptr<VulkanShader> createVulkanShader(const char* code, ShadercType type);
@@ -68,11 +67,7 @@ public:
 	std::shared_ptr<VulkanDeviceMemory> createDeviceMemory(
 		std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType);
 
-	std::shared_ptr<VulkanDescriptorSetLayout> createDescriptorSetLayout(
-		std::vector<VulkanDescriptor> vulkanDescriptors);
-
-	void setDescriptorSetLayout(
-		std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSetLayout);
+	ShaderAttributes& getShaderAttributes();
 
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 1;
@@ -91,7 +86,9 @@ private:
 	std::shared_ptr<VulkanSwapchain> vulkanSwapchain;
 	std::shared_ptr<VulkanDrawer> vulkanDrawer; 
 	std::shared_ptr<VulkanPipeline> vulkanPipeline;
-		
+	
+	ShaderAttributes shaderAttributes{};
+
 	std::vector<std::shared_ptr<VulkanCmdPool>> vulkanCmdPools{};
 	std::vector<std::shared_ptr<VulkanCmdBuffer>> vulkanCmdBuffers{};
 	std::vector<std::shared_ptr<VulkanRenderSync>> vulkanRenderSyncs{};

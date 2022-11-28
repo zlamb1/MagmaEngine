@@ -1,36 +1,8 @@
 #include "application.h"
 
 struct MyVertex {
-
     glm::vec2 pos;
     glm::vec3 color;
-
-};
-
-class MyVertexState : public VulkanVertexState {
-
-public:
-    VkVertexInputBindingDescription getBindingDescription() override {
-        pBindingDescription.binding = 0;
-        pBindingDescription.stride = sizeof(float) * 5;
-        return pBindingDescription.getBindingDescription();
-    }
-    
-    std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() override {
-        pAttributeDescriptions.resize(2);
-
-        pAttributeDescriptions[0].binding = 0;
-        pAttributeDescriptions[0].location = 0;
-        pAttributeDescriptions[0].format = VulkanFormat::R32G32_SFLOAT;
-        pAttributeDescriptions[0].offset = offsetof(MyVertex, pos);
-
-        pAttributeDescriptions[1].binding = 0;
-        pAttributeDescriptions[1].location = 1;
-        pAttributeDescriptions[1].format = VulkanFormat::R32G32B32_SFLOAT;
-        pAttributeDescriptions[1].offset = offsetof(MyVertex, color);
-
-        return VulkanVertexState::getAttributeDescriptions();
-    }
 };
 
 struct UBO {
@@ -141,10 +113,16 @@ void Application::initVulkan() {
     vulktrixAPI.getVulkanShaders().push_back(vertexShader);
     auto fragmentShader = vulktrixAPI.createVulkanShader(fragmentShaderCode, ShadercType::FRAGMENT);
     vulktrixAPI.getVulkanShaders().push_back(fragmentShader);
-    
-    // specify vertex state
-    auto myVertex = MyVertexState{};
-    vulktrixAPI.addVertexInputState(myVertex);
+
+    auto& shaderAttributes = vulktrixAPI.getShaderAttributes();
+
+    shaderAttributes.createVertexBinding(0, sizeof(MyVertex), 
+        VertexInputRate::VERTEX);
+
+    shaderAttributes.createVertexAttribute(0, 0, offsetof(MyVertex, pos), 
+        VulkanFormat::RG_SFLOAT32);
+    shaderAttributes.createVertexAttribute(0, 1, offsetof(MyVertex, color),
+        VulkanFormat::RGB_SFLOAT32);
     
     auto vertexBufferSize = sizeof(MyVertex) * vertexData.size();
 
@@ -194,23 +172,17 @@ void Application::initVulkan() {
     uboMemory->bindBufferMemory(uboBuffer->getBuffer(), 0);
     uboMemory->mapMemory();
 
+    // create VulkanDescriptor
+    shaderAttributes.createDescriptor();
+
     // create VulkanDescriptorSetLayout
-    std::vector<VulkanDescriptor> vulkanDescriptors{{}};
-    vulkanDescriptors[0].init();
-    auto vulkanDescriptorSetLayout = vulktrixAPI.createDescriptorSetLayout(vulkanDescriptors);
-    vulktrixAPI.setDescriptorSetLayout(vulkanDescriptorSetLayout);
+    shaderAttributes.createDescriptorSetLayout();
 
     // create VulkanDescriptorSet
-    vulkanDescriptorSet = std::make_shared<VulkanDescriptorSet>();
-    vulkanDescriptorSet->pVulkanDevice = vulktrixAPI.getVulkanDevice();
-    vulkanDescriptorSet->pDescriptorSetLayouts.push_back(
-        vulkanDescriptorSetLayout->getDescriptorSetLayout());
-    vulkanDescriptorSet->pBuffer = uboBuffer->getBuffer();
-    vulkanDescriptorSet->pSize = sizeof(UBO);
-    vulkanDescriptorSet->init();
+    shaderAttributes.createDescriptorSet(uboBuffer->getBuffer(), 1, sizeof(UBO));
 
     // upload it to the drawer
-    vulktrixAPI.getVulkanDrawer()->pDescriptorSets = vulkanDescriptorSet->getDescriptorSets();
+    vulktrixAPI.getVulkanDrawer()->pDescriptorSets = shaderAttributes.getDescriptorSets();
 
     // set draw information
     vulktrixAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;

@@ -2,24 +2,21 @@
 
 #include "Vulktrix/Command/vulkan_cmd.h"
 
-#include "Vulktrix/Memory/vulkan_vertex_state.h"
-
 #include "Vulktrix/Render/vulkan_drawer.h"
 #include "Vulktrix/Render/vulkan_framebuffer.h"
+
+#include "Vulktrix/Shader/shader_attributes.h"
 
 class VulkanPipeline : public VulkanObject {
 
 public:
-	VulkanPipeline(std::shared_ptr<VulkanSwapchain> pVulkanSwapchain);
+	VulkanPipeline(ShaderAttributes& pShaderAttributes);
 	~VulkanPipeline() override;
 
 	std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
 	std::shared_ptr<VulkanDrawer> pVulkanDrawer = nullptr;
 	
-	std::vector<VkVertexInputBindingDescription> pBindingDescriptions{};
-	std::vector<VkVertexInputAttributeDescription> pAttributeDescriptions{};
-
-	std::shared_ptr<VulkanDescriptorSetLayout> pVulkanDescriptorSetLayout = nullptr;
+	ShaderAttributes& pShaderAttributes;
 
 	VkResult init() override;
 	VkResult initFramebuffers();

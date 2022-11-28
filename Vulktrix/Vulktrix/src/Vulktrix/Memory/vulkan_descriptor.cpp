@@ -20,9 +20,6 @@ VkDescriptorSetLayoutBinding& VulkanDescriptor::getLayoutBinding() {
 
 // VulkanDescriptorSetLayout
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(std::shared_ptr<VulkanDevice> pVulkanDevice) :
-    pVulkanDevice{ pVulkanDevice } {}
-
 VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() {
     if (pVulkanDevice != nullptr) {
         vkDestroyDescriptorSetLayout(pVulkanDevice->getDevice(), vkDescriptorSetLayout, 

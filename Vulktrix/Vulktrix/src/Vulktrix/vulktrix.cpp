@@ -55,18 +55,21 @@ void VulktrixAPI::initSetup() {
     vulkanDevice = std::make_shared<VulkanDevice>(vulkanInstance, vulkanSurface, vulkanValidater);
     vulkanDevice->init();
 
+    shaderAttributes.pVulkanDevice = vulkanDevice;
+
     vulkanSwapchain = std::make_shared<VulkanSwapchain>(vulkanDevice);
     vulkanSwapchain->init();
 
     vulkanDrawer = std::make_shared<VulkanDrawer>();
 
-    vulkanPipeline = std::make_shared<VulkanPipeline>(vulkanSwapchain);
+    vulkanPipeline = std::make_shared<VulkanPipeline>(shaderAttributes);
 
     defaultVertexShader = createVulkanShader(defVertexShader, ShadercType::VERTEX);
     defaultFragmentShader = createVulkanShader(defFragmentShader, ShadercType::FRAGMENT);
 }
 
 void VulktrixAPI::initRender() {
+    vulkanPipeline->pVulkanSwapchain = vulkanSwapchain;
     vulkanPipeline->pVulkanDrawer = vulkanDrawer;
     
     if (vulkanShaders.empty()) {
@@ -181,13 +184,6 @@ std::shared_ptr<VulkanDrawer> VulktrixAPI::getVulkanDrawer() {
     return vulkanDrawer;
 }
 
-void VulktrixAPI::addVertexInputState(VulkanVertexState& vertexState) {
-    vulkanPipeline->pBindingDescriptions.push_back(vertexState.getBindingDescription());
-    for (const auto& vulkanAttributeDescription : vertexState.getAttributeDescriptions()) {
-        vulkanPipeline->pAttributeDescriptions.push_back(vulkanAttributeDescription);
-    }
-}
-
 std::vector<std::shared_ptr<VulkanShader>>& VulktrixAPI::getVulkanShaders() {
     return vulkanShaders;
 }
@@ -234,20 +230,8 @@ std::shared_ptr<VulkanDeviceMemory> VulktrixAPI::createDeviceMemory(
     return vulkanDeviceMemory;
 }
 
-std::shared_ptr<VulkanDescriptorSetLayout> VulktrixAPI::createDescriptorSetLayout(
-    std::vector<VulkanDescriptor> vulkanDescriptors) {
-    std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSet = 
-        std::make_shared<VulkanDescriptorSetLayout>(vulkanDevice);
-    for (auto& vulkanDescriptor : vulkanDescriptors) {
-        vulkanDescriptorSet->pDescriptors.push_back(vulkanDescriptor.getLayoutBinding());
-    }
-    vulkanDescriptorSet->init();
-    return vulkanDescriptorSet;
-}
-
-void VulktrixAPI::setDescriptorSetLayout(
-    std::shared_ptr<VulkanDescriptorSetLayout> vulkanDescriptorSetLayout) {
-    vulkanPipeline->pVulkanDescriptorSetLayout = vulkanDescriptorSetLayout;
+ShaderAttributes& VulktrixAPI::getShaderAttributes() {
+    return shaderAttributes;
 }
 
 // Private

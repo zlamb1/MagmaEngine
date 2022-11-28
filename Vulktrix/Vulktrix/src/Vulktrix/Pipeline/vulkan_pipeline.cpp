@@ -1,7 +1,7 @@
 #include "vulkan_pipeline.h"
 
-VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) :
-	pVulkanSwapchain{ pVulkanSwapchain } {}
+VulkanPipeline::VulkanPipeline(ShaderAttributes& pShaderAttributes) :
+	pShaderAttributes{ pShaderAttributes } {}
 
 VulkanPipeline::~VulkanPipeline() {
 	destroyPipeline();
@@ -19,18 +19,10 @@ VkResult VulkanPipeline::init() {
 	vulkanShaderPipeline.pAllocator = pAllocator;
 	vulkanShaderPipeline.init();
 
-	vulkanFixedFunctionState = std::make_unique<VulkanFixedFunctionState>(pVulkanDevice, pVulkanSwapchain);
+	vulkanFixedFunctionState = std::make_unique<VulkanFixedFunctionState>(pShaderAttributes);
+	vulkanFixedFunctionState->pVulkanDevice = pVulkanDevice;
+	vulkanFixedFunctionState->pVulkanSwapchain = pVulkanSwapchain;
 	vulkanFixedFunctionState->pAllocator = pAllocator;
-	vulkanFixedFunctionState->pVulkanDescriptorSetLayout = pVulkanDescriptorSetLayout;
-
-	for (auto& _vkBindingDescription : pBindingDescriptions) {
-		vulkanFixedFunctionState->pVertexBindingDescriptions.push_back(_vkBindingDescription);
-	}
-
-	for (auto& _vkAttributeDescription : pAttributeDescriptions) {
-		vulkanFixedFunctionState->pVertexAttributeDescriptions.push_back(_vkAttributeDescription);
-	}
-
 	vulkanFixedFunctionState->init();
 
 	vulkanRenderPass = std::make_shared<VulkanRenderPass>(pVulkanDevice, 
