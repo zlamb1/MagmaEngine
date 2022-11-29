@@ -1,7 +1,7 @@
 #include "application.h"
 
 struct MyVertex {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
 };
 
@@ -12,27 +12,28 @@ struct UBO {
 };
 
 std::vector<MyVertex> vertexData{
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f }},
-    {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}
+    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}}
 };
 
 std::vector<uint16_t> index_data{ 0, 1, 2, 2, 3, 0 };
 
 const char* vertexShaderCode = R"(#version 450
-    layout(location = 0) in vec2 vertexPos;
-    layout(location = 1) in vec3 vertexColor;
-    layout(location = 0) out vec3 fragColor;
-
     layout(binding = 0) uniform UniformBufferObject {
         mat4 model;
         mat4 view;
         mat4 proj;
     } ubo;
 
+    layout(location = 0) in vec3 vertexPos;
+    layout(location = 1) in vec3 vertexColor;
+
+    layout(location = 0) out vec3 fragColor;
+
     void main() {
-        gl_Position = ubo.proj * ubo.view * ubo.model * vec4(vertexPos, 0.0, 1.0);
+        gl_Position = ubo.proj * ubo.view * ubo.model * vec4(vertexPos, 1.0);
         fragColor = vertexColor;
     })";
 
@@ -75,23 +76,27 @@ void Application::updateUniformBuffer() {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, 
+    float time = std::chrono::duration<float,
         std::chrono::seconds::period>(currentTime - startTime).count();
 
     UBO ubo{};
 
-    ubo.model = glm::rotate(glm::mat4(1.0f), 
+    ubo.model = glm::rotate(glm::mat4{ 1.0f },
         time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), 
-        glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = glm::mat4(1.0f);
+    
+    glm::vec3 eye{ 
+        sin(yaw) * radius * cos(pitch),
+        sin(pitch) * radius,
+        cos(yaw) * radius * cos(pitch)
+    };
 
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::vec3 center{ 0.0f };
+    ubo.view = glm::lookAt(eye, center, glm::vec3{ 0.0f, -1.0f, 0.0f });
 
     auto windowSize = windowImpl.getSize();
     ubo.proj = glm::perspective(glm::radians(45.0f), 
-        windowSize.first / (float)windowSize.second, 0.1f, 10.0f);
-    ubo.proj[1][1] *= -1;
+        (float)windowSize.first / (float)windowSize.second, 0.01f, 100.0f);
 
     uboMemory->setData(&ubo);
 }
@@ -103,6 +108,37 @@ void Application::initWindow() {
     // init window
     windowImpl.init(1000, 1000);
     windowImpl.setTitle("Vulkan");
+
+    using namespace Window;
+    windowImpl.addMouseButtonCallback([&](MouseButton button, MouseAction action, int mods) {
+        if (button == MouseButton::LEFT) {
+            lMousePressed = action;
+        }
+        if (button == MouseButton::RIGHT) {
+            rMousePressed = action;
+        }
+    });
+
+    windowImpl.addMousePosCallback([&](double x, double y) {
+        const float sensitivity = 0.005f;
+        if (rMousePressed) {
+            if (lastX >= 0.0f && lastY >= 0.0f) {
+                float dx = x - lastX;
+                float dy = y - lastY;
+                yaw += -dx * sensitivity;
+                pitch = std::max(glm::radians(-89.9f), 
+                    std::min(glm::radians(89.9f), pitch + dy * sensitivity));
+            }
+        }
+        lastX = x; 
+        lastY = y; 
+    });
+
+    windowImpl.addMouseScrollCallback([&](double x, double y) {
+        if (radius >= 1.0f) {
+            radius = std::max(1.0, radius + y * 0.5f);
+        }
+    });
 }
 
 void Application::initVulkan() {
@@ -120,7 +156,7 @@ void Application::initVulkan() {
         VertexInputRate::VERTEX);
 
     shaderAttributes.createVertexAttribute(0, 0, offsetof(MyVertex, pos), 
-        VulkanFormat::RG_SFLOAT32);
+        VulkanFormat::RGB_SFLOAT32);
     shaderAttributes.createVertexAttribute(0, 1, offsetof(MyVertex, color),
         VulkanFormat::RGB_SFLOAT32);
     
@@ -196,10 +232,10 @@ void Application::initVulkan() {
 void Application::mainLoop() {
     while (!windowImpl.shouldWindowClose()) {
         x += 0.001f;
-        vertexData[0].color.x = (sin(x) + 1.0f) / 2.0f;
-        vertexData[0].color.y = (sin(x) + 1.0f) / 2.0f;
-        vertexData[2].color.x = (cos(x) + 1.0f) / 2.0f;
-        vertexData[2].color.y = (cos(x) + 1.0f) / 2.0f;
+        //vertexData[0].color.x = (sin(x) + 1.0f) / 2.0f;
+        //vertexData[0].color.y = (sin(x) + 1.0f) / 2.0f;
+        //vertexData[2].color.x = (cos(x) + 1.0f) / 2.0f;
+        //vertexData[2].color.y = (cos(x) + 1.0f) / 2.0f;
 
         stagingMemory->mapMemory();
         stagingMemory->setData(vertexData.data());

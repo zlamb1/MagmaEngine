@@ -11,7 +11,7 @@ const char* defFragmentShader = R"(#version 450
         fragColor = vec3(1, 1, 1);
     })";
 
-VulktrixAPI::VulktrixAPI(VulkanWindow& windowImpl) : windowImpl{ windowImpl } {
+VulktrixAPI::VulktrixAPI(Window::VulkanImpl& windowImpl) : windowImpl{ windowImpl } {
 
     // add framebuffer resized callback
     windowImpl.addFramebufferSizeCallback([&](int32_t w, int32_t h) {

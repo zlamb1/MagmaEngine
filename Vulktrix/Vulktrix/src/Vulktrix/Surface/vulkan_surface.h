@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "Window/vulkan_window.h"
+#include "Window/vulkan_impl.h"
 
 #include "Vulktrix/Logging/vulkan_logger.h"
 
@@ -12,11 +12,11 @@
 class VulkanSurface : public VulkanObject {
 
 public:
-	VulkanSurface(VulkanWindow& pWindowImpl,
+	VulkanSurface(Window::VulkanImpl& pWindowImpl,
 		std::shared_ptr<VulkanInstance> pVulkanInstance);
 	~VulkanSurface() override;
 
-	VulkanWindow& pWindowImpl;
+	Window::VulkanImpl& pWindowImpl;
 	std::shared_ptr<VulkanInstance> pVulkanInstance;
 
 	VkResult init() override;

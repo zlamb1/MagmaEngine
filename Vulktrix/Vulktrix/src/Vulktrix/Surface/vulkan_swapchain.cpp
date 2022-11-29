@@ -23,7 +23,7 @@ namespace SwapchainUtility {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    static VkExtent2D chooseSwapExtent(VulkanWindow& windowImpl,
+    static VkExtent2D chooseSwapExtent(Window::VulkanImpl& windowImpl,
         const VkSurfaceCapabilitiesKHR& capabilities) {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;

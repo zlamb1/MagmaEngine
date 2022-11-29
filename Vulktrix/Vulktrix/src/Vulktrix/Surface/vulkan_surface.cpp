@@ -1,6 +1,6 @@
 #include "vulkan_surface.h"
 
-VulkanSurface::VulkanSurface(VulkanWindow& pWindowImpl,
+VulkanSurface::VulkanSurface(Window::VulkanImpl& pWindowImpl,
     std::shared_ptr<VulkanInstance> pVulkanInstance) :
     pWindowImpl{ pWindowImpl }, pVulkanInstance{ pVulkanInstance } {}
 

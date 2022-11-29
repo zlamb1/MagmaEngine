@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Window/vulkan_window.h"
+#include "Window/vulkan_impl.h"
 
 // all Vulktrix includes
 
@@ -43,7 +43,7 @@
 class VulktrixAPI {
 
 public:
-	VulktrixAPI(VulkanWindow& windowImpl);
+	VulktrixAPI(Window::VulkanImpl& windowImpl);
 	~VulktrixAPI();
 
 	void initSetup();
@@ -76,7 +76,7 @@ private:
 
 	bool framebufferResized = false;
 
-	VulkanWindow& windowImpl;
+	Window::VulkanImpl& windowImpl;
 
 	std::shared_ptr<VulkanInstance> vulkanInstance;
 	std::shared_ptr<VulkanValidater> vulkanValidater;
