@@ -3,15 +3,11 @@
 #include <chrono>
 #include <stdexcept>
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_LEFT_HANDED
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Window/glfw_impl.h"
 
 #include "Vulktrix/vulktrix.h"
+
+#include "Entity/Camera/tp_camera.h"
 
 class Application {
 
@@ -39,10 +35,7 @@ private:
 	int frames = 0;
 	double lastTime = 0;
 
-	float yaw = glm::radians(30.0f), pitch = glm::radians(30.0f), radius = 5.0f;
-	float lastX = -1.0f, lastY = -1.0f;
-
-	bool lMousePressed = false, rMousePressed = false;
+	Camera::ThirdPersonImpl thirdPersonImpl{ windowImpl };
 
 	void updateUniformBuffer();
 

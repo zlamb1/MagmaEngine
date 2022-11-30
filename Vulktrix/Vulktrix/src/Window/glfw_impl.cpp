@@ -94,6 +94,30 @@ void GLFWImpl::setMouseHidden(bool hidden) {
 	}
 }
 
+// polymorphic getters
+
+MouseButton GLFWImpl::getMouseButton(int btn) {
+	switch (btn) {
+		case GLFW_MOUSE_BUTTON_LEFT:
+			return MouseButton::LEFT;
+		case GLFW_MOUSE_BUTTON_RIGHT:
+			return MouseButton::RIGHT;
+		default:
+			return MouseButton::UNKNOWN;
+	}
+}
+
+MouseAction GLFWImpl::getMouseAction(int action) {
+	switch (action) {
+		case GLFW_RELEASE:
+			return MouseAction::RELEASE;
+		case GLFW_PRESS:
+			return MouseAction::PRESS;
+		default:
+			return MouseAction::UNKNOWN;
+	}
+}
+
 // other functions
 
 VkResult GLFWImpl::getSurfaceKHR(VkInstance& vkInstance, VkSurfaceKHR& vkSurfaceKHR) {
@@ -128,9 +152,10 @@ void GLFWImpl::glfwOnMouseScroll(GLFWwindow* window, double x, double y) {
 	windowPtr->onMouseScroll(x, y);
 }
 
-void GLFWImpl::glfwOnMousePress(GLFWwindow* window, int button, int action, int mods) {
+void GLFWImpl::glfwOnMousePress(GLFWwindow* window, int btn, int action, int mods) {
 	auto windowPtr = getUserPtrFromWindow(window);
-	windowPtr->onMousePress((Window::MouseButton) button, (Window::MouseAction) action, mods);
+	int pressed = std::min(1, std::max(0, (int)windowPtr->getMouseAction(action)));
+	windowPtr->onMousePress(windowPtr->getMouseButton(btn), pressed, mods);
 }
 
 void GLFWImpl::glfwOnMouseEnter(GLFWwindow* window, int entered) {

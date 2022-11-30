@@ -8,21 +8,8 @@
 #include "vulkan_impl.h"
 
 namespace Window {
-
-	enum MouseButton : int {
-		LEFT = GLFW_MOUSE_BUTTON_LEFT,
-		RIGHT = GLFW_MOUSE_BUTTON_RIGHT
-	};
-
-	enum MouseAction : int {
-		PRESS = GLFW_PRESS,
-		RELEASE = GLFW_RELEASE
-	};
-
 	class GLFWImpl : public Window::VulkanImpl {
-
 		public:
-
 			GLFWImpl() = default;
 			~GLFWImpl() override;
 
@@ -45,6 +32,10 @@ namespace Window {
 			void setTitle(std::string title) override;
 			void setMousePosition(double x, double y) override;
 			void setMouseHidden(bool hidden) override;
+
+			// polymorphic getters
+			MouseButton getMouseButton(int btn) override;
+			MouseAction getMouseAction(int action) override;
 
 			// Vulkan surface getter
 			VkResult getSurfaceKHR(VkInstance& vkInstance,
@@ -70,7 +61,5 @@ namespace Window {
 			static void glfwOnMousePress(GLFWwindow* window, int button, int action, int mods);
 
 			static void glfwOnMouseEnter(GLFWwindow* window, int entered);
-
-
 	};
 }

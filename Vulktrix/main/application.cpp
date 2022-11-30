@@ -1,6 +1,8 @@
 #include "application.h"
 
 struct MyVertex {
+    MyVertex(glm::vec3 pos) : pos{ pos }, color{ 0.0f } {}
+
     glm::vec3 pos;
     glm::vec3 color;
 };
@@ -12,13 +14,46 @@ struct UBO {
 };
 
 std::vector<MyVertex> vertexData{
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}}
+    // SOUTH
+    {{-0.5f, -0.5f, -0.5f}},
+    {{0.5f, -0.5f, -0.5f}},
+    {{0.5f, 0.5f, -0.5f}},
+    {{-0.5f, 0.5f, -0.5f}},
+    // NORTH
+    {{0.5f, -0.5f, 0.5f}},
+    {{-0.5f, -0.5f, 0.5f}},
+    {{-0.5f, 0.5f, 0.5f}},
+    {{0.5f, 0.5f, 0.5f}},
+    // WEST
+    {{-0.5f, -0.5f, 0.5f}},
+    {{-0.5f, -0.5f, -0.5f}},
+    {{-0.5f, 0.5f, -0.5f}},
+    {{-0.5f, 0.5f, 0.5f}},
+    // EAST
+    {{0.5f, -0.5f, -0.5f}},
+    {{0.5f, -0.5f, 0.5f}},
+    {{0.5f, 0.5f, 0.5f}},
+    {{0.5f, 0.5f, -0.5f}},
+    // BOTTOM
+    {{-0.5f, -0.5f, -0.5f}},
+    {{0.5f, -0.5f, -0.5f}},
+    {{0.5f, -0.5f, 0.5f}},
+    {{-0.5f, -0.5f, 0.5f}},
+    // TOP
+    {{0.5f, 0.5f, 0.5f}},
+    {{-0.5f, 0.5f, 0.5f}},
+    {{-0.5f, 0.5f, -0.5f}},
+    {{0.5f, 0.5f, -0.5f}}
 };
 
-std::vector<uint16_t> index_data{ 0, 1, 2, 2, 3, 0 };
+std::vector<uint16_t> index_data{ 
+    0, 1, 2, 2, 3, 0,
+    4, 5, 6, 6, 7, 4,
+    8, 9, 10, 10, 11, 8,
+    12, 13, 14, 14, 15, 12,
+    16, 17, 18, 18, 19, 16,
+    20, 21, 22, 22, 23, 20
+};
 
 const char* vertexShaderCode = R"(#version 450
     layout(binding = 0) uniform UniformBufferObject {
@@ -81,18 +116,11 @@ void Application::updateUniformBuffer() {
 
     UBO ubo{};
 
+    ubo.view = thirdPersonImpl.getViewMatrix();
+
     ubo.model = glm::rotate(glm::mat4{ 1.0f },
         time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.model = glm::mat4(1.0f);
-    
-    glm::vec3 eye{ 
-        sin(yaw) * radius * cos(pitch),
-        sin(pitch) * radius,
-        cos(yaw) * radius * cos(pitch)
-    };
-
-    glm::vec3 center{ 0.0f };
-    ubo.view = glm::lookAt(eye, center, glm::vec3{ 0.0f, -1.0f, 0.0f });
 
     auto windowSize = windowImpl.getSize();
     ubo.proj = glm::perspective(glm::radians(45.0f), 
@@ -109,36 +137,6 @@ void Application::initWindow() {
     windowImpl.init(1000, 1000);
     windowImpl.setTitle("Vulkan");
 
-    using namespace Window;
-    windowImpl.addMouseButtonCallback([&](MouseButton button, MouseAction action, int mods) {
-        if (button == MouseButton::LEFT) {
-            lMousePressed = action;
-        }
-        if (button == MouseButton::RIGHT) {
-            rMousePressed = action;
-        }
-    });
-
-    windowImpl.addMousePosCallback([&](double x, double y) {
-        const float sensitivity = 0.005f;
-        if (rMousePressed) {
-            if (lastX >= 0.0f && lastY >= 0.0f) {
-                float dx = x - lastX;
-                float dy = y - lastY;
-                yaw += -dx * sensitivity;
-                pitch = std::max(glm::radians(-89.9f), 
-                    std::min(glm::radians(89.9f), pitch + dy * sensitivity));
-            }
-        }
-        lastX = x; 
-        lastY = y; 
-    });
-
-    windowImpl.addMouseScrollCallback([&](double x, double y) {
-        if (radius >= 1.0f) {
-            radius = std::max(1.0, radius + y * 0.5f);
-        }
-    });
 }
 
 void Application::initVulkan() {
@@ -222,20 +220,30 @@ void Application::initVulkan() {
 
     // set draw information
     vulktrixAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;
-    vulktrixAPI.getVulkanDrawer()->pIndexCount = 6;
+    vulktrixAPI.getVulkanDrawer()->pIndexCount = index_data.size();
     vulktrixAPI.getVulkanDrawer()->pUseIndexing = true;
 
     // init render structures
     vulktrixAPI.initRender();
 }
 
+glm::vec3 getColor(glm::vec2 uv, float iTime) {
+    return 0.5f + 0.5f * cos(iTime + glm::vec3(uv.x, uv.y, uv.x) + glm::vec3(0, 2, 4));
+}
+
 void Application::mainLoop() {
     while (!windowImpl.shouldWindowClose()) {
+
         x += 0.001f;
-        //vertexData[0].color.x = (sin(x) + 1.0f) / 2.0f;
-        //vertexData[0].color.y = (sin(x) + 1.0f) / 2.0f;
-        //vertexData[2].color.x = (cos(x) + 1.0f) / 2.0f;
-        //vertexData[2].color.y = (cos(x) + 1.0f) / 2.0f;
+
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 4; j++) {
+                vertexData[j + i * 4].color = getColor(glm::vec2{ 0.0f }, x);
+                vertexData[j + i * 4].color = getColor(glm::vec2{ 1.0f, 0.0f }, x);
+                vertexData[j + i * 4].color = getColor(glm::vec2{ 1.0f, 1.0f }, x);
+                vertexData[j + i * 4].color = getColor(glm::vec2{ 1.0f, 0.0f }, x);
+            }
+        }
 
         stagingMemory->mapMemory();
         stagingMemory->setData(vertexData.data());

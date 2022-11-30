@@ -7,15 +7,24 @@
 
 namespace Window {
 
-	enum MouseButton : int;
-	enum MouseAction : int;
+	enum class MouseButton : int {
+		LEFT, 
+		RIGHT,
+		UNKNOWN
+	};
+
+	enum class MouseAction : int {
+		RELEASE,
+		PRESS,
+		UNKNOWN
+	};
 
 	typedef std::pair<int32_t, int32_t> Int32Size;
 
 	typedef std::function<void(int32_t, int32_t)> SizeCallback;
 	typedef std::function<void(double, double)> PosCallback;
 	typedef std::function<void(double, double)> OffsetCallback;
-	typedef std::function<void(MouseButton button, MouseAction action, int mods)> ButtonCallback;
+	typedef std::function<void(MouseButton button, bool pressed, int mods)> ButtonCallback;
 	typedef std::function<void()> VoidCallback;
 
 	class WindowImpl {
@@ -56,10 +65,9 @@ namespace Window {
 		virtual void onMouseEnter();
 		virtual void onMouseExit();
 
-		virtual void onMousePress(MouseButton button, MouseAction action, int mods);
+		virtual void onMousePress(MouseButton button, bool pressed, int mods);
 
 		// callback adders
-
 		void addWindowSizeCallback(SizeCallback callback);
 		void addFramebufferSizeCallback(SizeCallback callback);
 
@@ -71,6 +79,10 @@ namespace Window {
 
 		void addMouseEnterCallback(VoidCallback callback);
 		void addMouseExitCallback(VoidCallback callback);
+
+		// polymorphic getters
+		virtual MouseButton getMouseButton(int btn);
+		virtual MouseAction getMouseAction(int action);
 
 	private:
 		std::vector<SizeCallback> windowSizeCallbacks{};

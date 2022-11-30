@@ -2,93 +2,97 @@
 
 #define MakeSize(x, y) std::make_pair<int32_t, int32_t>(x, y)
 
-void Window::WindowImpl::init(int32_t width, int32_t height) {}
+using namespace Window;
 
-void Window::WindowImpl::waitForEvents() {}
+// main functions
+
+void WindowImpl::init(int32_t width, int32_t height) {}
+
+void WindowImpl::waitForEvents() {}
 
 // getters
 
-bool Window::WindowImpl::shouldWindowClose() {
+bool WindowImpl::shouldWindowClose() {
 	return false;
 }
 
-Window::Int32Size Window::WindowImpl::getMonitorResolution() {
+Window::Int32Size WindowImpl::getMonitorResolution() {
 	return MakeSize(0, 0);
 }
 
-Window::Int32Size Window::WindowImpl::getSize() {
+Window::Int32Size WindowImpl::getSize() {
 	return MakeSize(0, 0);
 }
 
-Window::Int32Size Window::WindowImpl::getPosition() {
+Window::Int32Size WindowImpl::getPosition() {
 	return MakeSize(0, 0);
 }
 
-const std::string& Window::WindowImpl::getTitle() {
+const std::string& WindowImpl::getTitle() {
 	return "";
 }
 
-bool Window::WindowImpl::isResizable() {
+bool WindowImpl::isResizable() {
 	return false;
 }
 
-Window::Int32Size Window::WindowImpl::getFramebufferSize() {
+Int32Size WindowImpl::getFramebufferSize() {
 	return MakeSize(0, 0);
 }
 
 // setters
 
-void Window::WindowImpl::setSize(int32_t width, int32_t height) {}
+void WindowImpl::setSize(int32_t width, int32_t height) {}
 
-void Window::WindowImpl::setPosition(int32_t x, int32_t y) {}
+void WindowImpl::setPosition(int32_t x, int32_t y) {}
 
-void Window::WindowImpl::setTitle(std::string title) {}
+void WindowImpl::setTitle(std::string title) {}
 
-void Window::WindowImpl::setResizable(bool resizable) {}
+void WindowImpl::setResizable(bool resizable) {}
 
-void Window::WindowImpl::setMousePosition(double x, double y) {}
+void WindowImpl::setMousePosition(double x, double y) {}
 
-void Window::WindowImpl::setMouseHidden(bool hidden) {}
+void WindowImpl::setMouseHidden(bool hidden) {}
 
 // callbacks
 
-void Window::WindowImpl::onWindowResize(int32_t width, int32_t height) {
+void WindowImpl::onWindowResize(int32_t width, int32_t height) {
 	for (auto& callback : windowSizeCallbacks) {
 		callback(width, height);
 	}
 }
 
-void Window::WindowImpl::onFramebufferResize(int32_t width, int32_t height) {
+void WindowImpl::onFramebufferResize(int32_t width, int32_t height) {
 	for (auto& callback : framebufferSizeCallbacks) {
 		callback(width, height);
 	}
 }
 
-void Window::WindowImpl::onMouseMove(int32_t x, int32_t y) {
+void WindowImpl::onMouseMove(int32_t x, int32_t y) {
 	for (auto& callback : mousePosCallbacks) {
 		callback(x, y);
 	}
 }
 
-void Window::WindowImpl::onMouseScroll(double x, double y) {
+void WindowImpl::onMouseScroll(double x, double y) {
 	for (auto& callback : mouseScrollCallbacks) {
 		callback(x, y);
 	}
 }
 
-void Window::WindowImpl::onMousePress(Window::MouseButton button, Window::MouseAction action, int mods) {
+void WindowImpl::onMousePress(Window::MouseButton button, bool pressed, int mods) {
 	for (auto& callback : mouseButtonCallbacks) {
-		callback(button, action, mods);
+		callback(button, pressed, mods);
 	}
 }
 
-void Window::WindowImpl::onMouseEnter() {
+void WindowImpl::onMouseEnter() {
 	for (auto& callback : mouseEnterCallbacks) {
 		callback();
 	}
 }
 
-void Window::WindowImpl::onMouseExit() {
+void WindowImpl::onMouseExit() {
 	for (auto& callback : mouseExitCallbacks) {
 		callback();
 	}
@@ -96,30 +100,39 @@ void Window::WindowImpl::onMouseExit() {
 
 // callback adders
 
-void Window::WindowImpl::addWindowSizeCallback(SizeCallback callback) {
+void WindowImpl::addWindowSizeCallback(SizeCallback callback) {
 	windowSizeCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addFramebufferSizeCallback(SizeCallback callback) {
+void WindowImpl::addFramebufferSizeCallback(SizeCallback callback) {
 	framebufferSizeCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addMousePosCallback(PosCallback callback) {
+void WindowImpl::addMousePosCallback(PosCallback callback) {
 	mousePosCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addMouseScrollCallback(OffsetCallback callback) {
+void WindowImpl::addMouseScrollCallback(OffsetCallback callback) {
 	mouseScrollCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addMouseButtonCallback(ButtonCallback callback) {
+void WindowImpl::addMouseButtonCallback(ButtonCallback callback) {
 	mouseButtonCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addMouseEnterCallback(VoidCallback callback) {
+void WindowImpl::addMouseEnterCallback(VoidCallback callback) {
 	mouseEnterCallbacks.push_back(callback);
 }
 
-void Window::WindowImpl::addMouseExitCallback(VoidCallback callback) {
+void WindowImpl::addMouseExitCallback(VoidCallback callback) {
 	mouseExitCallbacks.push_back(callback);
+}
+
+// polymorphic getters
+MouseButton WindowImpl::getMouseButton(int btn) {
+	return MouseButton::UNKNOWN;
+}
+
+MouseAction WindowImpl::getMouseAction(int action) {
+	return MouseAction::RELEASE;
 }
