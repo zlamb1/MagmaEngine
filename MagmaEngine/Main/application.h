@@ -44,7 +44,7 @@ namespace Magma {
 
 		float x = 0.0f;
 
-		Timestep step{}, measure{};
+		Timestep step{};
 
 		ThirdPersonImpl thirdPersonImpl{ windowImpl };
 

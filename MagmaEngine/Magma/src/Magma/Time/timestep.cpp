@@ -2,24 +2,32 @@
 
 namespace Magma {
 
-	void Timestep::setStart(double start) {
-		this->start = start;
+	Timestep::Timestep() {
+		start = glfwGetTime();
+		end = start; 
 	}
 
-	void Timestep::setEnd(double end) {
-		this->end = end;
+	void Timestep::onNewFrame() {
+		end = glfwGetTime(); 
+		frames++;
 	}
 
-	double Timestep::getFPS() {
-		return 1000.0 / getMPS();
+	double Timestep::getFps() {
+		return 1000.0 / getMps();
 	}
 
-	double Timestep::getMPS() {
-		return getElapsed() * 1000.0; 
+	double Timestep::getMps() {
+		return getElapsed() * 1000.0 / frames; 
 	}
 
 	double Timestep::getElapsed() {
 		return end - start; 
+	}
+
+	void Timestep::reset() {
+		start = glfwGetTime();
+		end = start; 
+		frames = 1; 
 	}
 
 }

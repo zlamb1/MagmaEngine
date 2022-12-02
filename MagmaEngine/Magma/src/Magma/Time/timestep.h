@@ -1,24 +1,26 @@
 #pragma once
 
+// should timestep be dependent on GLFW?
+#include "GLFW/glfw3.h"
+
 namespace Magma {
 
 	class Timestep {
 
 	public:
-		Timestep() = default;
+		Timestep();
 
-		void setStart(double start);
-		void setEnd(double end);
+		void onNewFrame();
 
-		// returns frames per second
-		double getFPS();
-		// returns milliseconds per frame
-		double getMPS();
-
+		double getFps();
+		double getMps();
 		double getElapsed();
 
+		void reset();
+
 	private:
-		float start, end;
+		double start = 0.0, end = 0.0;
+		int frames = 1; 
 
 	};
 
