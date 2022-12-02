@@ -239,7 +239,9 @@ namespace Magma {
     }
 
     void Application::mainLoop() {
+        measure.setStart(glfwGetTime());
         while (!windowImpl.shouldWindowClose()) {
+            step.setStart(glfwGetTime());
 
             x += 0.001f;
 
@@ -265,15 +267,16 @@ namespace Magma {
 
             glfwPollEvents();
 
-            frames++;
+            step.setEnd(glfwGetTime());
 
-            double currentTime = glfwGetTime();
-            if (currentTime - lastTime > 1.0) {
-                lastTime = currentTime;
-                std::string title = "FPS: " + std::to_string(frames);
+            if (measure.getElapsed() > 0.5) {
+                std::string title = "FPS: " + std::to_string(step.getFPS());
                 windowImpl.setTitle(title);
-                frames = 0;
+
+                measure.setStart(glfwGetTime());
             }
+
+            measure.setEnd(glfwGetTime());
         }
     }
 

@@ -8,7 +8,10 @@
 #include "Vulkan/vulkan_api.h"
 
 #include "Entity/Camera/tp_camera.h"
+
 #include "Event/event.h"
+
+#include "Time/timestep.h"
 
 namespace Magma {
 
@@ -41,8 +44,7 @@ namespace Magma {
 
 		float x = 0.0f;
 
-		int frames = 0;
-		double lastTime = 0;
+		Timestep step{}, measure{};
 
 		ThirdPersonImpl thirdPersonImpl{ windowImpl };
 
