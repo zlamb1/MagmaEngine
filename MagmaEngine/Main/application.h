@@ -8,6 +8,7 @@
 #include "Vulkan/vulkan_api.h"
 
 #include "Entity/Camera/tp_camera.h"
+#include "Entity/Camera/fp_camera.h"
 
 #include "Event/event.h"
 
@@ -35,6 +36,8 @@ namespace Magma {
 
 	private:
 		GLFWImpl windowImpl = GLFWImpl();
+		WindowInput input{ windowImpl };
+
 		VulkanAPI vulkanAPI{ windowImpl };
 
 		std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer, uboBuffer;
@@ -46,7 +49,8 @@ namespace Magma {
 
 		Timestep step{};
 
-		ThirdPersonImpl thirdPersonImpl{ windowImpl };
+		std::shared_ptr<CameraImpl> camera;
+		uint32_t cameraIndex = 0;
 
 		Magma::EventDispatcher dispatcher{};
 

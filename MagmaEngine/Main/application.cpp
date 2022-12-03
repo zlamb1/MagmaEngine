@@ -110,23 +110,15 @@ namespace Magma {
     }
 
     void Application::updateUniformBuffer() {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float,
-            std::chrono::seconds::period>(currentTime - startTime).count();
+        static auto start = Timestep();
+        start.onNewFrame();
 
         UBO ubo{};
-
-        ubo.view = thirdPersonImpl.getViewMatrix();
-
         ubo.model = glm::rotate(glm::mat4{ 1.0f },
-            time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            (float)start.getElapsed() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.model = glm::mat4(1.0f);
-
-        auto windowSize = windowImpl.getSize();
-        ubo.proj = glm::perspective(glm::radians(45.0f),
-            (float)windowSize.first / (float)windowSize.second, 0.01f, 100.0f);
+        ubo.view = camera->getViewMat4f();
+        ubo.proj = camera->getPerspectiveMat4f();
 
         uboMemory->setData(&ubo);
     }
@@ -136,14 +128,16 @@ namespace Magma {
         glfwInit();
 
         // init window
-        windowImpl.init(1000, 1000);
+        windowImpl.init(500, 500);
         windowImpl.setTitle("Vulkan");
+        windowImpl.setPosition(2000, 300);
 
         windowImpl.addMousePosCallback([&](double x, double y) {
             Magma::MouseMoveEvent event{ x, y };
-        dispatcher.dispatch(event);
-            });
+            dispatcher.dispatch(event);
+        });
 
+        camera = std::make_unique<ThirdPersonImpl>(input);
     }
 
     void Application::initVulkan() {
@@ -239,6 +233,7 @@ namespace Magma {
     }
 
     void Application::mainLoop() {
+        Timestep lastCameraChange{};
         while (!windowImpl.shouldWindowClose()) {
             x += 0.001f;
 
@@ -250,6 +245,21 @@ namespace Magma {
                     vertexData[j + i * 4].color = getColor(glm::vec2{ 1.0f, 0.0f }, x);
                 }
             }
+
+            lastCameraChange.onNewFrame();
+
+            if (input.isKeyPressed(KeyButton::C) && lastCameraChange.getElapsed() >= 1.0f) {
+                cameraIndex++;
+                if (cameraIndex % 2 == 0) {
+                    camera.reset(new ThirdPersonImpl(input));
+                }
+                else {
+                    camera.reset(new FirstPersonImpl(input));
+                }
+                lastCameraChange.reset();
+            }
+
+            camera->onUpdate(step);
 
             stagingMemory->mapMemory();
             stagingMemory->setData(vertexData.data());

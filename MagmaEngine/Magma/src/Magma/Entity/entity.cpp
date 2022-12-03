@@ -2,15 +2,19 @@
 
 namespace Magma {
 
-	glm::vec3 EntityImpl::getScale() {
+	void EntityImpl::onUpdate(Timestep step) {
+
+	}
+
+	const glm::vec3& EntityImpl::getScale() {
 		return scale;
 	}
 
-	glm::vec3 EntityImpl::getPosition() {
+	const glm::vec3& EntityImpl::getPosition() {
 		return position;
 	}
 
-	glm::vec3 EntityImpl::getRotation() {
+	const glm::vec3& EntityImpl::getRotation() {
 		return rotation;
 	}
 

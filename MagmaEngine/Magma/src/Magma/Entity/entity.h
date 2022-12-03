@@ -2,14 +2,18 @@
 
 #include <glm/glm.hpp>
 
+#include "Time/timestep.h"
+
 namespace Magma {
 
 	class EntityImpl {
 
 		public:
-			glm::vec3 getScale();
-			glm::vec3 getPosition();
-			glm::vec3 getRotation();
+			virtual void onUpdate(Timestep step);
+
+			const glm::vec3& getScale();
+			const glm::vec3& getPosition();
+			const glm::vec3& getRotation();
 
 			void setScale(glm::vec3 scale);
 			void setPosition(glm::vec3 position);

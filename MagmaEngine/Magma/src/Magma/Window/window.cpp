@@ -10,6 +10,12 @@ namespace Magma {
 		}
 	}
 
+	void WindowImpl::onWindowFocus(int focused) {
+		for (auto& callback : windowFocusCallbacks) {
+			callback(focused);
+		}
+	}
+
 	void WindowImpl::onFramebufferResize(int32_t width, int32_t height) {
 		for (auto& callback : framebufferSizeCallbacks) {
 			callback(width, height);
@@ -46,8 +52,18 @@ namespace Magma {
 		}
 	}
 
+	void WindowImpl::onKeyPress(KeyButton button, KeyAction action) {
+		for (auto& callback : keyPressCallbacks) {
+			callback(button, action);
+		}
+	}
+
 	void WindowImpl::addWindowSizeCallback(SizeCallback callback) {
 		windowSizeCallbacks.push_back(callback);
+	}
+
+	void WindowImpl::addWindowFocusCallback(BoolCallback callback) {
+		windowFocusCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addFramebufferSizeCallback(SizeCallback callback) {
@@ -62,8 +78,12 @@ namespace Magma {
 		mouseScrollCallbacks.push_back(callback);
 	}
 
-	void WindowImpl::addMouseButtonCallback(ButtonCallback callback) {
+	void WindowImpl::addMouseButtonCallback(MouseButtonCallback callback) {
 		mouseButtonCallbacks.push_back(callback);
+	}
+
+	void WindowImpl::addKeyButtonCallback(KeyPressCallback callback) {
+		keyPressCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMouseEnterCallback(VoidCallback callback) {
