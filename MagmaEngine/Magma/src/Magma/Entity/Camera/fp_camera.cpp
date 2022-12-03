@@ -38,6 +38,10 @@ namespace Magma {
 				velocity += rightVec3f; 
 			if (input.isKeyPressed(KeyButton::D))
 				velocity -= rightVec3f;
+			if (input.isKeyPressed(KeyButton::SPACE))
+				velocity += -upVec3f; 
+			if (input.isKeyPressed(KeyButton::LEFT_CONTROL))
+				velocity -= -upVec3f;
 
 			position += velocity * speed * (float)(targetFps / step.getFps());
 			if (velocity != glm::vec3{ 0.0f })

@@ -132,11 +132,6 @@ namespace Magma {
         windowImpl.setTitle("Vulkan");
         windowImpl.setPosition(2000, 300);
 
-        windowImpl.addMousePosCallback([&](double x, double y) {
-            Magma::MouseMoveEvent event{ x, y };
-            dispatcher.dispatch(event);
-        });
-
         camera = std::make_unique<ThirdPersonImpl>(input);
     }
 

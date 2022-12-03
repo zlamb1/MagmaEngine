@@ -52,8 +52,6 @@ namespace Magma {
 		std::shared_ptr<CameraImpl> camera;
 		uint32_t cameraIndex = 0;
 
-		Magma::EventDispatcher dispatcher{};
-
 	};
 
 }
