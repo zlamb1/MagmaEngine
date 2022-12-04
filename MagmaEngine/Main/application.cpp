@@ -156,22 +156,22 @@ namespace Magma {
 
         // create vertex buffer/memory
         auto vertexBufferSize = sizeof(MyVertex) * vertexData.size();
-        vertexBuffer = vulkanAPI.createVulkanBuffer(vertexBufferSize,
-            VulkanBufferUsage::VERTEX);
+        vertexBuffer = vulkanAPI.createBuffer(vertexBufferSize,
+            BufferUsage::VERTEX);
         vertexBuffer->map();
         vertexBuffer->setData(vertexData.data(), vertexData.size() * sizeof(MyVertex));
 
-        vulkanAPI.getVulkanBuffers().push_back(vertexBuffer);
+        vulkanAPI.getBuffers().push_back(vertexBuffer);
 
         // create index buffer/memory
         auto indexBufferSize = sizeof(uint16_t) * indexData.size();
-        indexBuffer = vulkanAPI.createVulkanBuffer(indexBufferSize,
-            VulkanBufferUsage::INDEX);
+        indexBuffer = vulkanAPI.createBuffer(indexBufferSize,
+            BufferUsage::INDEX);
         indexBuffer->map();
         indexBuffer->setData(indexData.data(), indexBufferSize);
 
         // create ubo buffer/memory
-        uniformBuffer = vulkanAPI.createVulkanBuffer(sizeof(UBO), VulkanBufferUsage::UNIFORM);
+        uniformBuffer = vulkanAPI.createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
         uniformBuffer->map();
 
         // create VulkanDescriptor

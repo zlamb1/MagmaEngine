@@ -18,6 +18,7 @@
 
 #include "Vulkan/Logging/vulkan_logger.h"
 
+#include "vulkan/Memory/VMA/vma_buffer.h"
 #include "Vulkan/Memory/vulkan_buffer.h"
 #include "Vulkan/Memory/vulkan_buffer_copy.h"
 #include "Vulkan/Memory/descriptor.h"
@@ -56,15 +57,15 @@ namespace Magma {
 		std::shared_ptr<VulkanDrawer> getVulkanDrawer();
 
 		std::vector<std::shared_ptr<MagmaShader>>& getVulkanShaders();
-		std::vector<std::shared_ptr<VulkanBuffer>>& getVulkanBuffers();
+		std::vector<std::shared_ptr<VulkanBuffer>>& getBuffers();
 
 		void setFramebufferResized(bool framebufferResized);
 
 		std::shared_ptr<MagmaShader> createVulkanShader(const char* code, ShadercType type);
 		std::shared_ptr<MagmaShader> createVulkanShader(VulkanShaderInfo info);
 
-		std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize);
-		std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage);
+		std::shared_ptr<VulkanBuffer> createBuffer(VkDeviceSize size);
+		std::shared_ptr<VulkanBuffer> createBuffer(VkDeviceSize size, BufferUsage bufferUsage);
 
 		ShaderAttributes& getShaderAttributes();
 
@@ -93,7 +94,7 @@ namespace Magma {
 		std::vector<std::shared_ptr<VulkanRenderSync>> vulkanRenderSyncs{};
 
 		std::vector<std::shared_ptr<MagmaShader>> vulkanShaders{};
-		std::vector<std::shared_ptr<VulkanBuffer>> vulkanBuffers{};
+		std::vector<std::shared_ptr<VulkanBuffer>> buffers{};
 
 		std::shared_ptr<MagmaShader> defaultVertexShader, defaultFragmentShader;
 

@@ -1,8 +1,9 @@
-#include "vulkan_buffer.h"
+#include "vma_buffer.h"
 
 namespace Magma {
 
 	namespace BufferUtility {
+
 		static uint32_t findMemoryType(VkPhysicalDevice& vkPhysicalDevice,
 			uint32_t typeFilter,
 			VkMemoryPropertyFlags properties) {
@@ -19,29 +20,60 @@ namespace Magma {
 			Z_LOG_TXT("VulkanBuffer::findMemoryType", "could not find suitable memory type");
 			return 0;
 		}
+
 	}
 
-	VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
-		pVulkanDevice{ pVulkanDevice } {}
+	VmaBuffer::VmaBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) : 
+		VulkanBuffer( pVulkanDevice ) {}
 
-	VulkanBuffer::~VulkanBuffer() {
+	VkBuffer& VmaBuffer::getBuffer() {
+		return vkBuffer;
+	}
+
+	VkMemoryRequirements VmaBuffer::queryMemRequirements() {
+		VkMemoryRequirements memRequirements{};
+		if (pVulkanDevice != nullptr) {
+			vkGetBufferMemoryRequirements(pVulkanDevice->getDevice(), vkBuffer, &memRequirements);
+		}
+
+		return memRequirements;
+	}
+
+	VkBufferUsageFlagBits VmaBuffer::getBufferUsageFlagBits(BufferUsage bufferUsage) {
+		switch (bufferUsage) {
+		case BufferUsage::VERTEX:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		case BufferUsage::INDEX:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		case BufferUsage::UNIFORM:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		case BufferUsage::TRANSFER_SRC:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		case BufferUsage::TRANSFER_DST:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		default:
+			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		}
+	}
+
+	VmaBuffer::~VmaBuffer() {
 		if (pVulkanDevice != nullptr) {
 			vkDeviceWaitIdle(pVulkanDevice->getDevice());
 			vmaDestroyBuffer(allocator->getAllocator(), vkBuffer, vmaAllocation);
 		}
 	}
 
-	VkResult VulkanBuffer::init() {
+	void VmaBuffer::init() {
 		if (pVulkanDevice == nullptr) {
 			Z_LOG_TXT("VulkanBuffer::init", "pVulkanDevice is nullptr");
-			return VK_ERROR_INITIALIZATION_FAILED;
+			return;
 		}
 
 		allocator = pVulkanDevice->getMemoryAllocator();
 
 		VkBufferCreateInfo bufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		bufferCreateInfo.size = pSize;
-		bufferCreateInfo.usage = (VkBufferUsageFlags) pBufferUsageFlags;
+		bufferCreateInfo.usage = getBufferUsageFlagBits(pBufferUsageFlags);
 		// sharing between queue families
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		// configures sparse buffer memory
@@ -53,44 +85,31 @@ namespace Magma {
 		vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 		vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 
-		return vmaCreateBuffer(allocator->getAllocator(), &bufferCreateInfo, &vmaAllocInfo,
+		vmaCreateBuffer(allocator->getAllocator(), &bufferCreateInfo, &vmaAllocInfo,
 			&vkBuffer, &vmaAllocation, nullptr);
 	}
 
-	VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
-		VkMemoryRequirements memRequirements{};
-		if (pVulkanDevice != nullptr) {
-			vkGetBufferMemoryRequirements(pVulkanDevice->getDevice(), vkBuffer, &memRequirements);
-		}
-
-		return memRequirements;
+	void* VmaBuffer::getData() const {
+		return data; 
 	}
 
-	VkBuffer& VulkanBuffer::getBuffer() {
-		return vkBuffer;
-	}
-
-	void* VulkanBuffer::getData() const {
-		return bufferData; 
-	}
-
-	void VulkanBuffer::setData(void* data, size_t size) {
-		if (bufferData == nullptr) {
+	void VmaBuffer::setData(void* inData, size_t size) {
+		if (data == nullptr)
 			Z_LOG_TXT("VulkanBuffer::setData", "warning: attempting to set data of unmapped buffer");
-		}
-		else memcpy(bufferData, data, size);
+		else memcpy(data, inData, size);
 	}
 
-	void VulkanBuffer::map() {
+	void VmaBuffer::map() {
+		// create temp pointer as you can't copy into nullptr
 		void* tmpData;
 		auto mapMemoryResult = vmaMapMemory(allocator->getAllocator(), vmaAllocation, &tmpData);
-		bufferData = tmpData; 
+		data = tmpData; 
 		Z_LOG_OBJ("VulkanBuffer::map", mapMemoryResult);
 	}
 
-	void VulkanBuffer::unmap() {
+	void VmaBuffer::unmap() {
 		vmaUnmapMemory(allocator->getAllocator(), vmaAllocation);
-		bufferData = nullptr; 
+		data = nullptr; 
 	}
 
 }

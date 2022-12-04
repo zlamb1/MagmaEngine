@@ -82,8 +82,8 @@ namespace Magma {
             vulkanPipeline->addShader(vulkanShader);
         }
 
-        for (auto vulkanBuffer : vulkanBuffers) {
-            vulkanDrawer->pVertexBuffers.push_back(vulkanBuffer);
+        for (auto buffer : buffers) {
+            vulkanDrawer->pVertexBuffers.push_back(buffer);
         }
 
         vulkanPipeline->init();
@@ -189,8 +189,8 @@ namespace Magma {
         return vulkanShaders;
     }
 
-    std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getVulkanBuffers() {
-        return vulkanBuffers;
+    std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getBuffers() {
+        return buffers;
     }
 
     void VulkanAPI::setFramebufferResized(bool framebufferResized) {
@@ -209,16 +209,16 @@ namespace Magma {
         return vulkanShader;
     }
 
-    std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize) {
-        return createVulkanBuffer(pSize, VulkanBufferUsage::VERTEX);
+    std::shared_ptr<VulkanBuffer> VulkanAPI::createBuffer(VkDeviceSize size) {
+        return createBuffer(size, BufferUsage::VERTEX);
     }
 
-    std::shared_ptr<VulkanBuffer> VulkanAPI::createVulkanBuffer(VkDeviceSize pSize,
-        VulkanBufferUsage pBufferUsage) {
-        std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VulkanBuffer>(vulkanDevice);
-        vulkanBuffer->pSize = (uint32_t)pSize;
-        vulkanBuffer->pBufferUsageFlags = pBufferUsage;
-        Z_LOG_OBJ("VulkanAPI::createBufferHandle", vulkanBuffer->init());
+    std::shared_ptr<VulkanBuffer> VulkanAPI::createBuffer(VkDeviceSize size,
+        BufferUsage bufferUsage) {
+        std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VmaBuffer>(vulkanDevice);
+        vulkanBuffer->pSize = (uint32_t)size;
+        vulkanBuffer->pBufferUsageFlags = bufferUsage;
+        vulkanBuffer->init();
         return vulkanBuffer;
     }
 

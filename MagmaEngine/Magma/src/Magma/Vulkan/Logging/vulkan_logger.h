@@ -11,12 +11,12 @@
 #include "Vulkan/IO/io.h"
 
 #ifndef DISTRIBUTION
-	#define Z_LOG_TXT(x, y) VulkanLogger::instance().logText(x, y);
-	#define Z_LOG_OBJ(x, y) VulkanLogger::instance().logObject(x, y);
+	#define Z_LOG_TXT(x, y) VulkanLogger::instance().logText(x, y)
+	#define Z_LOG_OBJ(x, y) VulkanLogger::instance().logObject(x, y)
 #else
 	// TODO: log to file
-	#define Z_LOG_TXT(x, y) Magma::IO::writeText(x, y);
-	#define Z_LOG_OBJ(x, y) Magma::IO::writeResult(x, y);
+	#define Z_LOG_TXT(x, y) Magma::IO::writeText(x, y)
+	#define Z_LOG_OBJ(x, y) Magma::IO::writeResult(x, y)
 #endif
 
 namespace Magma {

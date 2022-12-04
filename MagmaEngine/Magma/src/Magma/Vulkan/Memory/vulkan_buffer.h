@@ -1,64 +1,32 @@
 #pragma once
 
-#include "Vulkan/Command/vulkan_cmd.h"
+#include <vulkan/vulkan.h>
+
+#include "Buffer/buffer.h"
+
+#include "Vulkan/Device/vulkan_device.h"
 
 namespace Magma {
 
-	enum class VulkanMemoryType {
-		GPU_EFFICIENT = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		CPU_VISIBLE = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-		FLUSH_WRITES = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		CPU_CACHED = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-		GPU_ONLY = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT
-	};
-
-	inline VulkanMemoryType operator|(VulkanMemoryType a, VulkanMemoryType b) {
-		return (VulkanMemoryType)((VkMemoryPropertyFlags)a | (VkMemoryPropertyFlags)b);
-	}
-
-	enum class VulkanBufferUsage {
-		VERTEX = VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		INDEX = VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		UNIFORM = VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		TRANSFER_SRC = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		TRANSFER_DST = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT
-	};
-
-	inline VulkanBufferUsage operator|(VulkanBufferUsage a, VulkanBufferUsage b) {
-		return (VulkanBufferUsage)((VkBufferUsageFlags)a | (VkBufferUsageFlags)b);
-	}
-
-	class VulkanBuffer : public VulkanObject {
+	class VulkanBuffer : public Buffer {
 
 	public:
-		VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice);
-		~VulkanBuffer() override;
+		VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
+			pVulkanDevice{ pVulkanDevice } {};
 
-		// by default buffer usage is as a vertex buffer
-		VkResult init() override;
-		VkMemoryRequirements queryMemRequirements();
+		virtual VkBuffer& getBuffer() = 0;
+		virtual VkMemoryRequirements queryMemRequirements() = 0;
 
-		VkBuffer& getBuffer();
-		void* getData() const;
-		
-		void setData(void* nData, size_t size);
-
-		void map();
-		void unmap();
+		virtual VkBufferUsageFlagBits getBufferUsageFlagBits(BufferUsage bufferUsage) = 0;
 
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-		VkDeviceSize pSize = 0;
-		VulkanBufferUsage pBufferUsageFlags = VulkanBufferUsage::VERTEX;
+		VkDeviceSize pSize = 0; 
+		BufferUsage pBufferUsageFlags = BufferUsage::VERTEX;
 
-		const MemoryAllocator const* allocator = nullptr;
-
-	private:
-		VmaAllocation vmaAllocation{};
+	protected:
 		VkBuffer vkBuffer{};
-		void* bufferData = nullptr; 
 
 	};
 
 }
-
