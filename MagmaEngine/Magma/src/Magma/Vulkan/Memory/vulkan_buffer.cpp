@@ -26,7 +26,8 @@ namespace Magma {
 
 	VulkanBuffer::~VulkanBuffer() {
 		if (pVulkanDevice != nullptr) {
-			vkDestroyBuffer(pVulkanDevice->getDevice(), vkBuffer, pAllocator);
+			vkDeviceWaitIdle(pVulkanDevice->getDevice());
+			vmaDestroyBuffer(allocator->getAllocator(), vkBuffer, vmaAllocation);
 		}
 	}
 
@@ -36,20 +37,24 @@ namespace Magma {
 			return VK_ERROR_INITIALIZATION_FAILED;
 		}
 
-		VkBufferCreateInfo bufferCreateInfo{};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		allocator = pVulkanDevice->getMemoryAllocator();
+
+		VkBufferCreateInfo bufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		bufferCreateInfo.size = pSize;
-		bufferCreateInfo.usage = (VkBufferUsageFlags)pBufferUsageFlags;
+		bufferCreateInfo.usage = (VkBufferUsageFlags) pBufferUsageFlags;
 		// sharing between queue families
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		// configures sparse buffer memory
 		bufferCreateInfo.flags = 0; // optional
 
-		auto createBufferResult = vkCreateBuffer(pVulkanDevice->getDevice(), &bufferCreateInfo,
-			pAllocator, &vkBuffer);
-		Z_LOG_OBJ("VulkanBuffer::init::vkCreateBufferResult", createBufferResult);
+		// TODO: create abstract Buffer class
+		// TODO: create pure Vulkan implementation + VMA implementation
+		VmaAllocationCreateInfo vmaAllocInfo = {};
+		vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 
-		return createBufferResult;
+		return vmaCreateBuffer(allocator->getAllocator(), &bufferCreateInfo, &vmaAllocInfo,
+			&vkBuffer, &vmaAllocation, nullptr);
 	}
 
 	VkMemoryRequirements VulkanBuffer::queryMemRequirements() {
@@ -57,6 +62,7 @@ namespace Magma {
 		if (pVulkanDevice != nullptr) {
 			vkGetBufferMemoryRequirements(pVulkanDevice->getDevice(), vkBuffer, &memRequirements);
 		}
+
 		return memRequirements;
 	}
 
@@ -64,90 +70,27 @@ namespace Magma {
 		return vkBuffer;
 	}
 
-	// VulkanDeviceMemory
-
-	VulkanDeviceMemory::VulkanDeviceMemory(std::shared_ptr<VulkanDevice> pVulkanDevice,
-		std::shared_ptr<VulkanBuffer> pVulkanBuffer) :
-		pVulkanDevice{ pVulkanDevice }, pVulkanBuffer{ pVulkanBuffer } {}
-
-	VulkanDeviceMemory::~VulkanDeviceMemory() {
-		if (pVulkanDevice != nullptr) {
-			if (data != nullptr) {
-				unmapMemory();
-			}
-			vkDeviceWaitIdle(pVulkanDevice->getDevice());
-			vkFreeMemory(pVulkanDevice->getDevice(), vkDeviceMemory, pAllocator);
-		}
+	void* VulkanBuffer::getData() const {
+		return bufferData; 
 	}
 
-	VkResult VulkanDeviceMemory::init() {
-		if (pVulkanDevice == nullptr) {
-			Z_LOG_TXT("VulkanDeviceMemory::init", "pVulkanDevice is nullptr");
-			return VK_ERROR_INITIALIZATION_FAILED;
+	void VulkanBuffer::setData(void* data, size_t size) {
+		if (bufferData == nullptr) {
+			Z_LOG_TXT("VulkanBuffer::setData", "warning: attempting to set data of unmapped buffer");
 		}
-
-		if (pVulkanBuffer == nullptr) {
-			Z_LOG_TXT("VulkanDeviceMemory::init", "pVulkanBuffer is nullptr");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		auto memRequirements = pVulkanBuffer->queryMemRequirements();
-		memorySize = memRequirements.size;
-
-		VkMemoryAllocateInfo memAllocateInfo{};
-		memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllocateInfo.allocationSize = memRequirements.size;
-		memAllocateInfo.memoryTypeIndex = BufferUtility::findMemoryType(pVulkanDevice->getPhysicalDevice(),
-			memRequirements.memoryTypeBits, (VkMemoryPropertyFlags)pMemPropertyFlags);
-
-		auto allocateMemoryResult = vkAllocateMemory(pVulkanDevice->getDevice(), &memAllocateInfo, pAllocator,
-			&vkDeviceMemory);
-		Z_LOG_OBJ("VulkanBuffer::init::vkAllocateMemory", allocateMemoryResult);
-
-		return allocateMemoryResult;
+		else memcpy(bufferData, data, size);
 	}
 
-	VkDeviceMemory& VulkanDeviceMemory::getMemory() {
-		return vkDeviceMemory;
-	}
-
-	VkResult VulkanDeviceMemory::bindBufferMemory(VkBuffer& vkBuffer, VkDeviceSize memoryOffset) {
-		if (pVulkanDevice == nullptr) {
-			Z_LOG_TXT("VulkanDeviceMemory::bindBufferMemory", "pVulkanDevice is nullptr");
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}
-
-		return vkBindBufferMemory(pVulkanDevice->getDevice(), vkBuffer, vkDeviceMemory, memoryOffset);
-	}
-
-	VkResult VulkanDeviceMemory::mapMemory() {
-		if (data != nullptr) {
-			Z_LOG_TXT("VulkanDeviceMemory::mapMemory",
-				"warning: attempting to map memory that is already mapped");
-		}
-
+	void VulkanBuffer::map() {
 		void* tmpData;
-		auto mapMemoryResult = vkMapMemory(pVulkanDevice->getDevice(), vkDeviceMemory, 0,
-			memorySize, 0, &tmpData);
-		data = tmpData;
-		Z_LOG_OBJ("VulkanBuffer::setData::vkMapMemory", mapMemoryResult);
-
-		return mapMemoryResult;
+		auto mapMemoryResult = vmaMapMemory(allocator->getAllocator(), vmaAllocation, &tmpData);
+		bufferData = tmpData; 
+		Z_LOG_OBJ("VulkanBuffer::map", mapMemoryResult);
 	}
 
-	void VulkanDeviceMemory::unmapMemory() {
-		vkUnmapMemory(pVulkanDevice->getDevice(), vkDeviceMemory);
-		data = nullptr;
-	}
-
-	VkResult VulkanDeviceMemory::setData(const void* bufferData) {
-		if (data == nullptr) {
-			Z_LOG_TXT("VulkanDeviceMemory::setData",
-				"warning: trying to memcpy to nullptr destination")
-				return VK_ERROR_INITIALIZATION_FAILED;
-		}
-		memcpy(data, bufferData, (size_t)memorySize);
-		return VK_SUCCESS;
+	void VulkanBuffer::unmap() {
+		vmaUnmapMemory(allocator->getAllocator(), vmaAllocation);
+		bufferData = nullptr; 
 	}
 
 }

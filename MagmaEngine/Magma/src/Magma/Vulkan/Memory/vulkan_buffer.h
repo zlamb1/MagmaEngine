@@ -34,53 +34,29 @@ namespace Magma {
 		VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice);
 		~VulkanBuffer() override;
 
-		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-
-		VkDeviceSize pSize = 0;
-
 		// by default buffer usage is as a vertex buffer
-		VulkanBufferUsage pBufferUsageFlags = VulkanBufferUsage::VERTEX;
-
 		VkResult init() override;
-
 		VkMemoryRequirements queryMemRequirements();
 
 		VkBuffer& getBuffer();
+		void* getData() const;
+		
+		void setData(void* nData, size_t size);
 
-	private:
-		VkBuffer vkBuffer{};
-
-	};
-
-	class VulkanDeviceMemory : public VulkanObject {
+		void map();
+		void unmap();
 
 	public:
-		VulkanDeviceMemory(std::shared_ptr<VulkanDevice> pVulkanDevice,
-			std::shared_ptr<VulkanBuffer> pVulkanBuffer);
-		~VulkanDeviceMemory() override;
-
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-		// pBuffer is used to determine requirements for the allocatated memory
-		std::shared_ptr<VulkanBuffer> pVulkanBuffer = nullptr;
+		VkDeviceSize pSize = 0;
+		VulkanBufferUsage pBufferUsageFlags = VulkanBufferUsage::VERTEX;
 
-		// by default request memory that is visible on CPU and that is auto flushed to the GPU
-		VulkanMemoryType pMemPropertyFlags = VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES;
-
-		VkResult init() override;
-
-		VkDeviceMemory& getMemory();
-
-		VkResult bindBufferMemory(VkBuffer& vkBuffer, VkDeviceSize memoryOoffset);
-
-		VkResult mapMemory();
-		void unmapMemory();
-		VkResult setData(const void* bufferData);
+		const MemoryAllocator const* allocator = nullptr;
 
 	private:
-		VkDeviceSize memorySize = 0;
-		VkDeviceMemory vkDeviceMemory{};
-
-		void* data = nullptr;
+		VmaAllocation vmaAllocation{};
+		VkBuffer vkBuffer{};
+		void* bufferData = nullptr; 
 
 	};
 

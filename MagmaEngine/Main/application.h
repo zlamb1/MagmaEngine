@@ -40,8 +40,7 @@ namespace Magma {
 
 		VulkanAPI vulkanAPI{ windowImpl };
 
-		std::shared_ptr<VulkanBuffer> stagingBuffer, vertexBuffer, indexBuffer, uboBuffer;
-		std::shared_ptr<VulkanDeviceMemory> stagingMemory, vertexMemory, indexMemory, uboMemory;
+		std::shared_ptr<VulkanBuffer> vertexBuffer, indexBuffer, uniformBuffer;
 
 		std::shared_ptr<DescriptorSet> vulkanDescriptorSet;
 

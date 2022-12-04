@@ -5,6 +5,8 @@
 
 #include "device_profile.h"
 
+#include "Vulkan/Memory/VMA/memory_allocator.h"
+
 #include "Vulkan/Setup/vulkan_validater.h"
 #include "Vulkan/Setup/vulkan_instance.h"
 
@@ -22,6 +24,8 @@ namespace Magma {
 		VkPhysicalDevice& getPhysicalDevice();
 		VkDevice& getDevice();
 
+		const MemoryAllocator* getMemoryAllocator() const;
+
 		SwapchainSupportDetails querySwapchainSupport();
 
 	public:
@@ -32,6 +36,7 @@ namespace Magma {
 	private:
 		VkPhysicalDevice physicalDevice{};
 		VkDevice device{};
+		MemoryAllocator* allocator = nullptr; 
 
 	};
 

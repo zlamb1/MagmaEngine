@@ -8,6 +8,8 @@ namespace Magma {
         pVulkanValidater{ pVulkanValidater } {}
 
     VulkanDevice::~VulkanDevice() {
+        if (allocator != nullptr)
+            delete allocator;
         vkDestroyDevice(device, pAllocator);
     }
 
@@ -107,6 +109,9 @@ namespace Magma {
 
         deviceProfile.setDevice(device);
 
+        // TODO: make conditional
+        allocator = new MemoryAllocator(physicalDevice, device, pVulkanInstance->getInstance());
+
         return VK_SUCCESS;
     }
 
@@ -116,6 +121,10 @@ namespace Magma {
 
     VkDevice& VulkanDevice::getDevice() {
         return device;
+    }
+
+    const MemoryAllocator* VulkanDevice::getMemoryAllocator() const {
+        return allocator; 
     }
 
     SwapchainSupportDetails VulkanDevice::querySwapchainSupport() {

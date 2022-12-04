@@ -48,7 +48,7 @@ namespace Magma {
         {{0.5f, 0.5f, -0.5f}}
     };
 
-    std::vector<uint16_t> index_data{
+    std::vector<uint16_t> indexData{
         0, 1, 2, 2, 3, 0,
         4, 5, 6, 6, 7, 4,
         8, 9, 10, 10, 11, 8,
@@ -120,7 +120,7 @@ namespace Magma {
         ubo.view = camera->getViewMat4f();
         ubo.proj = camera->getPerspectiveMat4f();
 
-        uboMemory->setData(&ubo);
+        uniformBuffer->setData(&ubo, sizeof(ubo));
     }
 
     void Application::initWindow() {
@@ -154,53 +154,25 @@ namespace Magma {
         shaderAttributes.createVertexAttribute(0, 1, offsetof(MyVertex, color),
             VulkanFormat::RGB_SFLOAT32);
 
-        auto vertexBufferSize = sizeof(MyVertex) * vertexData.size();
-
-        // create staging buffer/memory
-        stagingBuffer = vulkanAPI.createVulkanBuffer(vertexBufferSize,
-            VulkanBufferUsage::TRANSFER_SRC);
-        stagingMemory = vulkanAPI.createDeviceMemory(stagingBuffer,
-            VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES);
-        stagingMemory->bindBufferMemory(stagingBuffer->getBuffer(), 0);
-
-        stagingMemory->mapMemory();
-        stagingMemory->setData(vertexData.data());
-        stagingMemory->unmapMemory();
-
         // create vertex buffer/memory
+        auto vertexBufferSize = sizeof(MyVertex) * vertexData.size();
         vertexBuffer = vulkanAPI.createVulkanBuffer(vertexBufferSize,
-            VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::VERTEX);
-        vertexMemory = vulkanAPI.createDeviceMemory(vertexBuffer,
-            VulkanMemoryType::GPU_EFFICIENT);
-        vertexMemory->bindBufferMemory(vertexBuffer->getBuffer(), 0);
-
-        BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
-            stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
+            VulkanBufferUsage::VERTEX);
+        vertexBuffer->map();
+        vertexBuffer->setData(vertexData.data(), vertexData.size() * sizeof(MyVertex));
 
         vulkanAPI.getVulkanBuffers().push_back(vertexBuffer);
 
-        auto indexBufferSize = sizeof(uint16_t) * index_data.size();
-
-        stagingMemory->mapMemory();
-        stagingMemory->setData(index_data.data());
-        stagingMemory->unmapMemory();
-
         // create index buffer/memory
+        auto indexBufferSize = sizeof(uint16_t) * indexData.size();
         indexBuffer = vulkanAPI.createVulkanBuffer(indexBufferSize,
-            VulkanBufferUsage::TRANSFER_DST | VulkanBufferUsage::INDEX);
-        indexMemory = vulkanAPI.createDeviceMemory(indexBuffer, VulkanMemoryType::GPU_EFFICIENT);
-        indexMemory->bindBufferMemory(indexBuffer->getBuffer(), 0);
-
-        BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), indexBuffer->pSize,
-            stagingBuffer->getBuffer(), indexBuffer->getBuffer(), 0, 0);
+            VulkanBufferUsage::INDEX);
+        indexBuffer->map();
+        indexBuffer->setData(indexData.data(), indexBufferSize);
 
         // create ubo buffer/memory
-        uboBuffer = vulkanAPI.createVulkanBuffer(sizeof(UBO),
-            VulkanBufferUsage::UNIFORM);
-        uboMemory = vulkanAPI.createDeviceMemory(uboBuffer,
-            VulkanMemoryType::CPU_VISIBLE | VulkanMemoryType::FLUSH_WRITES);
-        uboMemory->bindBufferMemory(uboBuffer->getBuffer(), 0);
-        uboMemory->mapMemory();
+        uniformBuffer = vulkanAPI.createVulkanBuffer(sizeof(UBO), VulkanBufferUsage::UNIFORM);
+        uniformBuffer->map();
 
         // create VulkanDescriptor
         shaderAttributes.createDescriptor();
@@ -209,14 +181,14 @@ namespace Magma {
         shaderAttributes.createDescriptorSetLayout();
 
         // create VulkanDescriptorSet
-        shaderAttributes.createDescriptorSet(uboBuffer->getBuffer(), 1, sizeof(UBO));
+        shaderAttributes.createDescriptorSet(uniformBuffer->getBuffer(), 1, sizeof(UBO));
 
         // upload it to the drawer
         vulkanAPI.getVulkanDrawer()->pDescriptorSets = shaderAttributes.getDescriptorSets();
 
         // set draw information
         vulkanAPI.getVulkanDrawer()->pIndexBuffer = indexBuffer;
-        vulkanAPI.getVulkanDrawer()->pIndexCount = index_data.size();
+        vulkanAPI.getVulkanDrawer()->pIndexCount = indexData.size();
         vulkanAPI.getVulkanDrawer()->pUseIndexing = true;
 
         // init render structures
@@ -231,7 +203,6 @@ namespace Magma {
         Timestep lastCameraChange{};
         while (!windowImpl.shouldWindowClose()) {
             x += 0.001f;
-
             for (int i = 0; i < 6; i++) {
                 for (int j = 0; j < 4; j++) {
                     vertexData[j + i * 4].color = getColor(glm::vec2{ 0.0f }, x);
@@ -240,6 +211,7 @@ namespace Magma {
                     vertexData[j + i * 4].color = getColor(glm::vec2{ 1.0f, 0.0f }, x);
                 }
             }
+            vertexBuffer->setData(vertexData.data(), vertexData.size() * sizeof(MyVertex));
 
             lastCameraChange.onNewFrame();
 
@@ -255,13 +227,6 @@ namespace Magma {
             }
 
             camera->onUpdate(step);
-
-            stagingMemory->mapMemory();
-            stagingMemory->setData(vertexData.data());
-            stagingMemory->unmapMemory();
-
-            BufferCopy::copyBuffer(vulkanAPI.getVulkanDevice(), stagingBuffer->pSize,
-                stagingBuffer->getBuffer(), vertexBuffer->getBuffer(), 0, 0);
 
             updateUniformBuffer();
 

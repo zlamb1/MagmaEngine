@@ -66,9 +66,6 @@ namespace Magma {
 		std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize);
 		std::shared_ptr<VulkanBuffer> createVulkanBuffer(VkDeviceSize pSize, VulkanBufferUsage pBufferUsage);
 
-		std::shared_ptr<VulkanDeviceMemory> createDeviceMemory(
-			std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType);
-
 		ShaderAttributes& getShaderAttributes();
 
 	private:

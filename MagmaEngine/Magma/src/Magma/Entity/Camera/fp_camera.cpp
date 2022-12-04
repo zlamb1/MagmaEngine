@@ -27,7 +27,8 @@ namespace Magma {
 		if (acceptInput) {
 			glm::vec3 velocity{ 0.0f };
 			const float speed = 0.2f;
-			const auto forwardVec3f = getForwardVec3f();
+			auto forwardVec3f = getForwardVec3f();
+			if (!forwardY) forwardVec3f.y = 0.0f;
 			auto rightVec3f = glm::cross(forwardVec3f, upVec3f);
 
 			if (input.isKeyPressed(KeyButton::W))

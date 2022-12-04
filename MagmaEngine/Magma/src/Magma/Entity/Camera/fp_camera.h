@@ -38,7 +38,7 @@ namespace Magma {
 
 	private:
 		WindowInput& input;
-		bool acceptInput = false;
+		bool acceptInput = false, forwardY = false;
 		const double targetFps = 60.0;
 
 	};

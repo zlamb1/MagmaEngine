@@ -222,15 +222,6 @@ namespace Magma {
         return vulkanBuffer;
     }
 
-    std::shared_ptr<VulkanDeviceMemory> VulkanAPI::createDeviceMemory(
-        std::shared_ptr<VulkanBuffer> expectedBufferSpec, VulkanMemoryType pMemType) {
-        std::shared_ptr<VulkanDeviceMemory> vulkanDeviceMemory = std::make_shared<VulkanDeviceMemory>(
-            vulkanDevice, expectedBufferSpec);
-        vulkanDeviceMemory->pMemPropertyFlags = pMemType;
-        vulkanDeviceMemory->init();
-        return vulkanDeviceMemory;
-    }
-
     ShaderAttributes& VulkanAPI::getShaderAttributes() {
         return shaderAttributes;
     }
