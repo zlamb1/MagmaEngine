@@ -32,9 +32,14 @@ namespace Magma {
 
 	}
 
+	// much of the code for the UVSphere implementation is from
+	// https://gist.github.com/Pikachuxxxx/5c4c490a7d7679824e0e18af42918efc
+	// everything else is written by me
+
 	namespace UVSphere {
 
 		static SphereData createSphere(int rings) {
+
 			SphereData sphereData{};
 
 			if (rings < 2)
@@ -124,22 +129,22 @@ namespace Magma {
 				std::vector<glm::vec3> nVerts{};
 				std::vector<uint16_t> nIndices{};
 				for (int i = 0; i < inIndices.size(); i += 3) {
-					glm::vec3 a = glm::normalize(inVerts[inIndices[i]]);
+					glm::vec3 a = inVerts[inIndices[i]];
 					auto aIndex = SphereUtility::getIndexAndAdd(nVerts, a);
 
-					glm::vec3 b = glm::normalize(inVerts[inIndices[i + 1]]);
+					glm::vec3 b = inVerts[inIndices[i + 1]];
 					auto bIndex = SphereUtility::getIndexAndAdd(nVerts, b);
 
-					glm::vec3 c = glm::normalize(inVerts[inIndices[i + 2]]);
+					glm::vec3 c = inVerts[inIndices[i + 2]];
 					auto cIndex = SphereUtility::getIndexAndAdd(nVerts, c);
 
-					glm::vec3 d = glm::normalize(b + ((a - b) / 2.0f));
+					glm::vec3 d = b + ((a - b) / 2.0f);
 					auto dIndex = SphereUtility::getIndexAndAdd(nVerts, d);
 
-					glm::vec3 e = glm::normalize(c + ((b - c) / 2.0f));
+					glm::vec3 e = c + ((b - c) / 2.0f);
 					auto eIndex = SphereUtility::getIndexAndAdd(nVerts, e);
 
-					glm::vec3 f = glm::normalize(c + ((a - c) / 2.0f));
+					glm::vec3 f = c + ((a - c) / 2.0f);
 					auto fIndex = SphereUtility::getIndexAndAdd(nVerts, f);
 
 					std::vector<uint16_t> _indices{
@@ -156,7 +161,7 @@ namespace Magma {
 			}
 
 			for (auto& pos : inVerts) {
-				sphereData.verts.push_back({ pos });
+				sphereData.verts.push_back({ glm::normalize(pos) });
 			}
 
 			sphereData.indices = inIndices;

@@ -64,25 +64,6 @@ namespace Magma {
 
         vulkanPipeline = std::make_shared<VulkanPipeline>(shaderAttributes);
 
-        auto& swapchainExtent = vulkanSwapchain->getSwapchainExtent();
-
-        depthImage = std::make_shared<VulkanImage>(vulkanDevice);
-        depthImage->pExtentWidth = swapchainExtent.width;
-        depthImage->pExtentHeight = swapchainExtent.height;
-
-        const auto depthFormat = findDepthFormat();
-        depthImage->pFormat = findDepthFormat();
-
-        depthImage->pImageTiling = VK_IMAGE_TILING_OPTIMAL;
-        depthImage->pUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        depthImage->init();
-
-        depthImageView = std::make_shared<VulkanImageView>(vulkanDevice, depthImage);
-        depthImageView->pImageAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-        depthImageView->init();
-
-        vulkanPipeline->pDepthImageView = depthImageView;
-
         defaultVertexShader = createShader(defVertexShader, ShadercType::VERTEX);
         defaultFragmentShader = createShader(defFragmentShader, ShadercType::FRAGMENT);
     }
@@ -238,6 +219,31 @@ namespace Magma {
         vulkanRenderer->pVertexBuffers.push_back(dynamic_pointer_cast<VulkanBuffer>(buffer));
     }
 
+    void VulkanAPI::setDepthBuffering(bool enabled) {
+        if (depthImage != nullptr) depthImage.reset();
+        if (depthImageView != nullptr) depthImageView.reset();
+
+        if (enabled) {
+            auto& swapchainExtent = vulkanSwapchain->getSwapchainExtent();
+            depthImage = std::make_shared<VulkanImage>(vulkanDevice);
+            depthImage->pExtentWidth = swapchainExtent.width;
+            depthImage->pExtentHeight = swapchainExtent.height;
+
+            const auto depthFormat = findDepthFormat();
+            depthImage->pFormat = findDepthFormat();
+
+            depthImage->pImageTiling = VK_IMAGE_TILING_OPTIMAL;
+            depthImage->pUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            depthImage->init();
+
+            depthImageView = std::make_shared<VulkanImageView>(vulkanDevice, depthImage);
+            depthImageView->pImageAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+            depthImageView->init();
+
+            vulkanPipeline->pDepthImageView = depthImageView;
+        }
+    }
+
     VkFormat VulkanAPI::findSupportedFormat(const std::vector<VkFormat>& candidates, 
         VkImageTiling tiling, VkFormatFeatureFlags features) {
         for (VkFormat format : candidates) {
@@ -307,6 +313,8 @@ namespace Magma {
         vulkanSwapchain->deleteImageViews();
         // recreate swapchain and image views
         vulkanSwapchain->init();
+        // reset depth buffering state
+        setDepthBuffering(true);
         // reinit framebuffers
         vulkanPipeline->init();
     }

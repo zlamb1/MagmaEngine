@@ -70,7 +70,7 @@ namespace Magma {
 
 		void addBuffer(std::shared_ptr<Buffer> buffer) override; 
 
-		void setDepthBuffering(bool enabled) override {}
+		void setDepthBuffering(bool enabled) override;
 
 	private:
 		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,

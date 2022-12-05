@@ -51,7 +51,6 @@ namespace Magma {
         }
 
         cameraStep.onNewFrame();
-
         if (input->isKeyPressed(KeyButton::C) && cameraStep.getElapsed() >= 1.0f) {
             cameraIndex++;
             if (cameraIndex % 2 == 0)
@@ -97,6 +96,7 @@ namespace Magma {
         Application::initVulkan(); 
 
         renderCore->init();
+        renderCore->setDepthBuffering(true);
 
         // create shaders
         auto vertexShader = renderCore->createShader(vertexShaderCode, ShadercType::VERTEX);
