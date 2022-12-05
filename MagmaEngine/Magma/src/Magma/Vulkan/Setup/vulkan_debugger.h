@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "Vulkan/Logging/vulkan_logger.h"
+#include "Magma/Vulkan/Logging/vulkan_logger.h"
 
 #include "vulkan_object.h"
 

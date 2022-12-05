@@ -9,7 +9,7 @@
 
 #include "camera.h"
 
-#include "Window/window_input.h"
+#include "Magma/Window/window_input.h"
 
 namespace Magma {
 
@@ -33,7 +33,7 @@ namespace Magma {
 		void onEvent(const MouseMoveEvent& _event) override;
 
 	private:
-		glm::vec3 getForwardVec3f();
+		glm::vec3 getForwardVec3f(bool includeY);
 		void setAcceptInput(bool acceptInput);
 
 	private:

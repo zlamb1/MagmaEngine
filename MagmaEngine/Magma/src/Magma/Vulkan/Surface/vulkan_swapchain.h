@@ -8,8 +8,8 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Vulkan/Device/vulkan_device.h"
-#include "Vulkan/Setup/vulkan_object.h"
+#include "Magma/Vulkan/Device/vulkan_device.h"
+#include "Magma/Vulkan/Setup/vulkan_object.h"
 
 namespace Magma {
 

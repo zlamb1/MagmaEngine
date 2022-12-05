@@ -5,69 +5,81 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Window/vulkan_impl.h"
+#include "Magma/Render/render_core.h"
+#include "Magma/Window/vulkan_impl.h"
 
 // all Magma includes
 
-#include "Vulkan/Command/vulkan_cmd.h"
-#include "Vulkan/Command/vulkan_operation.h"
+#include "Magma/Vulkan/Command/vulkan_cmd.h"
+#include "Magma/Vulkan/Command/vulkan_operation.h"
 
-#include "Vulkan/Device/device_enums.h"
-#include "Vulkan/Device/device_profile.h"
-#include "Vulkan/Device/vulkan_device.h"
+#include "Magma/Vulkan/Device/device_enums.h"
+#include "Magma/Vulkan/Device/device_profile.h"
+#include "Magma/Vulkan/Device/vulkan_device.h"
 
-#include "Vulkan/Logging/vulkan_logger.h"
+#include "Magma/Vulkan/Image/image_view.h"
+#include "Magma/Vulkan/Image/vulkan_image.h"
 
-#include "vulkan/Memory/VMA/vma_buffer.h"
-#include "Vulkan/Memory/vulkan_buffer.h"
-#include "Vulkan/Memory/vulkan_buffer_copy.h"
-#include "Vulkan/Memory/descriptor.h"
+#include "Magma/Vulkan/Logging/vulkan_logger.h"
 
-#include "Vulkan/Pipeline/vulkan_pipeline.h"
-#include "Vulkan/Pipeline/vulkan_pipeline_c.h"
+#include "Magma/Vulkan/Memory/VMA/vma_buffer.h"
+#include "Magma/Vulkan/Memory/vulkan_buffer.h"
+#include "Magma/Vulkan/Memory/vulkan_buffer_copy.h"
+#include "Magma/Vulkan/Memory/descriptor.h"
 
-#include "Vulkan/Render/vulkan_drawer.h"
-#include "Vulkan/Render/vulkan_framebuffer.h"
-#include "Vulkan/Render/vulkan_sync.h"
+#include "Magma/Vulkan/Pipeline/vulkan_pipeline.h"
+#include "Magma/Vulkan/Pipeline/vulkan_pipeline_c.h"
 
-#include "Vulkan/Setup/vulkan_debugger.h"
-#include "Vulkan/Setup/vulkan_instance.h"
-#include "Vulkan/Setup/vulkan_object.h"
-#include "Vulkan/Setup/vulkan_validater.h"
+#include "Magma/Vulkan/Render/vulkan_framebuffer.h"
+#include "Magma/Vulkan/Render/vulkan_renderer.h"
+#include "Magma/Vulkan/Render/vulkan_sync.h"
 
-#include "Vulkan/Shader/vulkan_shader.h"
-#include "Vulkan/Shader/shader_attributes.h"
+#include "Magma/Vulkan/Setup/vulkan_debugger.h"
+#include "Magma/Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Setup/vulkan_object.h"
+#include "Magma/Vulkan/Setup/vulkan_validater.h"
 
-#include "Vulkan/Surface/vulkan_surface.h"
-#include "Vulkan/Surface/vulkan_swapchain.h"
+#include "Magma/Vulkan/Shader/shader_attributes.h"
+#include "Magma/Vulkan/Shader/vulkan_shader.h"
+
+#include "Magma/Vulkan/Surface/vulkan_surface.h"
+#include "Magma/Vulkan/Surface/vulkan_swapchain.h"
 
 namespace Magma {
 
-	class VulkanAPI {
+	class VulkanAPI : public RenderCore {
 
 	public:
 		VulkanAPI(VulkanImpl& windowImpl);
 		~VulkanAPI();
 
-		void initSetup();
-		void initRender();
-		void onNewFrame(uint32_t vertexCount);
+		void init() override;
+		void initRender() override;
+		void onNewFrame() override;
 
-		std::shared_ptr<VulkanDevice> getVulkanDevice();
-		std::shared_ptr<VulkanDrawer> getVulkanDrawer();
+		Renderer& getRenderer() const override;
+		ShaderAttributes& getShaderAttributes() const override;
 
-		std::vector<std::shared_ptr<MagmaShader>>& getVulkanShaders();
-		std::vector<std::shared_ptr<VulkanBuffer>>& getBuffers();
+		std::vector<std::shared_ptr<MagmaShader>>& getShaders();
 
-		void setFramebufferResized(bool framebufferResized);
+		std::shared_ptr<MagmaShader> createShader(const char* code, ShadercType type);
+		std::shared_ptr<MagmaShader> createShader(VulkanShaderInfo info);
 
-		std::shared_ptr<MagmaShader> createVulkanShader(const char* code, ShadercType type);
-		std::shared_ptr<MagmaShader> createVulkanShader(VulkanShaderInfo info);
+		std::shared_ptr<Buffer> createBuffer(int64_t size) override;
+		std::shared_ptr<Buffer> createBuffer(int64_t size, BufferUsage bufferUsage) override;
 
-		std::shared_ptr<VulkanBuffer> createBuffer(VkDeviceSize size);
-		std::shared_ptr<VulkanBuffer> createBuffer(VkDeviceSize size, BufferUsage bufferUsage);
+		void addBuffer(std::shared_ptr<Buffer> buffer) override; 
 
-		ShaderAttributes& getShaderAttributes();
+		void setDepthBuffering(bool enabled) override {}
+
+	private:
+		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+			VkFormatFeatureFlags features);
+		VkFormat findDepthFormat();
+
+		void initCommands();
+		void initSync();
+		void recreateSwapchain();
 
 	private:
 		const int MAX_FRAMES_IN_FLIGHT = 1;
@@ -84,10 +96,13 @@ namespace Magma {
 		std::shared_ptr<VulkanSurface> vulkanSurface;
 		std::shared_ptr<VulkanDevice> vulkanDevice;
 		std::shared_ptr<VulkanSwapchain> vulkanSwapchain;
-		std::shared_ptr<VulkanDrawer> vulkanDrawer;
+		std::shared_ptr<VulkanRenderer> vulkanRenderer;
 		std::shared_ptr<VulkanPipeline> vulkanPipeline;
 
-		ShaderAttributes shaderAttributes{};
+		std::shared_ptr<VulkanImage> depthImage; 
+		std::shared_ptr<VulkanImageView> depthImageView; 
+
+		VulkanShaderAttributes shaderAttributes{};
 
 		std::vector<std::shared_ptr<VulkanCmdPool>> vulkanCmdPools{};
 		std::vector<std::shared_ptr<VulkanCmdBuffer>> vulkanCmdBuffers{};
@@ -97,11 +112,6 @@ namespace Magma {
 		std::vector<std::shared_ptr<VulkanBuffer>> buffers{};
 
 		std::shared_ptr<MagmaShader> defaultVertexShader, defaultFragmentShader;
-
-		void initCommands();
-		void initSync();
-
-		void recreateSwapchain();
 
 		std::vector<const char*> getRequiredExtensions();
 

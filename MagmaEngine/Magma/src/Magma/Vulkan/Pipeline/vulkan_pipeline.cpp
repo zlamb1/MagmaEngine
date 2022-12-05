@@ -2,7 +2,7 @@
 
 namespace Magma {
 
-	VulkanPipeline::VulkanPipeline(ShaderAttributes& pShaderAttributes) :
+	VulkanPipeline::VulkanPipeline(VulkanShaderAttributes& pShaderAttributes) :
 		pShaderAttributes{ pShaderAttributes } {}
 
 	VulkanPipeline::~VulkanPipeline() {
@@ -27,8 +27,8 @@ namespace Magma {
 		vulkanFixedFunctionState->pAllocator = pAllocator;
 		vulkanFixedFunctionState->init();
 
-		vulkanRenderPass = std::make_shared<VulkanRenderPass>(pVulkanDevice,
-			pVulkanSwapchain);
+		vulkanRenderPass = std::make_shared<VulkanRenderPass>(pVulkanDevice, pVulkanSwapchain);
+		vulkanRenderPass->pDepthFormat = pDepthImageView->getImageFormat();
 		vulkanRenderPass->init();
 
 		// pipeline init
@@ -44,7 +44,7 @@ namespace Magma {
 		pipelineCreateInfo.pViewportState = &vulkanFixedFunctionState->getViewportCreateInfo();
 		pipelineCreateInfo.pRasterizationState = &vulkanFixedFunctionState->getRasterizationCreateInfo();
 		pipelineCreateInfo.pMultisampleState = &vulkanFixedFunctionState->getMultisampleCreateInfo();
-		pipelineCreateInfo.pDepthStencilState = &vulkanFixedFunctionState->getDepthStencilCreateInfo(); // Optional
+		pipelineCreateInfo.pDepthStencilState = &vulkanFixedFunctionState->getDepthStencilCreateInfo();
 		pipelineCreateInfo.pColorBlendState = &vulkanFixedFunctionState->getColorBlendCreateInfo();
 		pipelineCreateInfo.pDynamicState = &vulkanFixedFunctionState->getDynamicCreateInfo();
 
@@ -60,9 +60,8 @@ namespace Magma {
 			VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &vkPipeline);
 		Z_LOG_OBJ("VulkanPipeline::init::vkCreateGraphicsPipeline", createGraphicsPipelineResult);
 
-		if (createGraphicsPipelineResult != VK_SUCCESS) {
+		if (createGraphicsPipelineResult != VK_SUCCESS)
 			return createGraphicsPipelineResult;
-		}
 
 		return initFramebuffers();
 	}
@@ -73,6 +72,7 @@ namespace Magma {
 			vulkanFramebuffer = std::make_shared<VulkanFramebuffer>(pVulkanDevice, pVulkanSwapchain);
 		}
 		vulkanFramebuffer->pVulkanRenderPass = vulkanRenderPass;
+		vulkanFramebuffer->pDepthImageView = pDepthImageView; 
 		return vulkanFramebuffer->init();
 	}
 
@@ -106,9 +106,11 @@ namespace Magma {
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = vkSwapchainExtent;
 
-		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		std::vector<VkClearValue> clearValues{ {}, {} };
+		clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+		clearValues[1].depthStencil = { 1.0f, 0 };
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
 
 		vkCmdBeginRenderPass(vulkanCmdBuffer.getCmdBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -117,10 +119,8 @@ namespace Magma {
 		vkCmdSetViewport(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFunctionState->getViewport());
 		vkCmdSetScissor(vulkanCmdBuffer.getCmdBuffer(), 0, 1, &vulkanFixedFunctionState->getScissor());
 
-		if (pVulkanDrawer != nullptr) {
-			pVulkanDrawer->onNewFrame(vulkanCmdBuffer,
-				vulkanFixedFunctionState->getPipelineLayout());
-		}
+		if (pVulkanRenderer != nullptr)
+			pVulkanRenderer->onNewFrame(vulkanCmdBuffer, vulkanFixedFunctionState->getPipelineLayout());
 
 		vkCmdEndRenderPass(vulkanCmdBuffer.getCmdBuffer());
 

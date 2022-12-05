@@ -1,8 +1,8 @@
-#include "vulkan_drawer.h"
+#include "vulkan_renderer.h"
 
 namespace Magma {
 
-	void VulkanDrawer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer,
+	void VulkanRenderer::onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer,
 		VkPipelineLayout& vkPipelineLayout) {
 		VkDeviceSize offsets[] = { 0 };
 
@@ -15,13 +15,17 @@ namespace Magma {
 
 		vkCmdBindVertexBuffers(vulkanCmdBuffer.getCmdBuffer(), 0, 1, vkBuffers.data(), offsets);
 
-		if (pUseIndexing) {
-			if (pIndexBuffer == nullptr) {
+		if (useIndexing) {
+			if (indexBuffer == nullptr) {
 				Z_LOG_TXT("VulkanDrawer::onNewFrame", "pIndexBuffer is nullptr");
 				return;
 			}
 
-			vkCmdBindIndexBuffer(vulkanCmdBuffer.getCmdBuffer(), pIndexBuffer->getBuffer(), 0,
+			std::shared_ptr<VulkanBuffer> _indexBuffer =
+				std::dynamic_pointer_cast<VulkanBuffer>(indexBuffer);
+
+			vkCmdBindIndexBuffer(vulkanCmdBuffer.getCmdBuffer(), 
+				_indexBuffer->getBuffer(), 0,
 				VkIndexType::VK_INDEX_TYPE_UINT16);
 
 			if (pDescriptorSets.size() > 0) {
@@ -30,12 +34,12 @@ namespace Magma {
 					0, 1, &pDescriptorSets[0], 0, nullptr);
 			}
 
-			vkCmdDrawIndexed(vulkanCmdBuffer.getCmdBuffer(), pIndexCount, pInstanceCount, pFirstIndex,
-				pVertexOffset, pFirstInstance);
+			vkCmdDrawIndexed(vulkanCmdBuffer.getCmdBuffer(), indexCount, instanceCount, firstIndex,
+				vertexOffset, firstInstance);
 		}
 		else {
-			vkCmdDraw(vulkanCmdBuffer.getCmdBuffer(), pVertexCount, pInstanceCount,
-				pFirstVertex, pFirstInstance);
+			vkCmdDraw(vulkanCmdBuffer.getCmdBuffer(), vertexCount, instanceCount,
+				firstVertex, firstInstance);
 		}
 	}
 

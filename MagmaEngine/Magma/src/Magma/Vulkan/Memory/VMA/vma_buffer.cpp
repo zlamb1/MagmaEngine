@@ -23,8 +23,15 @@ namespace Magma {
 
 	}
 
-	VmaBuffer::VmaBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) : 
-		VulkanBuffer( pVulkanDevice ) {}
+	VmaBuffer::VmaBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
+		VulkanBuffer(pVulkanDevice), allocator{ pVulkanDevice->getMemoryAllocator() } {}
+
+	VmaBuffer::~VmaBuffer() {
+		if (pVulkanDevice != nullptr) {
+			vkDeviceWaitIdle(pVulkanDevice->getDevice());
+			vmaDestroyBuffer(allocator->getAllocator(), vkBuffer, vmaAllocation);
+		}
+	}
 
 	VkBuffer& VmaBuffer::getBuffer() {
 		return vkBuffer;
@@ -41,25 +48,18 @@ namespace Magma {
 
 	VkBufferUsageFlagBits VmaBuffer::getBufferUsageFlagBits(BufferUsage bufferUsage) {
 		switch (bufferUsage) {
-		case BufferUsage::VERTEX:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		case BufferUsage::INDEX:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-		case BufferUsage::UNIFORM:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		case BufferUsage::TRANSFER_SRC:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		case BufferUsage::TRANSFER_DST:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-		default:
-			return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		}
-	}
-
-	VmaBuffer::~VmaBuffer() {
-		if (pVulkanDevice != nullptr) {
-			vkDeviceWaitIdle(pVulkanDevice->getDevice());
-			vmaDestroyBuffer(allocator->getAllocator(), vkBuffer, vmaAllocation);
+			case BufferUsage::VERTEX:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			case BufferUsage::INDEX:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+			case BufferUsage::UNIFORM:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+			case BufferUsage::TRANSFER_SRC:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			case BufferUsage::TRANSFER_DST:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+			default:
+				return VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		}
 	}
 
@@ -68,8 +68,6 @@ namespace Magma {
 			Z_LOG_TXT("VulkanBuffer::init", "pVulkanDevice is nullptr");
 			return;
 		}
-
-		allocator = pVulkanDevice->getMemoryAllocator();
 
 		VkBufferCreateInfo bufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		bufferCreateInfo.size = pSize;
@@ -85,8 +83,10 @@ namespace Magma {
 		vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 		vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 
-		vmaCreateBuffer(allocator->getAllocator(), &bufferCreateInfo, &vmaAllocInfo,
-			&vkBuffer, &vmaAllocation, nullptr);
+		auto createBufferResult = vmaCreateBuffer(allocator->getAllocator(), &bufferCreateInfo, 
+			&vmaAllocInfo, &vkBuffer, &vmaAllocation, nullptr);
+		Z_LOG_OBJ("VmaBuffer::init", createBufferResult);
+
 	}
 
 	void* VmaBuffer::getData() const {

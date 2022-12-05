@@ -3,11 +3,11 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "Window/vulkan_impl.h"
+#include "Magma/Window/vulkan_impl.h"
 
-#include "Vulkan/Logging/vulkan_logger.h"
+#include "Magma/Vulkan/Logging/vulkan_logger.h"
 
-#include "Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Setup/vulkan_instance.h"
 
 namespace Magma {
 	class VulkanSurface : public VulkanObject {

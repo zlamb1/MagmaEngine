@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Entity/entity.h"
+#include "Magma/Entity/entity.h"
 
 namespace Magma {
 

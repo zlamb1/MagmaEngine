@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Vulkan/Memory/vulkan_buffer.h"
+#include "Magma/Vulkan/Memory/vulkan_buffer.h"
 
-#include "Vulkan/Command/vulkan_cmd.h"
+#include "Magma/Vulkan/Command/vulkan_cmd.h"
 
 namespace Magma {
 
@@ -27,7 +27,7 @@ namespace Magma {
 		void unmap() override;
 
 	public:
-		const MemoryAllocator const* allocator = nullptr;
+		const MemoryAllocator* const allocator;
 
 	private:
 		VmaAllocation vmaAllocation{};

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Vulkan/Pipeline/vulkan_pipeline_c.h"
-
-#include "Vulkan/Surface/vulkan_swapchain.h"
+#include "Magma/Vulkan/Image/image_view.h"
+#include "Magma/Vulkan/Pipeline/vulkan_pipeline_c.h"
+#include "Magma/Vulkan/Surface/vulkan_swapchain.h"
 
 namespace Magma {
 
@@ -23,6 +23,7 @@ namespace Magma {
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
 		std::shared_ptr<VulkanRenderPass> pVulkanRenderPass = nullptr;
+		std::shared_ptr<VulkanImageView> pDepthImageView; 
 
 	private:
 		std::vector<VkFramebuffer> vkFramebuffers{};

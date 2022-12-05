@@ -1,6 +1,6 @@
-#include "application.h"
+#include "Examples/sphere_app.h"
 
 int main() {
-    Magma::Application& app = Magma::Application::instance();
+    Magma::SphereApp app = Magma::SphereApp();
     return app.run();
 }

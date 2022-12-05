@@ -5,10 +5,9 @@
 
 #include "device_profile.h"
 
-#include "Vulkan/Memory/VMA/memory_allocator.h"
-
-#include "Vulkan/Setup/vulkan_validater.h"
-#include "Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Memory/VMA/memory_allocator.h"
+#include "Magma/Vulkan/Setup/vulkan_validater.h"
+#include "Magma/Vulkan/Setup/vulkan_instance.h"
 
 namespace Magma {
 	

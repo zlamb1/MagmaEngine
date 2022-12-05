@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "Time/timestep.h"
+#include "Magma/Time/timestep.h"
 
 namespace Magma {
 

@@ -16,7 +16,7 @@ namespace Magma {
     VulkanAPI::VulkanAPI(VulkanImpl& windowImpl) : windowImpl{ windowImpl } {
         // add framebuffer resized callback
         windowImpl.addFramebufferSizeCallback([&](int32_t w, int32_t h) {
-            setFramebufferResized(true);
+            framebufferResized = true; 
         });
     }
 
@@ -25,7 +25,7 @@ namespace Magma {
         vkDeviceWaitIdle(vulkanDevice->getDevice());
     }
 
-    void VulkanAPI::initSetup() {
+    void VulkanAPI::init() {
         vulkanValidater = std::make_shared<VulkanValidater>();
         vulkanInstance = std::make_shared<VulkanInstance>(vulkanValidater);
 
@@ -60,17 +60,38 @@ namespace Magma {
         vulkanSwapchain = std::make_shared<VulkanSwapchain>(vulkanDevice);
         vulkanSwapchain->init();
 
-        vulkanDrawer = std::make_shared<VulkanDrawer>();
+        vulkanRenderer = std::make_shared<VulkanRenderer>();
 
         vulkanPipeline = std::make_shared<VulkanPipeline>(shaderAttributes);
 
-        defaultVertexShader = createVulkanShader(defVertexShader, ShadercType::VERTEX);
-        defaultFragmentShader = createVulkanShader(defFragmentShader, ShadercType::FRAGMENT);
+        auto& swapchainExtent = vulkanSwapchain->getSwapchainExtent();
+
+        depthImage = std::make_shared<VulkanImage>(vulkanDevice);
+        depthImage->pExtentWidth = swapchainExtent.width;
+        depthImage->pExtentHeight = swapchainExtent.height;
+
+        const auto depthFormat = findDepthFormat();
+        depthImage->pFormat = findDepthFormat();
+
+        depthImage->pImageTiling = VK_IMAGE_TILING_OPTIMAL;
+        depthImage->pUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        depthImage->init();
+
+        depthImageView = std::make_shared<VulkanImageView>(vulkanDevice, depthImage);
+        depthImageView->pImageAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+        depthImageView->init();
+
+        vulkanPipeline->pDepthImageView = depthImageView;
+
+        defaultVertexShader = createShader(defVertexShader, ShadercType::VERTEX);
+        defaultFragmentShader = createShader(defFragmentShader, ShadercType::FRAGMENT);
     }
 
     void VulkanAPI::initRender() {
+        vulkanRenderer->pDescriptorSets = shaderAttributes.getDescriptorSets();
+
         vulkanPipeline->pVulkanSwapchain = vulkanSwapchain;
-        vulkanPipeline->pVulkanDrawer = vulkanDrawer;
+        vulkanPipeline->pVulkanRenderer = vulkanRenderer;
 
         if (vulkanShaders.empty()) {
             Z_LOG_TXT("VulkanAPI::initRender", "warning: no shaders provided, using defaults");
@@ -83,7 +104,7 @@ namespace Magma {
         }
 
         for (auto buffer : buffers) {
-            vulkanDrawer->pVertexBuffers.push_back(buffer);
+            vulkanRenderer->pVertexBuffers.push_back(buffer);
         }
 
         vulkanPipeline->init();
@@ -92,7 +113,7 @@ namespace Magma {
         initSync();
     }
 
-    void VulkanAPI::onNewFrame(uint32_t vertexCount) {
+    void VulkanAPI::onNewFrame() {
         vkWaitForFences(vulkanDevice->getDevice(), 1,
             &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence(), VK_TRUE, UINT64_MAX);
 
@@ -113,7 +134,6 @@ namespace Magma {
         vkResetFences(vulkanDevice->getDevice(), 1,
             &vulkanRenderSyncs[currentFrame]->getFlightFence().getFence());
 
-        vulkanDrawer->pVertexCount = vertexCount;
         vulkanPipeline->onNewFrame(*vulkanCmdBuffers[currentFrame], imageIndex);
 
         VkSubmitInfo submitInfo{};
@@ -177,31 +197,23 @@ namespace Magma {
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    std::shared_ptr<VulkanDevice> VulkanAPI::getVulkanDevice() {
-        return vulkanDevice;
+    Renderer& VulkanAPI::getRenderer() const {
+        return *vulkanRenderer; 
     }
 
-    std::shared_ptr<VulkanDrawer> VulkanAPI::getVulkanDrawer() {
-        return vulkanDrawer;
+    ShaderAttributes& VulkanAPI::getShaderAttributes() const {
+        return (ShaderAttributes&) shaderAttributes;
     }
 
-    std::vector<std::shared_ptr<MagmaShader>>& VulkanAPI::getVulkanShaders() {
+    std::vector<std::shared_ptr<MagmaShader>>& VulkanAPI::getShaders() {
         return vulkanShaders;
     }
 
-    std::vector<std::shared_ptr<VulkanBuffer>>& VulkanAPI::getBuffers() {
-        return buffers;
+    std::shared_ptr<MagmaShader> VulkanAPI::createShader(const char* code, ShadercType type) {
+        return createShader({ code, type });
     }
 
-    void VulkanAPI::setFramebufferResized(bool framebufferResized) {
-        this->framebufferResized = framebufferResized;
-    }
-
-    std::shared_ptr<MagmaShader> VulkanAPI::createVulkanShader(const char* code, ShadercType type) {
-        return createVulkanShader({ code, type });
-    }
-
-    std::shared_ptr<MagmaShader> VulkanAPI::createVulkanShader(VulkanShaderInfo _vkShaderInfo) {
+    std::shared_ptr<MagmaShader> VulkanAPI::createShader(VulkanShaderInfo _vkShaderInfo) {
         std::shared_ptr<MagmaShader> vulkanShader = std::make_shared<MagmaShader>(vulkanDevice);
         vulkanShader->pShaderCode = _vkShaderInfo.pCode;
         vulkanShader->pShaderType = (shaderc_shader_kind)_vkShaderInfo.pShaderType;
@@ -209,11 +221,11 @@ namespace Magma {
         return vulkanShader;
     }
 
-    std::shared_ptr<VulkanBuffer> VulkanAPI::createBuffer(VkDeviceSize size) {
+    std::shared_ptr<Buffer> VulkanAPI::createBuffer(int64_t size) {
         return createBuffer(size, BufferUsage::VERTEX);
     }
 
-    std::shared_ptr<VulkanBuffer> VulkanAPI::createBuffer(VkDeviceSize size,
+    std::shared_ptr<Buffer> VulkanAPI::createBuffer(int64_t size,
         BufferUsage bufferUsage) {
         std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VmaBuffer>(vulkanDevice);
         vulkanBuffer->pSize = (uint32_t)size;
@@ -222,32 +234,33 @@ namespace Magma {
         return vulkanBuffer;
     }
 
-    ShaderAttributes& VulkanAPI::getShaderAttributes() {
-        return shaderAttributes;
+    void VulkanAPI::addBuffer(std::shared_ptr<Buffer> buffer) {
+        vulkanRenderer->pVertexBuffers.push_back(dynamic_pointer_cast<VulkanBuffer>(buffer));
     }
 
-    // Private
+    VkFormat VulkanAPI::findSupportedFormat(const std::vector<VkFormat>& candidates, 
+        VkImageTiling tiling, VkFormatFeatureFlags features) {
+        for (VkFormat format : candidates) {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(vulkanDevice->getPhysicalDevice(), format, &props);
 
-    void VulkanAPI::recreateSwapchain() {
-        // pause program while minimized
-        auto framebufferSize = windowImpl.getFramebufferSize();
-        while (framebufferSize.first == 0 || framebufferSize.second == 0) {
-            framebufferSize = windowImpl.getFramebufferSize();
-            windowImpl.waitForEvents();
+            if (tiling == VK_IMAGE_TILING_LINEAR && 
+                (props.linearTilingFeatures & features) == features)
+                return format;
+            else if (tiling == VK_IMAGE_TILING_OPTIMAL && 
+                (props.optimalTilingFeatures & features) == features)
+                return format;
         }
-        // wait for the device to be idle
-        vkDeviceWaitIdle(vulkanDevice->getDevice());
-        // TODO: move destruction and constructor into reinitialization method
-        // destroy existing pipeline
-        vulkanPipeline->destroyPipeline();
-        // delete framebuffers
-        vulkanPipeline->destroyFramebuffers();
-        // delete image views
-        vulkanSwapchain->deleteImageViews();
-        // recreate swapchain and image views
-        vulkanSwapchain->init();
-        // reinit framebuffers
-        vulkanPipeline->init();
+
+        throw std::runtime_error("failed to find supported format!");
+    }
+
+    VkFormat VulkanAPI::findDepthFormat() {
+        return findSupportedFormat(
+            { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        );
     }
 
     void VulkanAPI::initCommands() {
@@ -274,6 +287,28 @@ namespace Magma {
             Z_LOG_OBJ("VulkanAPI::initSync::vulkanRenderSync", vulkanRenderSync->init());
             vulkanRenderSyncs[i] = vulkanRenderSync;
         }
+    }
+
+    void VulkanAPI::recreateSwapchain() {
+        // pause program while minimized
+        auto framebufferSize = windowImpl.getFramebufferSize();
+        while (framebufferSize.first == 0 || framebufferSize.second == 0) {
+            framebufferSize = windowImpl.getFramebufferSize();
+            windowImpl.waitForEvents();
+        }
+        // wait for the device to be idle
+        vkDeviceWaitIdle(vulkanDevice->getDevice());
+        // TODO: move destruction and constructor into reinitialization method
+        // destroy existing pipeline
+        vulkanPipeline->destroyPipeline();
+        // delete framebuffers
+        vulkanPipeline->destroyFramebuffers();
+        // delete image views
+        vulkanSwapchain->deleteImageViews();
+        // recreate swapchain and image views
+        vulkanSwapchain->init();
+        // reinit framebuffers
+        vulkanPipeline->init();
     }
 
     std::vector<const char*> VulkanAPI::getRequiredExtensions() {

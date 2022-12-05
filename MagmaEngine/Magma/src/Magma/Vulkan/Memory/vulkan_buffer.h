@@ -2,9 +2,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Buffer/buffer.h"
+#include "Magma/Buffer/buffer.h"
 
-#include "Vulkan/Device/vulkan_device.h"
+#include "Magma/Vulkan/Device/vulkan_device.h"
 
 namespace Magma {
 

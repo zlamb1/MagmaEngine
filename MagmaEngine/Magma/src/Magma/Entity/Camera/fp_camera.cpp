@@ -27,8 +27,7 @@ namespace Magma {
 		if (acceptInput) {
 			glm::vec3 velocity{ 0.0f };
 			const float speed = 0.2f;
-			auto forwardVec3f = getForwardVec3f();
-			if (!forwardY) forwardVec3f.y = 0.0f;
+			auto forwardVec3f = getForwardVec3f(false);
 			auto rightVec3f = glm::cross(forwardVec3f, upVec3f);
 
 			if (input.isKeyPressed(KeyButton::W))
@@ -51,7 +50,7 @@ namespace Magma {
 	}
 
 	void FirstPersonImpl::updateViewMat4f() {
-		viewMat4f = glm::lookAt(position, position + getForwardVec3f(), upVec3f);
+		viewMat4f = glm::lookAt(position, position + getForwardVec3f(true), upVec3f);
 	}
 
 	void FirstPersonImpl::updatePerspectiveMat4f() {
@@ -68,12 +67,15 @@ namespace Magma {
 		return perspectiveMat4f;
 	}
 
-	glm::vec3 FirstPersonImpl::getForwardVec3f() {
-		return glm::vec3{
-			sin(rotation.x),
-			sin(rotation.y),
-			cos(rotation.x)
+	glm::vec3 FirstPersonImpl::getForwardVec3f(bool includeY) {
+		if (includeY)
+			return glm::vec3{
+				sin(rotation.x) * cos(rotation.y),
+				sin(rotation.y),
+				cos(rotation.x) * cos(rotation.y)
 		};
+		else
+			return glm::vec3{ sin(rotation.x), 0.0f, cos(rotation.x) };
 	}
 
 	void FirstPersonImpl::setAcceptInput(bool acceptInput) {
@@ -108,6 +110,7 @@ namespace Magma {
 			float sensitivity = 0.002f;
 			rotation.x += -dx * sensitivity;
 			rotation.y += -dy * sensitivity;
+			rotation.y = glm::clamp(rotation.y, glm::radians(-89.9f), glm::radians(89.9f));
 			input.getWindowImpl().setMouseCentered();
 			updateViewMat4f();
 		}

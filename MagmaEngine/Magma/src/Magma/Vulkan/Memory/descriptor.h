@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulkan/Shader/vulkan_shader.h"
+#include "Magma/Vulkan/Shader/vulkan_shader.h"
 
 namespace Magma {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulkan/Command/vulkan_operation.h"
+#include "Magma/Vulkan/Command/vulkan_operation.h"
 
 namespace Magma {
 

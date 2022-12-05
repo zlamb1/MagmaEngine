@@ -4,7 +4,7 @@
 
 #include "device_enums.h"
 
-#include "Vulkan/Surface/vulkan_surface.h"
+#include "Magma/Vulkan/Surface/vulkan_surface.h"
 
 namespace Magma {
 

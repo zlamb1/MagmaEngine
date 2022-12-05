@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Window/window.h"
-#include "Event/event.h"
+#include "Magma/Window/window.h"
+#include "Magma/Event/event.h"
 
 namespace Magma {
 

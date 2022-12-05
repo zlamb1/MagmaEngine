@@ -1,6 +1,7 @@
 #pragma once
 
-// should timestep be dependent on GLFW?
+// TODO: make time function abstract
+// it currently relies upon GLFW
 #include "GLFW/glfw3.h"
 
 namespace Magma {

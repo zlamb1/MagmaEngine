@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Vulkan/Device/vulkan_device.h"
+#include "Magma/Vulkan/Device/vulkan_device.h"
 
 namespace Magma {
 

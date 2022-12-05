@@ -7,7 +7,7 @@
 
 #include "camera.h"
 
-#include "Window/window_input.h"
+#include "Magma/Window/window_input.h"
 
 namespace Magma {
 

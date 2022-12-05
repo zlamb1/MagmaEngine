@@ -1,18 +1,20 @@
 #pragma once
 
-#include "Vulkan/Command/vulkan_cmd.h"
+#include "Magma/Vulkan/Command/vulkan_cmd.h"
 
-#include "Vulkan/Render/vulkan_drawer.h"
-#include "Vulkan/Render/vulkan_framebuffer.h"
+#include "Magma/Vulkan/Image/image_view.h"
 
-#include "Vulkan/Shader/shader_attributes.h"
+#include "Magma/Vulkan/Render/vulkan_renderer.h"
+#include "Magma/Vulkan/Render/vulkan_framebuffer.h"
+
+#include "Magma/Vulkan/Shader/shader_attributes.h"
 
 namespace Magma {
 
 	class VulkanPipeline : public VulkanObject {
 
 	public:
-		VulkanPipeline(ShaderAttributes& pShaderAttributes);
+		VulkanPipeline(VulkanShaderAttributes& pShaderAttributes);
 		~VulkanPipeline() override;
 
 		VkResult init() override;
@@ -27,9 +29,10 @@ namespace Magma {
 
 	public:
 		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
-		std::shared_ptr<VulkanDrawer> pVulkanDrawer = nullptr;
+		std::shared_ptr<VulkanRenderer> pVulkanRenderer = nullptr;
+		std::shared_ptr<VulkanImageView> pDepthImageView = nullptr;
 
-		ShaderAttributes& pShaderAttributes;
+		VulkanShaderAttributes& pShaderAttributes;
 
 	private:
 		VulkanShaderPipeline vulkanShaderPipeline{};

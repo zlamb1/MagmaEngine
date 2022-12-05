@@ -6,10 +6,10 @@
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
 
-#include "Vulkan/Shader/shader_attributes.h"
-#include "Vulkan/Shader/vulkan_shader.h"
+#include "Magma/Vulkan/Shader/shader_attributes.h"
+#include "Magma/Vulkan/Shader/vulkan_shader.h"
 
-#include "Vulkan/Surface/vulkan_swapchain.h"
+#include "Magma/Vulkan/Surface/vulkan_swapchain.h"
 
 namespace Magma {
 
@@ -47,7 +47,7 @@ namespace Magma {
 	class VulkanFixedFunctionState : public VulkanObject {
 
 	public:
-		VulkanFixedFunctionState(ShaderAttributes& pShaderAttributes);
+		VulkanFixedFunctionState(VulkanShaderAttributes& pShaderAttributes);
 		~VulkanFixedFunctionState() override;
 
 		VkResult init() override;
@@ -70,7 +70,7 @@ namespace Magma {
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
 
-		ShaderAttributes& pShaderAttributes;
+		VulkanShaderAttributes& pShaderAttributes;
 
 	private:
 		VkPipelineDynamicStateCreateInfo vkDynamicCreateInfo{};
@@ -94,6 +94,9 @@ namespace Magma {
 
 		VkPipelineLayout vkPipelineLayout{};
 
+		std::vector<VkVertexBinding> bindings{};
+		std::vector<VkVertexAttribute> attributes{};
+
 	};
 
 	class VulkanRenderPass : public VulkanObject {
@@ -110,6 +113,8 @@ namespace Magma {
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
+
+		VkFormat pDepthFormat; 
 
 	private:
 		VkRenderPass vkRenderPass{};

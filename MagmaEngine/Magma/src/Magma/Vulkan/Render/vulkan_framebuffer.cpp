@@ -29,15 +29,16 @@ namespace Magma {
         vkFramebuffers.resize(pVulkanSwapchain->getImageViews().size());
 
         for (size_t i = 0; i < pVulkanSwapchain->getImageViews().size(); i++) {
-            VkImageView attachments[] = {
-                pVulkanSwapchain->getImageViews()[i]
+            std::vector<VkImageView> attachments{
+                pVulkanSwapchain->getImageViews()[i],
+                pDepthImageView->getImageView()
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = pVulkanRenderPass->getRenderPass();
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferInfo.pAttachments = attachments.data();
             framebufferInfo.width = pVulkanSwapchain->getSwapchainExtent().width;
             framebufferInfo.height = pVulkanSwapchain->getSwapchainExtent().height;
             framebufferInfo.layers = 1;

@@ -8,7 +8,7 @@
 
 #include "logger.h"
 
-#include "Vulkan/IO/io.h"
+#include "Magma/Vulkan/IO/io.h"
 
 #ifndef DISTRIBUTION
 	#define Z_LOG_TXT(x, y) VulkanLogger::instance().logText(x, y)
