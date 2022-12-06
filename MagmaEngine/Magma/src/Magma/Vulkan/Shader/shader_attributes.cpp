@@ -7,6 +7,7 @@ namespace Magma {
 		vertexBinding.binding = binding;
 		vertexBinding.stride = stride;
 		vertexBinding.inputRate = Convert::convertVertexInputRate(inputRate); 
+
 		return vertexBinding;
 	}
 
@@ -16,6 +17,7 @@ namespace Magma {
 		vertexAttribute.location = location;
 		vertexAttribute.offset = offset;
 		vertexAttribute.format = Convert::convertFormat(format);
+
 		return vertexAttribute;
 	}
 
@@ -32,6 +34,7 @@ namespace Magma {
 		for (auto& descriptorSetLayout : descriptorSetLayouts) {
 			vkDescriptorSetLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
 		}
+
 		return vkDescriptorSetLayouts;
 	}
 
@@ -41,6 +44,7 @@ namespace Magma {
 			auto& sets = descriptorSet->getDescriptorSets();
 			vkDescriptorSets.insert(vkDescriptorSets.end(), sets.begin(), sets.end());
 		}
+
 		return vkDescriptorSets;
 	}
 
@@ -50,7 +54,9 @@ namespace Magma {
 		vertexBinding.binding = binding;
 		vertexBinding.stride = stride;
 		vertexBinding.inputRate = inputRate;
+
 		vertexBindings.push_back(vertexBinding);
+
 		return vertexBinding;
 	}
 
@@ -61,49 +67,59 @@ namespace Magma {
 		vertexAttribute.location = location;
 		vertexAttribute.offset = offset;
 		vertexAttribute.format = format;
+
 		vertexAttributes.push_back(vertexAttribute);
+
 		return vertexAttribute;
 	}
 
-	Descriptor VulkanShaderAttributes::createDescriptor(uint32_t pBinding, uint32_t pCount,
+	Descriptor VulkanShaderAttributes::createDescriptor(Buffer& pBuffer, 
+		uint32_t pBinding, 
+		uint64_t pSize,
+		uint32_t pCount,
 		VulkanShaderType pStageFlags) {
-		Descriptor vulkanDescriptor{};
-		vulkanDescriptor.pBinding = pBinding;
-		vulkanDescriptor.pCount = pCount;
-		vulkanDescriptor.pStageFlags = pStageFlags;
-		vulkanDescriptor.init();
-		vulkanDescriptors.push_back(vulkanDescriptor);
-		return vulkanDescriptor;
+		Descriptor descriptor{};
+		descriptor.pBinding = pBinding;
+		descriptor.pCount = pCount;
+		descriptor.pStageFlags = pStageFlags;
+
+		auto& buffer = (VmaBuffer&)pBuffer;
+		descriptor.pBuffer = buffer.getBuffer();
+		descriptor.pSize = pSize;
+
+		descriptor.init();
+
+		descriptors.push_back(descriptor);
+
+		return descriptor;
 	}
 
 	std::shared_ptr<DescriptorSetLayout> VulkanShaderAttributes::createDescriptorSetLayout() {
 		std::shared_ptr<DescriptorSetLayout> descriptorSetLayout =
 			std::make_shared<DescriptorSetLayout>();
 		descriptorSetLayout->pVulkanDevice = pVulkanDevice;
-		for (auto& vulkanDescriptor : vulkanDescriptors) {
-			descriptorSetLayout->pDescriptors.push_back(vulkanDescriptor.getLayoutBinding());
+		for (auto& descriptor : descriptors) {
+			descriptorSetLayout->pDescriptors.push_back(descriptor);
 		}
 		descriptorSetLayout->init();
 		descriptorSetLayouts.push_back(descriptorSetLayout);
+
 		return descriptorSetLayout;
 	}
 
-	std::shared_ptr<DescriptorSet> VulkanShaderAttributes::createDescriptorSet(Buffer& pBuffer,
-		uint32_t pMaxSets, VkDeviceSize pSize) {
+	std::shared_ptr<DescriptorSet> VulkanShaderAttributes::createDescriptorSet(uint32_t pMaxSets) {
 		std::shared_ptr<DescriptorSet> descriptorSet = std::make_shared<DescriptorSet>();
 		descriptorSet->pVulkanDevice = pVulkanDevice;
 
-		auto descriptorSetLayouts = getDescriptorSetLayouts();
 		for (auto descriptorSetLayout : descriptorSetLayouts) {
-			descriptorSet->pDescriptorSetLayouts.push_back(descriptorSetLayout);
+			descriptorSet->pDescriptorSetLayouts.push_back(
+				*descriptorSetLayout);
 		}
 
 		descriptorSet->pMaxSets = pMaxSets;
-		auto& buffer = (VmaBuffer&) pBuffer;
-		descriptorSet->pBuffer = buffer.getBuffer();
-		descriptorSet->pSize = pSize;
 		descriptorSet->init();
 		descriptorSets.push_back(descriptorSet);
+
 		return descriptorSet;
 	}
 
@@ -116,7 +132,7 @@ namespace Magma {
 	}
 
 	void VulkanShaderAttributes::clearDescriptors() {
-		vulkanDescriptors.clear();
+		descriptors.clear();
 	}
 
 	void VulkanShaderAttributes::clearDescriptorSetLayouts() {

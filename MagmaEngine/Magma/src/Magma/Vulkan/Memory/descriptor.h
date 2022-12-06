@@ -17,6 +17,8 @@ namespace Magma {
 	public:
 		uint32_t pBinding = 0, pCount = 1;
 		VulkanShaderType pStageFlags = VulkanShaderType::VERTEX;
+		VkBuffer pBuffer;
+		VkDeviceSize pSize = 0;
 
 	private:
 		VkDescriptorSetLayoutBinding vkDescriptorSetLayoutBinding{};
@@ -35,8 +37,7 @@ namespace Magma {
 
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-
-		std::vector<VkDescriptorSetLayoutBinding> pDescriptors{};
+		std::vector<Descriptor> pDescriptors{};
 
 	private:
 		VkDescriptorSetLayout vkDescriptorSetLayout{};
@@ -57,10 +58,7 @@ namespace Magma {
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
 
 		uint32_t pMaxSets = 1;
-		std::vector<VkDescriptorSetLayout> pDescriptorSetLayouts{};
-
-		VkBuffer pBuffer{};
-		VkDeviceSize pSize = 0;
+		std::vector<DescriptorSetLayout> pDescriptorSetLayouts{};
 
 	private:
 		VkDescriptorPool vkDescriptorPool{};

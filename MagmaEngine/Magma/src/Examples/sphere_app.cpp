@@ -9,28 +9,41 @@ namespace Magma {
     };
 
     const char* vertexShaderCode = R"(#version 450
-    layout(binding = 0) uniform UniformBufferObject {
-        mat4 model;
-        mat4 view;
-        mat4 proj;
-    } ubo;
+        layout(binding = 0) uniform UniformBufferObject {
+            mat4 model;
+            mat4 view;
+            mat4 proj;
+        } ubo;
 
-    layout(location = 0) in vec3 vertexPos;
-    layout(location = 1) in vec3 vertexColor;
+        layout(location = 0) in vec3 vertexPos;
+        layout(location = 1) in vec3 vertexColor;
+        layout(location = 2) in vec3 vertexNormal; 
 
-    layout(location = 0) out vec3 fragColor;
+        layout(location = 0) out vec3 fragColor;
+        layout(location = 1) out vec3 fragNormal;
 
-    void main() {
-        gl_Position = ubo.proj * ubo.view * ubo.model * vec4(vertexPos, 1.0);
-        fragColor = vertexColor;
-    })";
+        void main() {
+            gl_Position = ubo.proj * ubo.view * ubo.model * vec4(vertexPos, 1.0);
+            fragColor = vertexColor;
+            fragNormal = vertexNormal;
+        })";
 
     const char* fragmentShaderCode = R"(#version 450
-    layout(location = 0) in vec3 fragColor;
-    layout(location = 0) out vec4 outColor;
-    void main() {
-        outColor = vec4(fragColor, 1.0);
-    })";
+        layout(location = 0) in vec3 fragColor;
+        layout(location = 1) in vec3 fragNormal;
+
+        layout(location = 0) out vec4 outColor;
+        
+        layout(binding = 1) uniform Time {
+            float time; 
+        } iTime;
+
+        void main() {
+            float ambient = 0.01;
+            vec3 lightDir = vec3(cos(iTime.time), -1, sin(iTime.time));
+            float lighting = max(ambient, dot(fragNormal, -normalize(lightDir))); 
+            outColor = vec4(fragColor, 1.0) * lighting;
+        })";
 
     SphereApp::~SphereApp() {
         glfwTerminate();
@@ -41,6 +54,10 @@ namespace Magma {
             sphereData.verts.size() * sizeof(SphereVertex));
         indexBuffer->setData(sphereData.indices.data(),
             sphereData.indices.size() * sizeof(uint16_t));
+
+        timeStep.onNewFrame();
+        float time = (float)timeStep.getElapsed();
+        timeBuffer->setData(&time, sizeof(float));
 
         renderCore->getRenderer().setIndexCount(sphereData.indices.size());
 
@@ -105,11 +122,12 @@ namespace Magma {
         renderCore->getShaders().push_back(fragmentShader);
 
         auto& shaderAttributes = renderCore->getShaderAttributes();
-
         shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
         shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
             DataFormat::RGB_SFLOAT32);
         shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, color),
+            DataFormat::RGB_SFLOAT32);
+        shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, normal),
             DataFormat::RGB_SFLOAT32);
 
         resolution = MIN_RESOLUTIONS[sphereMode];
@@ -131,18 +149,25 @@ namespace Magma {
         indexBuffer->setData(sphereData.indices.data(), 
             sizeof(uint16_t) * sphereData.indices.size());
 
-        // create uniform buffer
-        uniformBuffer = renderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
-        uniformBuffer->map();
+        // create ubo buffer
+        uboBuffer = renderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
+        uboBuffer->map();
+         
+        // create time buffer
+        timeBuffer = renderCore->createBuffer(sizeof(float), BufferUsage::UNIFORM);
+        timeBuffer->map();
 
         // create descriptor
-        shaderAttributes.createDescriptor();
+        shaderAttributes.createDescriptor(*uboBuffer, 0, sizeof(UBO), 
+            1, VulkanShaderType::VERTEX);
+        shaderAttributes.createDescriptor(*timeBuffer, 1, sizeof(float), 
+            1, VulkanShaderType::FRAGMENT);
 
         // create descriptor set layout
         shaderAttributes.createDescriptorSetLayout();
 
         // create descriptor set
-        shaderAttributes.createDescriptorSet(*uniformBuffer, 1, sizeof(UBO));
+        shaderAttributes.createDescriptorSet(1);
 
         // set renderer fields
         renderCore->getRenderer().setIndexBuffer(indexBuffer);
@@ -163,15 +188,11 @@ namespace Magma {
         ubo.view = camera->getViewMat4f();
         ubo.proj = camera->getPerspectiveMat4f();
 
-        uniformBuffer->setData(&ubo, sizeof(ubo));
+        uboBuffer->setData(&ubo, sizeof(ubo));
     }
 
     glm::vec3 SphereApp::getRandomColor() {
-        return glm::vec3{
-            (float)rand() / (float)RAND_MAX,
-            (float)rand() / (float)RAND_MAX,
-            (float)rand() / (float)RAND_MAX
-        };
+        return { 1.0f, 0.0f, 0.0f };
     }
 
     void SphereApp::updateSphereData() {
@@ -181,15 +202,15 @@ namespace Magma {
         }
 
         switch (sphereMode) {
-        case 0:
-            sphereData = UVSphere::createSphere(resolution);
-            break;
-        case 1:
-            sphereData = IcoSphere::createSphere(resolution);
-            break;
-        case 2:
-            sphereData = QuadSphere::createSphere(resolution);
-            break;
+            case 0:
+                sphereData = UVSphere::createSphere(resolution);
+                break;
+            case 1:
+                sphereData = IcoSphere::createSphere(resolution);
+                break;
+            case 2:
+                sphereData = QuadSphere::createSphere(resolution);
+                break;
         }
 
         for (int i = 0; i < sphereData.verts.size(); i++) {

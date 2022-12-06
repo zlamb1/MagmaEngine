@@ -91,8 +91,8 @@ namespace Magma {
 		vkRasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		vkRasterizationCreateInfo.depthClampEnable = VK_FALSE;
 		vkRasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE;
-		// vkRasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-		vkRasterizationCreateInfo.polygonMode = VkPolygonMode::VK_POLYGON_MODE_LINE;
+		vkRasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+		// vkRasterizationCreateInfo.polygonMode = VkPolygonMode::VK_POLYGON_MODE_LINE;
 		vkRasterizationCreateInfo.lineWidth = 1.0f;
 
 		// face culling

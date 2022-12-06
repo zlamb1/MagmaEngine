@@ -33,11 +33,11 @@ namespace Magma {
 		void updateSphereData();
 		
 	private:
-		std::shared_ptr<Buffer> vertexBuffer, indexBuffer, uniformBuffer;
+		std::shared_ptr<Buffer> vertexBuffer, indexBuffer, uboBuffer, timeBuffer;
 		std::shared_ptr<DescriptorSet> vulkanDescriptorSet;
 
 		float x = 0.0f;
-		Timestep frameStep, cameraStep, sphereStep;
+		Timestep timeStep, frameStep, cameraStep, sphereStep;
 
 		SphereData sphereData; 
 		int resolution = 0, sphereMode = 0;

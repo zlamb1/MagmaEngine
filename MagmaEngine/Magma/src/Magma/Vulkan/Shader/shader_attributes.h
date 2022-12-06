@@ -77,13 +77,15 @@ namespace Magma {
 			uint32_t offset = 0,
 			DataFormat format = DataFormat::RGB_SFLOAT32) override;
 
-		Descriptor createDescriptor(uint32_t pBinding = 0, uint32_t pCount = 1,
+		Descriptor createDescriptor(Buffer& pBuffer,
+			uint32_t pBinding = 0,
+			uint64_t pSize = 0, 
+			uint32_t pCount = 1,
 			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX);
 
 		std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout() override;
 
-		std::shared_ptr<DescriptorSet> createDescriptorSet(Buffer& pBuffer,
-			uint32_t pMaxSets = 1, VkDeviceSize pSize = 0) override;
+		std::shared_ptr<DescriptorSet> createDescriptorSet(uint32_t pMaxSets = 1) override;
 
 		void clearVertexBindings();
 		void clearVertexAttributes();
@@ -99,7 +101,7 @@ namespace Magma {
 		std::vector<VulkanVertexBinding> vertexBindings{};
 		std::vector<VulkanVertexAttribute> vertexAttributes{};
 
-		std::vector<Descriptor> vulkanDescriptors{};
+		std::vector<Descriptor> descriptors{};
 
 		// these are shared pointers to manage their lifetime
 		std::vector<std::shared_ptr<DescriptorSetLayout>> descriptorSetLayouts{};

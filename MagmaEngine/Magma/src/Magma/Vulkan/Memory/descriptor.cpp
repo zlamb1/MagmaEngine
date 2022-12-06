@@ -33,10 +33,16 @@ namespace Magma {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
+        std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings{};
+        for (auto& descriptor : pDescriptors) {
+            descriptorSetLayoutBindings.push_back(descriptor.getLayoutBinding());
+        }
+
         VkDescriptorSetLayoutCreateInfo descriptorSeyLayoutCreateInfo{};
         descriptorSeyLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        descriptorSeyLayoutCreateInfo.bindingCount = static_cast<uint32_t>(pDescriptors.size());
-        descriptorSeyLayoutCreateInfo.pBindings = pDescriptors.data();
+        descriptorSeyLayoutCreateInfo.bindingCount = 
+            static_cast<uint32_t>(descriptorSetLayoutBindings.size());
+        descriptorSeyLayoutCreateInfo.pBindings = descriptorSetLayoutBindings.data();
 
         auto createDescriptorSeyLayoutResult = vkCreateDescriptorSetLayout(pVulkanDevice->getDevice(),
             &descriptorSeyLayoutCreateInfo, pAllocator, &vkDescriptorSetLayout);
@@ -83,11 +89,16 @@ namespace Magma {
             return createDescriptorPoolResult;
         }
 
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{};
+        for (auto& descriptorSetLayout : pDescriptorSetLayouts) {
+            descriptorSetLayouts.push_back(descriptorSetLayout.getDescriptorSetLayout());
+        }
+
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = vkDescriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(pDescriptorSetLayouts.size());
-        allocInfo.pSetLayouts = pDescriptorSetLayouts.data();
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+        allocInfo.pSetLayouts = descriptorSetLayouts.data();
 
         vkDescriptorSets.resize(1);
 
@@ -96,28 +107,31 @@ namespace Magma {
         Z_LOG_OBJ("VulkanDescriptorSet::init::vkAllocateDescriptorSets",
             allocateDescriptorSetsResult);
 
-        if (allocateDescriptorSetsResult != VK_SUCCESS) {
+        if (allocateDescriptorSetsResult != VK_SUCCESS)
             return allocateDescriptorSetsResult;
+
+        for (auto& descriptorSetLayout : pDescriptorSetLayouts) {
+            for (auto& descriptor : descriptorSetLayout.pDescriptors) {
+                VkDescriptorBufferInfo bufferInfo{};
+                bufferInfo.buffer = descriptor.pBuffer;
+                bufferInfo.offset = 0;
+                bufferInfo.range = descriptor.pSize;
+
+                VkWriteDescriptorSet vkWriteDescriptorSet{};
+                vkWriteDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                vkWriteDescriptorSet.dstSet = vkDescriptorSets[0];
+                vkWriteDescriptorSet.dstBinding = descriptor.pBinding;
+                vkWriteDescriptorSet.dstArrayElement = 0;
+                vkWriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                vkWriteDescriptorSet.descriptorCount = descriptor.pCount;
+                vkWriteDescriptorSet.pBufferInfo = &bufferInfo;
+                vkWriteDescriptorSet.pImageInfo = nullptr; // optional
+                vkWriteDescriptorSet.pTexelBufferView = nullptr; // optional
+
+                vkUpdateDescriptorSets(pVulkanDevice->getDevice(),
+                    1, &vkWriteDescriptorSet, 0, nullptr);
+            }
         }
-
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = pBuffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range = pSize;
-
-        VkWriteDescriptorSet vkWriteDescriptorSet{};
-        vkWriteDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        vkWriteDescriptorSet.dstSet = vkDescriptorSets[0];
-        vkWriteDescriptorSet.dstBinding = 0;
-        vkWriteDescriptorSet.dstArrayElement = 0;
-        vkWriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        vkWriteDescriptorSet.descriptorCount = 1;
-        vkWriteDescriptorSet.pBufferInfo = &bufferInfo;
-        vkWriteDescriptorSet.pImageInfo = nullptr; // optional
-        vkWriteDescriptorSet.pTexelBufferView = nullptr; // optional
-
-        vkUpdateDescriptorSets(pVulkanDevice->getDevice(),
-            1, &vkWriteDescriptorSet, 0, nullptr);
 
         return VK_SUCCESS;
     }

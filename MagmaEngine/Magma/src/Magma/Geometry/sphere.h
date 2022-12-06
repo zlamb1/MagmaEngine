@@ -7,7 +7,7 @@ namespace Magma {
 	struct SphereVertex {
 		SphereVertex(glm::vec3 pos) : pos{ pos }, color{ 1.0f } {}
 
-		glm::vec3 pos, color;
+		glm::vec3 pos, color, normal;
 	};
 
 	struct SphereData {
@@ -28,6 +28,18 @@ namespace Magma {
 			if (index == verts.size())
 				verts.push_back(pos);
 			return index;
+		}
+		
+		static glm::vec3 getSurfaceNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+			glm::vec3 u = b - a; 
+			glm::vec3 v = c - a; 
+			glm::vec3 normal{ 
+				(u.y * v.z) - (u.z * v.y),
+				(u.z * v.x) - (u.x * v.z),
+				(u.x * v.y) - (u.y * v.x)
+			};
+
+			return normal;
 		}
 
 	}
@@ -92,6 +104,10 @@ namespace Magma {
 				}
 			}
 
+			for (auto& vertex : sphereData.verts) {
+				vertex.normal = vertex.pos;
+			}
+
 			return sphereData;
 		}
 
@@ -146,7 +162,7 @@ namespace Magma {
 
 					glm::vec3 f = c + ((a - c) / 2.0f);
 					auto fIndex = SphereUtility::getIndexAndAdd(nVerts, f);
-
+					
 					std::vector<uint16_t> _indices{
 						aIndex, dIndex, fIndex,
 						dIndex, bIndex, eIndex,
@@ -165,6 +181,11 @@ namespace Magma {
 			}
 
 			sphereData.indices = inIndices;
+
+			for (auto& vertex : sphereData.verts) {
+				// a vertex on a sphere is its own normal
+				vertex.normal = vertex.pos;
+			}
 
 			return sphereData;
 		}
@@ -239,6 +260,10 @@ namespace Magma {
 			}
 
 			sphereData.indices = inIndices;
+
+			for (auto& vertex : sphereData.verts) {
+				vertex.normal = vertex.pos;
+			}
 
 			return sphereData; 
 		}
