@@ -1,5 +1,7 @@
 #include "sphere_app.h"
 
+#include "Magma/Image/STB/stb_image.h"
+
 namespace Magma {
 
     struct UBO {
@@ -101,7 +103,7 @@ namespace Magma {
     }
 
     void SphereApp::initWindow() {
-        // init glfw
+        // init GLFW
         glfwInit();
 
         // init window
@@ -123,9 +125,9 @@ namespace Magma {
         renderCore->setDepthBuffering(true);
 
         // create shaders
-        auto vertexShader = renderCore->createShader(vertexShaderCode, ShadercType::VERTEX);
+        const auto vertexShader = renderCore->createShader(vertexShaderCode, ShadercType::VERTEX);
         renderCore->getShaders().push_back(vertexShader);
-        auto fragmentShader = renderCore->createShader(fragmentShaderCode, ShadercType::FRAGMENT);
+        const auto fragmentShader = renderCore->createShader(fragmentShaderCode, ShadercType::FRAGMENT);
         renderCore->getShaders().push_back(fragmentShader);
 
         auto& shaderAttributes = renderCore->getShaderAttributes();
@@ -191,7 +193,7 @@ namespace Magma {
         renderCore->initRender();
     }
 
-    void SphereApp::updateUniformBuffer() {
+    void SphereApp::updateUniformBuffer() const {
         static auto start = Timestep();
         start.onNewFrame();
 
@@ -201,10 +203,6 @@ namespace Magma {
         ubo.proj = camera->getPerspectiveMat4f();
 
         uboBuffer->setData(&ubo, sizeof(ubo));
-    }
-
-    glm::vec3 SphereApp::getRandomColor() {
-        return { 1.0f, 0.0f, 0.0f };
     }
 
     void SphereApp::updateSphereData() {
@@ -227,35 +225,29 @@ namespace Magma {
             case 2:
                 sphereData = QuadSphere::createSphere(resolution, false);
                 break;
-        }
-
-        for (int i = 0; i < sphereData.verts.size(); i++) {
-            sphereData.verts[i].color = getRandomColor();
+	        default:
+	            break;
         }
 
         resolution++;
     }
 
     void SphereApp::createTexture() {
-        stbi_set_flip_vertically_on_load(true);
+        StbImageLoader loader{};
+        const auto imageData = loader.loadImage("texture1.jpg"); 
 
-        int width, height, channels;
-        stbi_uc* pixels = stbi_load("texture1.jpg", &width, &height,
-            &channels, STBI_rgb_alpha);
-        const int64_t imageSize = static_cast<int64_t>(width) * height * 4;
+        const int64_t imageSize = static_cast<int64_t>(imageData->width) * imageData->height * 4;
 
-        if (!pixels) {
+        if (!imageData->pixels) {
             throw std::runtime_error("failed to load texture image!");
         }
 
         textureBuffer = renderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
         textureBuffer->map();
-        textureBuffer->setData(pixels, imageSize);
+        textureBuffer->setData(imageData->pixels, imageSize);
         textureBuffer->unmap();
 
-        stbi_image_free(pixels);
-
-        textureImage = renderCore->createTexture(width, height);
+        textureImage = renderCore->createTexture(imageData->width, imageData->height);
 
         TransitionImage transitionImage{ renderCore->getDevice() };
         transitionImage.pImage = textureImage;

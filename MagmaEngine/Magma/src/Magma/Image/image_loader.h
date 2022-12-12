@@ -7,16 +7,16 @@
 namespace Magma {
 
 	struct ImageData {
-		// specify deleter function on creation
-		std::unique_ptr<char*> pixels; 
-		int32_t width, height, channels; 
+		unsigned char* pixels = nullptr; 
+		int32_t width = 0, height = 0, channels = 0;
+		virtual ~ImageData() = default; 
 	};
 
 	class ImageLoader {
 
 	public:
 		virtual ~ImageLoader() = default; 
-		virtual ImageData loadImage(const std::string& path) = 0; 
+		virtual std::shared_ptr<ImageData> loadImage(const std::string& path) = 0; 
 
 	};
 

@@ -1,16 +1,14 @@
 #pragma once
 
 #include <chrono>
-#include <stdexcept>
 
 #include "Magma/Application/application.h"
 
 #include "Magma/Entity/Camera/tp_camera.h"
 #include "Magma/Entity/Camera/fp_camera.h"
-#include "Magma/Event/event.h"
 #include "Magma/Geometry/sphere.h"
 #include "Magma/Image/image.h"
-#include "Magma/Image/stb_image.h"
+#include "Magma/Image/STB/stb_loader.h"
 #include "Magma/Time/timestep.h"
 #include "Magma/Vulkan/vulkan_api.h"
 #include "Magma/Window/glfw_impl.h"
@@ -30,8 +28,7 @@ namespace Magma {
 		void initVulkan() override;
 
 	private:
-		void updateUniformBuffer();
-		glm::vec3 getRandomColor();
+		void updateUniformBuffer() const;
 		void updateSphereData();
 		void createTexture();
 		
