@@ -4,14 +4,11 @@
 
 #include "Magma/Application/application.h"
 
-#include "Magma/Entity/Camera/tp_camera.h"
 #include "Magma/Entity/Camera/fp_camera.h"
 #include "Magma/Geometry/sphere.h"
 #include "Magma/Image/image.h"
-#include "Magma/Image/STB/stb_loader.h"
 #include "Magma/Time/timestep.h"
 #include "Magma/Vulkan/vulkan_api.h"
-#include "Magma/Window/glfw_impl.h"
 
 namespace Magma {
 
@@ -19,8 +16,8 @@ namespace Magma {
 
 	public:
 		SphereApp() = default;
-		~SphereApp();
-		
+		virtual ~SphereApp();
+
 	protected:
 		void onNewFrame() override;
 
@@ -31,25 +28,25 @@ namespace Magma {
 		void updateUniformBuffer() const;
 		void updateSphereData();
 		void createTexture();
-		
+
 	private:
-		std::shared_ptr<Buffer> vertexBuffer, indexBuffer, uboBuffer, timeBuffer, textureBuffer;
-		std::shared_ptr<DescriptorSet> vulkanDescriptorSet;
+		std::shared_ptr<Buffer> m_VertexBuffer, m_UboBuffer, m_TimeBuffer, m_TextureBuffer;
+		std::shared_ptr<DescriptorSet> m_DescriptorSet;
 
-		std::shared_ptr<Image> textureImage; 
-		std::shared_ptr<VulkanImageView> textureImageView;
-		std::shared_ptr<Sampler> textureSampler; 
+		std::shared_ptr<Image> m_TextureImage;
+		std::shared_ptr<VulkanImageView> m_TextureImageView;
+		std::shared_ptr<Sampler> m_TextureSampler;
 
-		float x = 0.0f;
-		Timestep timeStep, frameStep, cameraStep, sphereStep;
+		Timestep m_TimeStep, m_FrameStep, m_CameraStep, m_SphereStep;
 
-		SphereData sphereData; 
-		int resolution = 0, sphereMode = 0;
-		int MIN_RESOLUTIONS[3] = { 2, 0, 0 };
-		int MAX_RESOLUTIONS[3] = { 10, 5, 5 };
+		SphereData m_SphereData;
+		int m_Resolution = 0, m_SphereMode = 0;
 
-		std::shared_ptr<CameraImpl> camera;
-		uint32_t cameraIndex = 0;
+		const int MIN_RESOLUTIONS[3] = {2, 0, 0};
+		const int MAX_RESOLUTIONS[3] = {10, 5, 5};
+
+		std::shared_ptr<CameraImpl> m_Camera;
+		uint32_t m_CameraIndex = 0;
 
 	};
 

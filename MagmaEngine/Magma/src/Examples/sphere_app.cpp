@@ -2,15 +2,19 @@
 
 #include "Magma/Image/STB/stb_image.h"
 
+#include "Magma/Entity/Camera/tp_camera.h"
+#include "Magma/Image/STB/stb_loader.h"
+#include "Magma/Window/glfw_impl.h"
+
 namespace Magma {
 
-    struct UBO {
-        glm::mat4 model{ 1.0f };
-        glm::mat4 view { 1.0f };
-        glm::mat4 proj { 1.0f };
-    };
+	struct UBO {
+		glm::mat4 model{1.0f};
+		glm::mat4 view{1.0f};
+		glm::mat4 proj{1.0f};
+	};
 
-    const char* vertexShaderCode = R"(#version 450
+	const char* vertexShaderCode = R"(#version 450
         layout(binding = 0) uniform UniformBufferObject {
             mat4 model;
             mat4 view;
@@ -33,7 +37,7 @@ namespace Magma {
             fragUV = vertexUV;
         })";
 
-    const char* fragmentShaderCode = R"(#version 450
+	const char* fragmentShaderCode = R"(#version 450
         layout(location = 0) in vec3 fragColor;
         layout(location = 1) in vec3 fragNormal;
         layout(location = 2) in vec2 fragUV; 
@@ -53,220 +57,208 @@ namespace Magma {
             outColor = texture(textureSampler, fragUV) * lighting;
         })";
 
-    SphereApp::~SphereApp() {
-        glfwTerminate();
-    }
+	SphereApp::~SphereApp() {
+		glfwTerminate();
+	}
 
-    void SphereApp::onNewFrame() {
-        vertexBuffer->setData(sphereData.verts.data(),
-            sphereData.verts.size() * sizeof(SphereVertex));
-        //indexBuffer->setData(sphereData.indices.data(),
-        //    sphereData.indices.size() * sizeof(uint16_t));
+	void SphereApp::onNewFrame() {
+		m_VertexBuffer->setData(m_SphereData.verts.data(),
+			m_SphereData.verts.size() * sizeof(SphereVertex));
 
-        timeStep.onNewFrame();
-        auto time = static_cast<float>(timeStep.getElapsed());
-        timeBuffer->setData(&time, sizeof(float));
+		m_TimeStep.onNewFrame();
+		auto time = static_cast<float>(m_TimeStep.getElapsed());
+		m_TimeBuffer->setData(&time, sizeof(float));
 
-        //renderCore->getRenderer().setIndexCount(sphereData.indices.size());
-        renderCore->getRenderer().setVertexCount(sphereData.verts.size());
+		renderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.verts.size()));
 
-        sphereStep.onNewFrame();
-        if (sphereStep.getElapsed() > 0.4) {
-            updateSphereData();
-            sphereStep.reset();
-        }
+		m_SphereStep.onNewFrame();
+		if (m_SphereStep.getElapsed() > 0.4) {
+			updateSphereData();
+			m_SphereStep.reset();
+		}
 
-        cameraStep.onNewFrame();
-        if (input->isKeyPressed(KeyButton::C) && cameraStep.getElapsed() >= 1.0) {
-            cameraIndex++;
-            if (cameraIndex % 2 == 0)
-                camera.reset(new ThirdPersonImpl(*input));
-            else
-                camera.reset(new FirstPersonImpl(*input));
-            cameraStep.reset();
-        }
+		m_CameraStep.onNewFrame();
+		if (input->isKeyPressed(KeyButton::C) && m_CameraStep.getElapsed() >= 1.0) {
+			m_CameraIndex++;
+			if (m_CameraIndex % 2 == 0)
+				m_Camera.reset(new ThirdPersonImpl(*input));
+			else
+				m_Camera.reset(new FirstPersonImpl(*input));
+			m_CameraStep.reset();
+		}
 
-        camera->onUpdate(frameStep);
+		m_Camera->onUpdate(m_FrameStep);
 
-        updateUniformBuffer();
+		updateUniformBuffer();
 
-        renderCore->onNewFrame();
+		renderCore->onNewFrame();
 
-        glfwPollEvents();
+		glfwPollEvents();
 
-        frameStep.onNewFrame();
-        if (frameStep.getElapsed() > 0.2) {
-            const std::string title = "FPS: " + std::to_string(frameStep.getFps());
-            windowImpl->setTitle(title);
-            frameStep.reset();
-        }
-    }
+		m_FrameStep.onNewFrame();
+		if (m_FrameStep.getElapsed() > 0.2) {
+			const std::string title = "FPS: " + std::to_string(m_FrameStep.getFps());
+			windowImpl->setTitle(title);
+			m_FrameStep.reset();
+		}
+	}
 
-    void SphereApp::initWindow() {
-        // init GLFW
-        glfwInit();
+	void SphereApp::initWindow() {
+		// init GLFW
+		glfwInit();
 
-        // init window
-        windowImpl = std::make_shared<GLFWImpl>();
-        windowImpl->init(500, 500);
-        windowImpl->setTitle("Vulkan");
-        
-        // init input
-        input = std::make_shared<WindowInput>(*windowImpl);
+		// init window
+		windowImpl = std::make_shared<GLFWImpl>();
+		windowImpl->init(500, 500);
+		windowImpl->setTitle("Vulkan");
 
-        // init camera
-        camera = std::make_shared<ThirdPersonImpl>(*input);
-    }
+		// init input
+		input = std::make_shared<WindowInput>(*windowImpl);
 
-    void SphereApp::initVulkan() {
-        Application::initVulkan(); 
+		// init camera
+		m_Camera = std::make_shared<ThirdPersonImpl>(*input);
+	}
 
-        renderCore->init();
-        renderCore->setDepthBuffering(true);
+	void SphereApp::initVulkan() {
+		Application::initVulkan();
 
-        // create shaders
-        const auto vertexShader = renderCore->createShader(vertexShaderCode, ShadercType::VERTEX);
-        renderCore->getShaders().push_back(vertexShader);
-        const auto fragmentShader = renderCore->createShader(fragmentShaderCode, ShadercType::FRAGMENT);
-        renderCore->getShaders().push_back(fragmentShader);
+		renderCore->init();
+		renderCore->setDepthBuffering(true);
 
-        auto& shaderAttributes = renderCore->getShaderAttributes();
-        shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
-        shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
-            DataFormat::RGB_SFLOAT32);
-        shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, color),
-            DataFormat::RGB_SFLOAT32);
-        shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, normal),
-            DataFormat::RGB_SFLOAT32);
-        shaderAttributes.createVertexAttribute(0, 3, offsetof(SphereVertex, uv),
-            DataFormat::RG_SFLOAT32);
+		// create shaders
+		const auto vertexShader = renderCore->createShader(vertexShaderCode, VERTEX);
+		renderCore->getShaders().push_back(vertexShader);
+		const auto fragmentShader = renderCore->createShader(fragmentShaderCode, FRAGMENT);
+		renderCore->getShaders().push_back(fragmentShader);
 
-        resolution = MIN_RESOLUTIONS[sphereMode];
-        updateSphereData();
+		auto& shaderAttributes = renderCore->getShaderAttributes();
+		shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
+		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
+		                                       DataFormat::RGB_SFLOAT32);
+		shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, color),
+		                                       DataFormat::RGB_SFLOAT32);
+		shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, normal),
+		                                       DataFormat::RGB_SFLOAT32);
+		shaderAttributes.createVertexAttribute(0, 3, offsetof(SphereVertex, uv),
+		                                       DataFormat::RG_SFLOAT32);
 
-        // create vertex buffer
-        constexpr auto vertexBufferSize = sizeof(SphereVertex) * 100000;
-        vertexBuffer = renderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
-        vertexBuffer->map();
-        vertexBuffer->setData(sphereData.verts.data(), 
-            sizeof(SphereVertex) * sphereData.verts.size());
+		m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
+		updateSphereData();
 
-        renderCore->addBuffer(vertexBuffer);
+		// create vertex buffer
+		constexpr auto vertexBufferSize = sizeof(SphereVertex) * 100000;
+		m_VertexBuffer = renderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
+		m_VertexBuffer->map();
+		m_VertexBuffer->setData(m_SphereData.verts.data(),
+		                      sizeof(SphereVertex) * m_SphereData.verts.size());
 
-        // create index buffer
-        constexpr size_t indexBufferSize = sizeof(uint16_t) * 30000;
-        indexBuffer = renderCore->createBuffer(indexBufferSize, BufferUsage::INDEX);
-        //indexBuffer->map();
-        //indexBuffer->setData(sphereData.indices.data(), 
-        //    sizeof(uint16_t) * sphereData.indices.size());
+		renderCore->addBuffer(m_VertexBuffer);
 
-        // create ubo buffer
-        uboBuffer = renderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
-        uboBuffer->map();
-         
-        // create time buffer
-        timeBuffer = renderCore->createBuffer(sizeof(float), BufferUsage::UNIFORM);
-        timeBuffer->map();
+		// create ubo buffer
+		m_UboBuffer = renderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
+		m_UboBuffer->map();
 
-        // create texture resources
-        createTexture();
+		// create time buffer
+		m_TimeBuffer = renderCore->createBuffer(sizeof(float), BufferUsage::UNIFORM);
+		m_TimeBuffer->map();
 
-        // create descriptor
-        shaderAttributes.createUniformDescriptor(uboBuffer, 0, sizeof(UBO), 
-            1, VulkanShaderType::VERTEX);
-        shaderAttributes.createUniformDescriptor(timeBuffer, 1, sizeof(float),
-            1, VulkanShaderType::FRAGMENT);
-        shaderAttributes.createImageDescriptor(textureImageView, textureSampler, 2, 1,
-            VulkanShaderType::FRAGMENT); 
+		// create texture resources
+		createTexture();
 
-        // create descriptor set layout
-        shaderAttributes.createDescriptorSetLayout();
+		// create descriptor
+		shaderAttributes.createUniformDescriptor(m_UboBuffer, 0, sizeof(UBO),
+		                                         1, VulkanShaderType::VERTEX);
+		shaderAttributes.createUniformDescriptor(m_TimeBuffer, 1, sizeof(float),
+		                                         1, VulkanShaderType::FRAGMENT);
+		shaderAttributes.createImageDescriptor(m_TextureImageView, m_TextureSampler, 2, 1,
+		                                       VulkanShaderType::FRAGMENT);
 
-        // create descriptor set
-        shaderAttributes.createDescriptorSet(1);
+		// create descriptor set layout
+		shaderAttributes.createDescriptorSetLayout();
 
-        // set renderer fields
-        // renderCore->getRenderer().setIndexBuffer(indexBuffer);
-        // renderCore->getRenderer().setUseIndexing(true);
+		// create descriptor set
+		shaderAttributes.createDescriptorSet(1);
 
-        // init render structures
-        renderCore->initRender();
-    }
+		// set renderer fields
+		// renderCore->getRenderer().setIndexBuffer(indexBuffer);
+		// renderCore->getRenderer().setUseIndexing(true);
 
-    void SphereApp::updateUniformBuffer() const {
-        static auto start = Timestep();
-        start.onNewFrame();
+		// init render structures
+		renderCore->initRender();
+	}
 
-        UBO ubo{};
-        ubo.model = glm::mat4{ 1.0f };
-        ubo.view = camera->getViewMat4f();
-        ubo.proj = camera->getPerspectiveMat4f();
+	void SphereApp::updateUniformBuffer() const {
+		static auto start = Timestep();
+		start.onNewFrame();
+		UBO ubo{
+			glm::mat4{1.0f},
+			m_Camera->getViewMat4f(),
+			m_Camera->getPerspectiveMat4f()
+		};
+		m_UboBuffer->setData(&ubo, sizeof(ubo));
+	}
 
-        uboBuffer->setData(&ubo, sizeof(ubo));
-    }
+	void SphereApp::updateSphereData() {
+		if (m_Resolution >= MAX_RESOLUTIONS[m_SphereMode]) {
+			m_SphereMode = (m_SphereMode + 1) % 3;
+			m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
+		}
 
-    void SphereApp::updateSphereData() {
-        if (resolution >= MAX_RESOLUTIONS[sphereMode]) {
-            sphereMode = (sphereMode + 1) % 3;
-            resolution = MIN_RESOLUTIONS[sphereMode];
-        }
+		// manually set values
+		m_SphereMode = 2;
+		m_Resolution = 5;
 
-        // manually set values
-        sphereMode = 2;
-        resolution = 5; 
+		switch (m_SphereMode) {
+		case 0:
+			m_SphereData = UVSphere::createSphere(m_Resolution);
+			break;
+		case 1:
+			m_SphereData = IcoSphere::createSphere(m_Resolution);
+			break;
+		case 2:
+			m_SphereData = QuadSphere::createSphere(m_Resolution, false);
+			break;
+		default:
+			break;
+		}
 
-        switch (sphereMode) {
-            case 0:
-                sphereData = UVSphere::createSphere(resolution);
-                break;
-            case 1:
-                sphereData = IcoSphere::createSphere(resolution);
-                break;
-            case 2:
-                sphereData = QuadSphere::createSphere(resolution, false);
-                break;
-	        default:
-	            break;
-        }
+		m_Resolution++;
+	}
 
-        resolution++;
-    }
+	void SphereApp::createTexture() {
+		StbImageLoader loader{};
+		const auto imageData = loader.loadImage("texture1.jpg");
 
-    void SphereApp::createTexture() {
-        StbImageLoader loader{};
-        const auto imageData = loader.loadImage("texture1.jpg"); 
+		const int64_t imageSize = static_cast<int64_t>(imageData->width) * imageData->height * 4;
 
-        const int64_t imageSize = static_cast<int64_t>(imageData->width) * imageData->height * 4;
+		if (!imageData->pixels) {
+			throw std::runtime_error("failed to load texture image!");
+		}
 
-        if (!imageData->pixels) {
-            throw std::runtime_error("failed to load texture image!");
-        }
+		m_TextureBuffer = renderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
+		m_TextureBuffer->map();
+		m_TextureBuffer->setData(imageData->pixels, imageSize);
+		m_TextureBuffer->unmap();
 
-        textureBuffer = renderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
-        textureBuffer->map();
-        textureBuffer->setData(imageData->pixels, imageSize);
-        textureBuffer->unmap();
+		m_TextureImage = renderCore->createTexture(imageData->width, imageData->height);
 
-        textureImage = renderCore->createTexture(imageData->width, imageData->height);
+		TransitionImage transitionImage{renderCore->getDevice()};
+		transitionImage.pImage = m_TextureImage;
+		transitionImage.pFormat = VK_FORMAT_R8G8B8A8_SRGB;
+		transitionImage.pOldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		transitionImage.init();
 
-        TransitionImage transitionImage{ renderCore->getDevice() };
-        transitionImage.pImage = textureImage;
-        transitionImage.pFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        transitionImage.pOldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        transitionImage.pNewLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        transitionImage.init();
+		CopyBufferToImage copyBufferToImage{renderCore->getDevice()};
+		copyBufferToImage.pBuffer = m_TextureBuffer;
+		copyBufferToImage.pImage = m_TextureImage;
+		copyBufferToImage.init();
 
-        CopyBufferToImage copyBufferToImage{ renderCore->getDevice() };
-        copyBufferToImage.pBuffer = textureBuffer;
-        copyBufferToImage.pImage = textureImage;
-        copyBufferToImage.init();
+		transitionImage.pOldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		transitionImage.init();
 
-        transitionImage.pOldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        transitionImage.pNewLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        transitionImage.init();
-        
-        textureImageView = renderCore->createTextureImageView(textureImage); 
-        textureSampler = renderCore->createSampler(); 
-    }
-
+		m_TextureImageView = renderCore->createTextureImageView(m_TextureImage);
+		m_TextureSampler = renderCore->createSampler();
+	}
 }
