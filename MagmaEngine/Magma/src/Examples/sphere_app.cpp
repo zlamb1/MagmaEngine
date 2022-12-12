@@ -69,7 +69,7 @@ namespace Magma {
 		auto time = static_cast<float>(m_TimeStep.getElapsed());
 		m_TimeBuffer->setData(&time, sizeof(float));
 
-		renderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.verts.size()));
+		m_RenderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.verts.size()));
 
 		m_SphereStep.onNewFrame();
 		if (m_SphereStep.getElapsed() > 0.4) {
@@ -78,12 +78,12 @@ namespace Magma {
 		}
 
 		m_CameraStep.onNewFrame();
-		if (input->isKeyPressed(KeyButton::C) && m_CameraStep.getElapsed() >= 1.0) {
+		if (m_Input->isKeyPressed(KeyButton::C) && m_CameraStep.getElapsed() >= 1.0) {
 			m_CameraIndex++;
 			if (m_CameraIndex % 2 == 0)
-				m_Camera.reset(new ThirdPersonImpl(*input));
+				m_Camera.reset(new ThirdPersonImpl(*m_Input));
 			else
-				m_Camera.reset(new FirstPersonImpl(*input));
+				m_Camera.reset(new FirstPersonImpl(*m_Input));
 			m_CameraStep.reset();
 		}
 
@@ -91,14 +91,14 @@ namespace Magma {
 
 		updateUniformBuffer();
 
-		renderCore->onNewFrame();
+		m_RenderCore->onNewFrame();
 
 		glfwPollEvents();
 
 		m_FrameStep.onNewFrame();
 		if (m_FrameStep.getElapsed() > 0.2) {
 			const std::string title = "FPS: " + std::to_string(m_FrameStep.getFps());
-			windowImpl->setTitle(title);
+			m_WindowImpl->setTitle(title);
 			m_FrameStep.reset();
 		}
 	}
@@ -108,30 +108,30 @@ namespace Magma {
 		glfwInit();
 
 		// init window
-		windowImpl = std::make_shared<GLFWImpl>();
-		windowImpl->init(500, 500);
-		windowImpl->setTitle("Vulkan");
+		m_WindowImpl = std::make_shared<GLFWImpl>();
+		m_WindowImpl->init(500, 500);
+		m_WindowImpl->setTitle("Vulkan");
 
-		// init input
-		input = std::make_shared<WindowInput>(*windowImpl);
+		// init m_Input
+		m_Input = std::make_shared<WindowInput>(*m_WindowImpl);
 
 		// init camera
-		m_Camera = std::make_shared<ThirdPersonImpl>(*input);
+		m_Camera = std::make_shared<ThirdPersonImpl>(*m_Input);
 	}
 
 	void SphereApp::initVulkan() {
 		Application::initVulkan();
 
-		renderCore->init();
-		renderCore->setDepthBuffering(true);
+		m_RenderCore->init();
+		m_RenderCore->setDepthBuffering(true);
 
 		// create shaders
-		const auto vertexShader = renderCore->createShader(vertexShaderCode, VERTEX);
-		renderCore->getShaders().push_back(vertexShader);
-		const auto fragmentShader = renderCore->createShader(fragmentShaderCode, FRAGMENT);
-		renderCore->getShaders().push_back(fragmentShader);
+		const auto vertexShader = m_RenderCore->createShader(vertexShaderCode, VERTEX);
+		m_RenderCore->getShaders().push_back(vertexShader);
+		const auto fragmentShader = m_RenderCore->createShader(fragmentShaderCode, FRAGMENT);
+		m_RenderCore->getShaders().push_back(fragmentShader);
 
-		auto& shaderAttributes = renderCore->getShaderAttributes();
+		auto& shaderAttributes = m_RenderCore->getShaderAttributes();
 		shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
 		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
 		                                       DataFormat::RGB_SFLOAT32);
@@ -147,19 +147,19 @@ namespace Magma {
 
 		// create vertex buffer
 		constexpr auto vertexBufferSize = sizeof(SphereVertex) * 100000;
-		m_VertexBuffer = renderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
+		m_VertexBuffer = m_RenderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
 		m_VertexBuffer->map();
 		m_VertexBuffer->setData(m_SphereData.verts.data(),
 		                      sizeof(SphereVertex) * m_SphereData.verts.size());
 
-		renderCore->addBuffer(m_VertexBuffer);
+		m_RenderCore->addBuffer(m_VertexBuffer);
 
 		// create ubo buffer
-		m_UboBuffer = renderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
+		m_UboBuffer = m_RenderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
 		m_UboBuffer->map();
 
 		// create time buffer
-		m_TimeBuffer = renderCore->createBuffer(sizeof(float), BufferUsage::UNIFORM);
+		m_TimeBuffer = m_RenderCore->createBuffer(sizeof(float), BufferUsage::UNIFORM);
 		m_TimeBuffer->map();
 
 		// create texture resources
@@ -180,11 +180,11 @@ namespace Magma {
 		shaderAttributes.createDescriptorSet(1);
 
 		// set renderer fields
-		// renderCore->getRenderer().setIndexBuffer(indexBuffer);
-		// renderCore->getRenderer().setUseIndexing(true);
+		// m_RenderCore->getRenderer().setIndexBuffer(indexBuffer);
+		// m_RenderCore->getRenderer().setUseIndexing(true);
 
 		// init render structures
-		renderCore->initRender();
+		m_RenderCore->initRender();
 	}
 
 	void SphereApp::updateUniformBuffer() const {
@@ -235,21 +235,21 @@ namespace Magma {
 			throw std::runtime_error("failed to load texture image!");
 		}
 
-		m_TextureBuffer = renderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
+		m_TextureBuffer = m_RenderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
 		m_TextureBuffer->map();
 		m_TextureBuffer->setData(imageData->pixels, imageSize);
 		m_TextureBuffer->unmap();
 
-		m_TextureImage = renderCore->createTexture(imageData->width, imageData->height);
+		m_TextureImage = m_RenderCore->createTexture(imageData->width, imageData->height);
 
-		TransitionImage transitionImage{renderCore->getDevice()};
+		TransitionImage transitionImage{m_RenderCore->getDevice()};
 		transitionImage.pImage = m_TextureImage;
 		transitionImage.pFormat = VK_FORMAT_R8G8B8A8_SRGB;
 		transitionImage.pOldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		transitionImage.init();
 
-		CopyBufferToImage copyBufferToImage{renderCore->getDevice()};
+		CopyBufferToImage copyBufferToImage{m_RenderCore->getDevice()};
 		copyBufferToImage.pBuffer = m_TextureBuffer;
 		copyBufferToImage.pImage = m_TextureImage;
 		copyBufferToImage.init();
@@ -258,7 +258,7 @@ namespace Magma {
 		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		transitionImage.init();
 
-		m_TextureImageView = renderCore->createTextureImageView(m_TextureImage);
-		m_TextureSampler = renderCore->createSampler();
+		m_TextureImageView = m_RenderCore->createTextureImageView(m_TextureImage);
+		m_TextureSampler = m_RenderCore->createSampler();
 	}
 }

@@ -20,9 +20,9 @@ namespace Magma {
 		virtual void onNewFrame() = 0;
 
 	protected:
-		std::shared_ptr<WindowImpl> windowImpl; 
-		std::shared_ptr<WindowInput> input;
-		std::shared_ptr<VulkanAPI> renderCore;
+		std::shared_ptr<WindowImpl> m_WindowImpl; 
+		std::shared_ptr<WindowInput> m_Input;
+		std::shared_ptr<VulkanAPI> m_RenderCore;
 
 	private:
 		void initMainLoop();

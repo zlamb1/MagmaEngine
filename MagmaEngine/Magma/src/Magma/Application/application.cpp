@@ -3,7 +3,8 @@
 namespace Magma {
 
 	int Application::run() {
-        int exit_status = EXIT_SUCCESS;
+        int exitStatus = EXIT_SUCCESS;
+
         try {
             initWindow();
             initVulkan();
@@ -11,19 +12,19 @@ namespace Magma {
         }
         catch (const std::exception& error) {
             std::cout << error.what() << std::endl;
-            exit_status = EXIT_FAILURE;
+            exitStatus = EXIT_FAILURE;
         }
 
-        return exit_status;
+        return exitStatus;
 	}
 
 	void Application::initVulkan() {
-        VulkanImpl& vulkanImpl = (VulkanImpl&)*windowImpl;
-        renderCore = std::make_shared<VulkanAPI>(vulkanImpl);
+        auto& vulkanImpl = static_cast<VulkanImpl&>(*m_WindowImpl);
+        m_RenderCore = std::make_shared<VulkanAPI>(vulkanImpl);
 	}
 
     void Application::initMainLoop() {
-        while (!windowImpl->shouldWindowClose()) {
+        while (!m_WindowImpl->shouldWindowClose()) {
             onNewFrame();
         }
     }
