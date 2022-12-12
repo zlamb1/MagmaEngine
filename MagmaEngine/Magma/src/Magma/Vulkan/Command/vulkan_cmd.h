@@ -37,7 +37,7 @@ namespace Magma {
 
 		VkResult init() override;
 
-		VkResult record();
+		VkResult record(VkCommandBufferUsageFlags usage = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 		void end();
 		void reset();
 

@@ -1,16 +1,17 @@
 #include "descriptor.h"
 
+#include <array>
+
 namespace Magma {
 
     VkResult Descriptor::init() {
         vkDescriptorSetLayoutBinding.binding = pBinding;
-        vkDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        vkDescriptorSetLayoutBinding.descriptorType = pDescriptorType;
         vkDescriptorSetLayoutBinding.descriptorCount = pCount;
         // which shader stages will use this resource
         vkDescriptorSetLayoutBinding.stageFlags = (VkShaderStageFlags)pStageFlags;
         // relevant for image sampling
         vkDescriptorSetLayoutBinding.pImmutableSamplers = nullptr; // optional
-
         return VK_SUCCESS;
     }
 
@@ -70,15 +71,16 @@ namespace Magma {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        VkDescriptorPoolSize poolSize{};
-        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount = static_cast<uint32_t>(pDescriptorSetLayouts.size());
+        std::array<VkDescriptorPoolSize, 2> poolSizes{};
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(pDescriptorSetLayouts.size());
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(pDescriptorSetLayouts.size());
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
-
+        poolInfo.poolSizeCount = poolSizes.size();
+        poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = pMaxSets;
 
         auto createDescriptorPoolResult = vkCreateDescriptorPool(pVulkanDevice->getDevice(),
@@ -91,7 +93,7 @@ namespace Magma {
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts{};
         for (auto& descriptorSetLayout : pDescriptorSetLayouts) {
-            descriptorSetLayouts.push_back(descriptorSetLayout.getDescriptorSetLayout());
+            descriptorSetLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
         }
 
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -111,25 +113,43 @@ namespace Magma {
             return allocateDescriptorSetsResult;
 
         for (auto& descriptorSetLayout : pDescriptorSetLayouts) {
-            for (auto& descriptor : descriptorSetLayout.pDescriptors) {
-                VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = descriptor.pBuffer;
-                bufferInfo.offset = 0;
-                bufferInfo.range = descriptor.pSize;
+            for (auto& descriptor : descriptorSetLayout->pDescriptors) {
+                VkWriteDescriptorSet writeDescriptorSet{};
+                writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                writeDescriptorSet.dstSet = vkDescriptorSets[0];
+                writeDescriptorSet.dstBinding = descriptor.pBinding;
+                writeDescriptorSet.dstArrayElement = 0;
+                writeDescriptorSet.descriptorType = descriptor.pDescriptorType;
+                writeDescriptorSet.descriptorCount = descriptor.pCount;
 
-                VkWriteDescriptorSet vkWriteDescriptorSet{};
-                vkWriteDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                vkWriteDescriptorSet.dstSet = vkDescriptorSets[0];
-                vkWriteDescriptorSet.dstBinding = descriptor.pBinding;
-                vkWriteDescriptorSet.dstArrayElement = 0;
-                vkWriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                vkWriteDescriptorSet.descriptorCount = descriptor.pCount;
-                vkWriteDescriptorSet.pBufferInfo = &bufferInfo;
-                vkWriteDescriptorSet.pImageInfo = nullptr; // optional
-                vkWriteDescriptorSet.pTexelBufferView = nullptr; // optional
+                VkDescriptorBufferInfo bufferInfo{};
+                if (descriptor.pDescriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                    const auto buffer = 
+                        std::dynamic_pointer_cast<VmaBuffer>(descriptor.pBuffer);
+                    bufferInfo.buffer = buffer->getBuffer();
+                    bufferInfo.offset = 0;
+                    bufferInfo.range = descriptor.pSize;
+                    writeDescriptorSet.pBufferInfo = &bufferInfo;
+                }
+                else {
+                    writeDescriptorSet.pBufferInfo = nullptr;
+                }
+
+                VkDescriptorImageInfo imageInfo{};
+				if (descriptor.pDescriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    imageInfo.imageView = descriptor.pImageView->getImageView();
+                    imageInfo.sampler = descriptor.pSampler->getSampler();
+                    writeDescriptorSet.pImageInfo = &imageInfo; 
+                }
+            	else {
+                    writeDescriptorSet.pImageInfo = nullptr;
+                }
+
+                writeDescriptorSet.pTexelBufferView = nullptr; // optional
 
                 vkUpdateDescriptorSets(pVulkanDevice->getDevice(),
-                    1, &vkWriteDescriptorSet, 0, nullptr);
+                    1, &writeDescriptorSet, 0, nullptr);
             }
         }
 

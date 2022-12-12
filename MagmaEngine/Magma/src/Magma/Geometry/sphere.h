@@ -5,9 +5,11 @@
 namespace Magma {
 
 	struct SphereVertex {
+		SphereVertex() {} 
 		SphereVertex(glm::vec3 pos) : pos{ pos }, color{ 1.0f } {}
 
 		glm::vec3 pos, color, normal;
+		glm::vec2 uv;
 	};
 
 	struct SphereData {
@@ -39,7 +41,7 @@ namespace Magma {
 				(u.x * v.y) - (u.y * v.x)
 			};
 
-			return normal;
+			return glm::normalize(normal);
 		}
 
 	}
@@ -105,7 +107,9 @@ namespace Magma {
 			}
 
 			for (auto& vertex : sphereData.verts) {
+				// a vertex on a sphere is its own normal
 				vertex.normal = vertex.pos;
+				vertex.uv = { vertex.normal.x / 2.0f + 0.5f, vertex.normal.y / 2.0f + 0.5f };
 			}
 
 			return sphereData;
@@ -185,6 +189,7 @@ namespace Magma {
 			for (auto& vertex : sphereData.verts) {
 				// a vertex on a sphere is its own normal
 				vertex.normal = vertex.pos;
+				vertex.uv = { vertex.normal.x / 2.0f + 0.5f, vertex.normal.y / 2.0f + 0.5f };
 			}
 
 			return sphereData;
@@ -194,75 +199,136 @@ namespace Magma {
 
 	namespace QuadSphere {
 		
-		static SphereData createSphere(int resolution) {
+		static SphereData createSphere(int resolution, bool useIndexing) {
 			SphereData sphereData{};
-
-			for (int i = 0; i < cubeVerts.size(); i += 4) {
-				std::vector<uint16_t> _indices{
-					(uint16_t)i, (uint16_t)(i + 1), (uint16_t)(i + 2), 
-					(uint16_t)(i + 2), (uint16_t)(i + 3), (uint16_t)i
-				};
-				sphereData.indices.insert(sphereData.indices.end(), 
-					_indices.begin(), _indices.end());
-			}
-
 			std::vector<glm::vec3> inVerts = cubeVerts;
-			std::vector<uint16_t> inIndices = sphereData.indices;
 
-			for (int j = 0; j < resolution; j++) {
-				std::vector<glm::vec3> nVerts{};
-				std::vector<uint16_t> nIndices{};
-
-				for (int i = 0; i < inIndices.size(); i += 6) {
-					auto a = inVerts[inIndices[i]];
-					auto aIndex = SphereUtility::getIndexAndAdd(nVerts, a);
-
-					auto b = inVerts[inIndices[i + 1]];
-					auto bIndex = SphereUtility::getIndexAndAdd(nVerts, b);
-
-					auto c = inVerts[inIndices[i + 2]];
-					auto cIndex = SphereUtility::getIndexAndAdd(nVerts, c);
-
-					auto d = inVerts[inIndices[i + 4]];
-					auto dIndex = SphereUtility::getIndexAndAdd(nVerts, d);
-
-					auto e = b + ((a - b) / 2.0f);
-					auto eIndex = SphereUtility::getIndexAndAdd(nVerts, e);
-
-					auto f = c + ((b - c) / 2.0f);
-					auto fIndex = SphereUtility::getIndexAndAdd(nVerts, f);
-
-					auto g = c + ((d - c) / 2.0f);
-					auto gIndex = SphereUtility::getIndexAndAdd(nVerts, g);
-
-					auto h = d + ((a - d) / 2.0f);
-					auto hIndex = SphereUtility::getIndexAndAdd(nVerts, h);
-
-					auto _i = c + ((a - c) / 2.0f);
-					auto iIndex = SphereUtility::getIndexAndAdd(nVerts, _i);
-
-					std::vector<uint16_t> _indices{
-						aIndex, eIndex, iIndex, iIndex, hIndex, aIndex,
-						eIndex, bIndex, fIndex, fIndex, iIndex, eIndex,
-						iIndex, fIndex, cIndex, cIndex, gIndex, iIndex,
-						hIndex, iIndex, gIndex, gIndex, dIndex, hIndex
+			if (useIndexing) {
+				for (int i = 0; i < cubeVerts.size(); i += 4) {
+					std::vector _indices{
+						(uint16_t)i, (uint16_t)(i + 1), (uint16_t)(i + 2),
+						(uint16_t)(i + 2), (uint16_t)(i + 3), (uint16_t)i
 					};
-
-					nIndices.insert(nIndices.end(), _indices.begin(), _indices.end());
+					sphereData.indices.insert(sphereData.indices.end(),
+						_indices.begin(), _indices.end());
 				}
 
-				inVerts = nVerts;
-				inIndices = nIndices;
+				std::vector<uint16_t> inIndices = sphereData.indices;
+				for (int j = 0; j < resolution; j++) {
+					std::vector<glm::vec3> nVerts{};
+					std::vector<uint16_t> nIndices{};
+
+					for (int i = 0; i < inIndices.size(); i += 6) {
+						auto a = inVerts[inIndices[i]];
+						auto aIndex = SphereUtility::getIndexAndAdd(nVerts, a);
+
+						auto b = inVerts[inIndices[i + 1]];
+						auto bIndex = SphereUtility::getIndexAndAdd(nVerts, b);
+
+						auto c = inVerts[inIndices[i + 2]];
+						auto cIndex = SphereUtility::getIndexAndAdd(nVerts, c);
+
+						auto d = inVerts[inIndices[i + 4]];
+						auto dIndex = SphereUtility::getIndexAndAdd(nVerts, d);
+
+						auto e = b + ((a - b) / 2.0f);
+						auto eIndex = SphereUtility::getIndexAndAdd(nVerts, e);
+
+						auto f = c + ((b - c) / 2.0f);
+						auto fIndex = SphereUtility::getIndexAndAdd(nVerts, f);
+
+						auto g = c + ((d - c) / 2.0f);
+						auto gIndex = SphereUtility::getIndexAndAdd(nVerts, g);
+
+						auto h = d + ((a - d) / 2.0f);
+						auto hIndex = SphereUtility::getIndexAndAdd(nVerts, h);
+
+						auto _i = c + ((a - c) / 2.0f);
+						auto iIndex = SphereUtility::getIndexAndAdd(nVerts, _i);
+
+						std::vector _indices{
+							aIndex, eIndex, iIndex, iIndex, hIndex, aIndex,
+							eIndex, bIndex, fIndex, fIndex, iIndex, eIndex,
+							iIndex, fIndex, cIndex, cIndex, gIndex, iIndex,
+							hIndex, iIndex, gIndex, gIndex, dIndex, hIndex
+						};
+
+						nIndices.insert(nIndices.end(), _indices.begin(), _indices.end());
+					}
+
+					inVerts = nVerts;
+					inIndices = nIndices;
+				}
+
+				sphereData.indices = inIndices;
+			}
+			else {
+				std::vector<glm::vec3> nVerts{}; 
+				for (int i = 0; i < inVerts.size(); i += 4) {
+					auto a = inVerts[i];
+					auto b = inVerts[i + 1];
+					auto c = inVerts[i + 2];
+					auto d = inVerts[i + 3];
+					std::vector verts{ a, b, c, c, d, a };
+					nVerts.insert(nVerts.begin(), verts.begin(), verts.end()); 
+				}
+				inVerts = nVerts; 
+				for (int j = 0; j < resolution; j++) {
+					std::vector<glm::vec3> nVerts{};
+
+					for (int i = 0; i < inVerts.size(); i += 6) {
+						auto a = inVerts[i];
+						auto b = inVerts[i + 1];
+						auto c = inVerts[i + 2];
+						auto d = inVerts[i + 4];
+						auto e = b + ((a - b) / 2.0f);
+						auto f = c + ((b - c) / 2.0f);
+						auto g = c + ((d - c) / 2.0f);
+						auto h = d + ((a - d) / 2.0f);
+						auto _i = c + ((a - c) / 2.0f);
+
+						std::vector<glm::vec3> verts{
+							a, e, _i, _i, h, a,
+							e, b, f, f, _i, e,
+							_i, f, c, c, g, _i,
+							h, _i, g, g, d, h
+						};
+
+						nVerts.insert(nVerts.end(), verts.begin(), verts.end());
+					}
+
+					inVerts = nVerts;
+				}
 			}
 
-			for (auto& pos : inVerts) {
-				sphereData.verts.push_back({ glm::normalize(pos) });
+			sphereData.verts = std::vector(inVerts.size(), SphereVertex{});
+
+			if (useIndexing) {
+				for (int i = 0; i < inVerts.size(); i++) {
+					auto& vertex = sphereData.verts[i];
+					vertex.pos = glm::normalize(inVerts[i]);
+					vertex.normal = vertex.pos;
+					vertex.uv = { vertex.pos.x / 2.0f + 0.5f, vertex.pos.y / 2.0f + 0.5f };
+				}
 			}
+			else {
+				for (int i = 0; i < sphereData.verts.size(); i++) {
+					auto& vertex = sphereData.verts[i];
 
-			sphereData.indices = inIndices;
+					constexpr auto M_PI = glm::pi<float>(); 
 
-			for (auto& vertex : sphereData.verts) {
-				vertex.normal = vertex.pos;
+					vertex.pos = glm::normalize(inVerts[i]);
+					vertex.normal = vertex.pos;
+					vertex.uv = {
+						1.0f - glm::clamp((std::atan2(vertex.pos.z, 
+						vertex.pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
+						1.0f - glm::clamp(((std::atan(-vertex.pos.y / 
+							glm::length(glm::vec2{vertex.pos.x, vertex.pos.z})) + (M_PI / 2.0f)) 
+							/ M_PI), 0.0f, 1.0f)
+					};
+
+				}
+
 			}
 
 			return sphereData; 

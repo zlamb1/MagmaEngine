@@ -12,18 +12,18 @@ namespace Magma {
 
 	VkResult VulkanImage::init() {
 		VkImageCreateInfo imageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		imageCreateInfo.imageType = pImageType;
+		imageCreateInfo.imageType = pType;
 		imageCreateInfo.extent.width = pExtentWidth;
 		imageCreateInfo.extent.height = pExtentHeight;
 		imageCreateInfo.extent.depth = pExtentDepth;
 		imageCreateInfo.mipLevels = pMipLevels;
-		imageCreateInfo.arrayLayers = pArrayLevels;
+		imageCreateInfo.arrayLayers = pArrayLayers;
 		imageCreateInfo.format = pFormat;
-		imageCreateInfo.tiling = pImageTiling;
-		imageCreateInfo.initialLayout = pImageLayout;
+		imageCreateInfo.tiling = pTiling;
+		imageCreateInfo.initialLayout = pInitialLayout;
 		imageCreateInfo.usage = pUsageFlags;
 		imageCreateInfo.sharingMode = pSharingMode;
-		imageCreateInfo.samples = pSampleCountFlags;
+		imageCreateInfo.samples = pSamples;
 		imageCreateInfo.flags = pFlags;
 
 		vmaImageAllocCreateInfo = {};

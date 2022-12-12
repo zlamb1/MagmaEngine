@@ -178,6 +178,10 @@ namespace Magma {
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
+    std::shared_ptr<VulkanDevice> VulkanAPI::getDevice() {
+        return vulkanDevice;
+    }
+
     Renderer& VulkanAPI::getRenderer() const {
         return *vulkanRenderer; 
     }
@@ -215,6 +219,30 @@ namespace Magma {
         return vulkanBuffer;
     }
 
+    std::shared_ptr<Image> VulkanAPI::createTexture(uint32_t width, uint32_t height) {
+        std::shared_ptr<VulkanImage> image = std::make_shared<VulkanImage>(vulkanDevice);
+        image->pExtentWidth = static_cast<uint32_t>(width);
+        image->pExtentHeight = static_cast<uint32_t>(height);
+        image->pFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        image->init();
+        return image;
+    }
+
+    std::shared_ptr<VulkanImageView> VulkanAPI::createTextureImageView(std::shared_ptr<Image> image) {
+        auto _image = std::dynamic_pointer_cast<VulkanImage>(image); 
+        std::shared_ptr<VulkanImageView> imageView = 
+            std::make_shared<VulkanImageView>(vulkanDevice, _image); 
+        imageView->init();
+        return imageView; 
+    }
+
+    std::shared_ptr<Sampler> VulkanAPI::createSampler() {
+        std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>();
+        sampler->pDevice = vulkanDevice; 
+        sampler->init();
+        return sampler; 
+    }
+
     void VulkanAPI::addBuffer(std::shared_ptr<Buffer> buffer) {
         vulkanRenderer->pVertexBuffers.push_back(dynamic_pointer_cast<VulkanBuffer>(buffer));
     }
@@ -231,8 +259,6 @@ namespace Magma {
 
             const auto depthFormat = findDepthFormat();
             depthImage->pFormat = findDepthFormat();
-
-            depthImage->pImageTiling = VK_IMAGE_TILING_OPTIMAL;
             depthImage->pUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
             depthImage->init();
 

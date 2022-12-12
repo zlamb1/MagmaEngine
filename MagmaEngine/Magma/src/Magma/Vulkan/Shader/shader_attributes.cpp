@@ -73,24 +73,30 @@ namespace Magma {
 		return vertexAttribute;
 	}
 
-	Descriptor VulkanShaderAttributes::createDescriptor(Buffer& pBuffer, 
-		uint32_t pBinding, 
-		uint64_t pSize,
-		uint32_t pCount,
-		VulkanShaderType pStageFlags) {
+	Descriptor VulkanShaderAttributes::createUniformDescriptor(std::shared_ptr<Buffer> pBuffer,
+		uint32_t pBinding, uint64_t pSize, uint32_t pCount, VulkanShaderType pStageFlags) {
 		Descriptor descriptor{};
 		descriptor.pBinding = pBinding;
 		descriptor.pCount = pCount;
 		descriptor.pStageFlags = pStageFlags;
-
-		auto& buffer = (VmaBuffer&)pBuffer;
-		descriptor.pBuffer = buffer.getBuffer();
+		descriptor.pBuffer = pBuffer;
 		descriptor.pSize = pSize;
-
 		descriptor.init();
-
 		descriptors.push_back(descriptor);
+		return descriptor;
+	}
 
+	Descriptor VulkanShaderAttributes::createImageDescriptor(std::shared_ptr<VulkanImageView> pImageView,
+		std::shared_ptr<Sampler> pSampler, uint32_t pBinding, uint32_t pCount, VulkanShaderType pStageFlags) {
+		Descriptor descriptor{};
+		descriptor.pDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; 
+		descriptor.pBinding = pBinding;
+		descriptor.pCount = pCount;
+		descriptor.pStageFlags = pStageFlags;
+		descriptor.pImageView = pImageView;
+		descriptor.pSampler = pSampler; 
+		descriptor.init();
+		descriptors.push_back(descriptor);
 		return descriptor;
 	}
 
@@ -103,7 +109,6 @@ namespace Magma {
 		}
 		descriptorSetLayout->init();
 		descriptorSetLayouts.push_back(descriptorSetLayout);
-
 		return descriptorSetLayout;
 	}
 
@@ -112,8 +117,7 @@ namespace Magma {
 		descriptorSet->pVulkanDevice = pVulkanDevice;
 
 		for (auto descriptorSetLayout : descriptorSetLayouts) {
-			descriptorSet->pDescriptorSetLayouts.push_back(
-				*descriptorSetLayout);
+			descriptorSet->pDescriptorSetLayouts.push_back(descriptorSetLayout);
 		}
 
 		descriptorSet->pMaxSets = pMaxSets;

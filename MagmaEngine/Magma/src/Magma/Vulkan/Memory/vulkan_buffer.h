@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include "Magma/Buffer/buffer.h"
 
 #include "Magma/Vulkan/Device/vulkan_device.h"

@@ -8,8 +8,6 @@
 #include "Magma/Render/render_core.h"
 #include "Magma/Window/vulkan_impl.h"
 
-// all Magma includes
-
 #include "Magma/Vulkan/Command/vulkan_cmd.h"
 #include "Magma/Vulkan/Command/vulkan_operation.h"
 
@@ -18,13 +16,13 @@
 #include "Magma/Vulkan/Device/vulkan_device.h"
 
 #include "Magma/Vulkan/Image/image_view.h"
+#include "Magma/Vulkan/Image/sampler.h"
 #include "Magma/Vulkan/Image/vulkan_image.h"
 
 #include "Magma/Vulkan/Logging/vulkan_logger.h"
 
 #include "Magma/Vulkan/Memory/VMA/vma_buffer.h"
 #include "Magma/Vulkan/Memory/vulkan_buffer.h"
-#include "Magma/Vulkan/Memory/vulkan_buffer_copy.h"
 #include "Magma/Vulkan/Memory/descriptor.h"
 
 #include "Magma/Vulkan/Pipeline/vulkan_pipeline.h"
@@ -57,6 +55,8 @@ namespace Magma {
 		void initRender() override;
 		void onNewFrame() override;
 
+		std::shared_ptr<VulkanDevice> getDevice();
+
 		Renderer& getRenderer() const override;
 		ShaderAttributes& getShaderAttributes() const override;
 
@@ -67,6 +67,10 @@ namespace Magma {
 
 		std::shared_ptr<Buffer> createBuffer(int64_t size) override;
 		std::shared_ptr<Buffer> createBuffer(int64_t size, BufferUsage bufferUsage) override;
+
+		std::shared_ptr<Image> createTexture(uint32_t width, uint32_t height);
+		std::shared_ptr<VulkanImageView> createTextureImageView(std::shared_ptr<Image> image); 
+		std::shared_ptr<Sampler> createSampler(); 
 
 		void addBuffer(std::shared_ptr<Buffer> buffer) override; 
 

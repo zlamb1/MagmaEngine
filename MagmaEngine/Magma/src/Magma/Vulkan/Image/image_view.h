@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include "vulkan_image.h"
 
 namespace Magma {

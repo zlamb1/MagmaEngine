@@ -81,6 +81,8 @@ namespace Magma {
 
         // create logical device
         VkPhysicalDeviceFeatures deviceFeatures{};
+        // TODO: add sampler anisotropy to required device features
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
 
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

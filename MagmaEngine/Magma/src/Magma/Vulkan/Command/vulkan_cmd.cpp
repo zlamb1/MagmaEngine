@@ -37,7 +37,10 @@ namespace Magma {
 		pVulkanCmdPool{ pVulkanCmdPool } {};
 
 	VulkanCmdBuffer::~VulkanCmdBuffer() {
-		vkFreeCommandBuffers(pVulkanDevice->getDevice(), pVulkanCmdPool->getCmdPool(), 1, &vkCmdBuffer);
+		if (pVulkanDevice != nullptr && pVulkanCmdPool != nullptr) {
+			vkFreeCommandBuffers(pVulkanDevice->getDevice(),
+				pVulkanCmdPool->getCmdPool(), 1, &vkCmdBuffer);
+		}
 	}
 
 	VkResult VulkanCmdBuffer::init() {
@@ -46,14 +49,13 @@ namespace Magma {
 		cmdBufferAllocInfo.commandPool = pVulkanCmdPool->getCmdPool();
 		cmdBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		cmdBufferAllocInfo.commandBufferCount = 1;
-
 		return vkAllocateCommandBuffers(pVulkanDevice->getDevice(), &cmdBufferAllocInfo, &vkCmdBuffer);
 	}
 
-	VkResult VulkanCmdBuffer::record() {
+	VkResult VulkanCmdBuffer::record(VkCommandBufferUsageFlags usage) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // optional
+		beginInfo.flags = usage;
 		beginInfo.pInheritanceInfo = nullptr; // optional
 
 		return vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);

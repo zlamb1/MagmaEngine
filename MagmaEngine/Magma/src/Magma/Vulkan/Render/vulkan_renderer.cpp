@@ -15,24 +15,24 @@ namespace Magma {
 
 		vkCmdBindVertexBuffers(vulkanCmdBuffer.getCmdBuffer(), 0, 1, vkBuffers.data(), offsets);
 
+		if (!pDescriptorSets.empty()) {
+			vkCmdBindDescriptorSets(vulkanCmdBuffer.getCmdBuffer(),
+				VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout,
+				0, 1, pDescriptorSets.data(), 0, nullptr);
+		}
+
 		if (useIndexing) {
 			if (indexBuffer == nullptr) {
 				Z_LOG_TXT("VulkanDrawer::onNewFrame", "pIndexBuffer is nullptr");
 				return;
 			}
 
-			std::shared_ptr<VulkanBuffer> _indexBuffer =
+			const std::shared_ptr<VulkanBuffer> _indexBuffer =
 				std::dynamic_pointer_cast<VulkanBuffer>(indexBuffer);
 
-			vkCmdBindIndexBuffer(vulkanCmdBuffer.getCmdBuffer(), 
+			vkCmdBindIndexBuffer(vulkanCmdBuffer.getCmdBuffer(),
 				_indexBuffer->getBuffer(), 0,
 				VkIndexType::VK_INDEX_TYPE_UINT16);
-
-			if (pDescriptorSets.size() > 0) {
-				vkCmdBindDescriptorSets(vulkanCmdBuffer.getCmdBuffer(),
-					VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipelineLayout,
-					0, 1, &pDescriptorSets[0], 0, nullptr);
-			}
 
 			vkCmdDrawIndexed(vulkanCmdBuffer.getCmdBuffer(), indexCount, instanceCount, firstIndex,
 				vertexOffset, firstInstance);

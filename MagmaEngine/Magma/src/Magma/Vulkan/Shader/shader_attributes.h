@@ -1,17 +1,12 @@
 #pragma once
 
-#include <algorithm>
-#include <iostream>
 #include <memory>
 #include <vector>
-
-#include "vulkan/vulkan.h"
 
 #include "Magma/Render/shader_attributes.h"
 
 #include "Magma/Vulkan/Memory/descriptor.h"
 #include "Magma/Vulkan/Memory/VMA/vma_buffer.h"
-#include "Magma/Vulkan/Setup/vulkan_object.h"
 
 namespace Magma {
 
@@ -71,20 +66,18 @@ namespace Magma {
 		VertexBinding createVertexBinding(uint32_t binding = 0,
 			uint32_t stride = 0,
 			VertexInputRate inputRate = VertexInputRate::VERTEX) override;
-
 		VertexAttribute createVertexAttribute(uint32_t binding = 0,
 			uint32_t location = 0,
 			uint32_t offset = 0,
 			DataFormat format = DataFormat::RGB_SFLOAT32) override;
 
-		Descriptor createDescriptor(Buffer& pBuffer,
-			uint32_t pBinding = 0,
-			uint64_t pSize = 0, 
-			uint32_t pCount = 1,
-			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX);
-
+		Descriptor createUniformDescriptor(std::shared_ptr<Buffer> pBuffer,
+			uint32_t pBinding = 0, uint64_t pSize = 0, uint32_t pCount = 1,
+			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX) override;
+		Descriptor createImageDescriptor(std::shared_ptr<VulkanImageView> pImageView,
+			std::shared_ptr<Sampler> pSampler, uint32_t pBinding = 0, uint32_t pCount = 1,
+			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX) override;
 		std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout() override;
-
 		std::shared_ptr<DescriptorSet> createDescriptorSet(uint32_t pMaxSets = 1) override;
 
 		void clearVertexBindings();
