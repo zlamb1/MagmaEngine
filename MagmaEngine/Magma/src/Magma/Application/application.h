@@ -11,6 +11,7 @@ namespace Magma {
 
 	public:
 		Application() = default;
+		virtual ~Application() = default; 
 		int run();
 
 	protected:

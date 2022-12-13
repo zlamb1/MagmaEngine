@@ -4,7 +4,7 @@
 
 #include "Magma/Vulkan/Image/image_view.h"
 #include "Magma/Vulkan/Image/sampler.h"
-#include "Magma/Vulkan/Shader/vulkan_shader.h"
+#include "Magma/Vulkan/Shader/shader.h"
 
 namespace Magma {
 
@@ -21,7 +21,7 @@ namespace Magma {
 	public:
 		VkDescriptorType pDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uint32_t pBinding = 0, pCount = 1;
-		VulkanShaderType pStageFlags = VulkanShaderType::VERTEX;
+		ShaderType pStageFlags = ShaderType::VERTEX;
 
 		std::shared_ptr<Buffer> pBuffer;
 		VkDeviceSize pSize = 0;

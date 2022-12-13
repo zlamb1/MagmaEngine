@@ -20,7 +20,7 @@ namespace Magma {
 		VkResult init() override;
 		VkResult initFramebuffers();
 
-		void addShader(std::shared_ptr<MagmaShader> pVulkanShader);
+		void addShader(std::shared_ptr<Shader> pVulkanShader);
 
 		void destroyFramebuffers();
 		void destroyPipeline();

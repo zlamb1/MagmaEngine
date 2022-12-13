@@ -2,14 +2,13 @@
 
 namespace Magma {
 
-    VulkanDevice::VulkanDevice(std::shared_ptr<VulkanInstance> pVulkanInstance,
-        std::shared_ptr<Surface> surface, std::shared_ptr<VulkanValidater> pVulkanValidater) :
+    VulkanDevice::VulkanDevice(std::shared_ptr<Instance> pVulkanInstance,
+        std::shared_ptr<Surface> surface, std::shared_ptr<Validater> pVulkanValidater) :
         pVulkanInstance{ pVulkanInstance }, pVulkanSurface{ surface },
         pVulkanValidater{ pVulkanValidater } {}
 
     VulkanDevice::~VulkanDevice() {
-        if (allocator != nullptr)
-            delete allocator;
+    	delete allocator;
         vkDestroyDevice(device, pAllocator);
     }
 

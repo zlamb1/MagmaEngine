@@ -4,7 +4,7 @@
 
 #include "Magma/Vulkan/Logging/vulkan_logger.h"
 
-#include "Magma/Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Setup/instance.h"
 
 namespace Magma {
 
@@ -12,7 +12,7 @@ namespace Magma {
 
 	public:
 		Surface(VulkanImpl& pWindowImpl,
-			std::shared_ptr<VulkanInstance> pVulkanInstance);
+			std::shared_ptr<Instance> pVulkanInstance);
 		~Surface() override;
 
 		VkResult init() override;
@@ -21,7 +21,7 @@ namespace Magma {
 
 	public:
 		VulkanImpl& m_WindowImpl;
-		std::shared_ptr<VulkanInstance> m_Instance;
+		std::shared_ptr<Instance> m_Instance;
 
 	private:
 		VkSurfaceKHR m_SurfaceKHR{};

@@ -76,7 +76,7 @@ namespace Magma {
 		return vulkanFramebuffer->init();
 	}
 
-	void VulkanPipeline::addShader(std::shared_ptr<MagmaShader> pVulkanShader) {
+	void VulkanPipeline::addShader(std::shared_ptr<Shader> pVulkanShader) {
 		vulkanShaderPipeline.addShader(pVulkanShader);
 	}
 

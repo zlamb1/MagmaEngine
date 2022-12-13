@@ -27,7 +27,7 @@ namespace Magma {
 
 	public:
 		VulkanShaderAttributes() = default;
-		virtual ~VulkanShaderAttributes() = default;
+		virtual ~VulkanShaderAttributes() override = default;
 
 		const std::vector<VulkanVertexBinding>& getVertexBindings();
 		const std::vector<VulkanVertexAttribute>& getVertexAttributes();
@@ -45,11 +45,11 @@ namespace Magma {
 
 		Descriptor createUniformDescriptor(std::shared_ptr<Buffer> buffer,
 			uint32_t binding = 0, uint64_t size = 0, uint32_t count = 1,
-			VulkanShaderType stageFlags = VulkanShaderType::VERTEX) override;
+			ShaderType stageFlags = ShaderType::VERTEX) override;
 
 		Descriptor createImageDescriptor(std::shared_ptr<VulkanImageView> imageView,
 			std::shared_ptr<Sampler> sampler, uint32_t binding = 0, uint32_t count = 1,
-			VulkanShaderType stageFlags = VulkanShaderType::VERTEX) override;
+			ShaderType stageFlags = ShaderType::VERTEX) override;
 
 		std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout() override;
 

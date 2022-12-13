@@ -3,16 +3,16 @@
 #include "device_profile.h"
 
 #include "Magma/Vulkan/Memory/VMA/memory_allocator.h"
-#include "Magma/Vulkan/Setup/vulkan_validater.h"
-#include "Magma/Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Setup/validater.h"
+#include "Magma/Vulkan/Setup/instance.h"
 
 namespace Magma {
 	
 	class VulkanDevice : public VulkanObject {
 
 	public:
-		VulkanDevice(std::shared_ptr<VulkanInstance> pVulkanInstance,
-			std::shared_ptr<Surface> surface, std::shared_ptr<VulkanValidater> pValidater);
+		VulkanDevice(std::shared_ptr<Instance> pVulkanInstance,
+			std::shared_ptr<Surface> surface, std::shared_ptr<Validater> pValidater);
 		~VulkanDevice() override;
 
 		VkResult init() override;
@@ -25,9 +25,9 @@ namespace Magma {
 		SwapchainSupportDetails querySwapchainSupport();
 
 	public:
-		std::shared_ptr<VulkanInstance> pVulkanInstance = nullptr;
+		std::shared_ptr<Instance> pVulkanInstance = nullptr;
 		std::shared_ptr<Surface> pVulkanSurface = nullptr;
-		std::shared_ptr<VulkanValidater> pVulkanValidater = nullptr;
+		std::shared_ptr<Validater> pVulkanValidater = nullptr;
 
 	private:
 		VkPhysicalDevice physicalDevice{};

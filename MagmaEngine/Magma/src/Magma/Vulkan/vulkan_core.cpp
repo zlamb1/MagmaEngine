@@ -28,14 +28,14 @@ namespace Magma {
     }
 
     void VulkanCore::init() {
-        m_Validater = std::make_shared<VulkanValidater>();
-        m_Instance = std::make_shared<VulkanInstance>(m_Validater);
+        m_Validater = std::make_shared<Validater>();
+        m_Instance = std::make_shared<Instance>(m_Validater);
 
         if (m_Validater->isValidationEnabled()) {
-            m_Debugger = std::make_shared<VulkanDebugger>(m_Instance->getInstance());
+            m_Debugger = std::make_shared<Debugger>(m_Instance->getInstance());
             VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-            m_Debugger->PopulateDebugMessengerCreateInfo(debugCreateInfo);
-            m_Instance->pDebugCreateInfo = debugCreateInfo;
+            m_Debugger->populateDebugMessengerCreateInfo(debugCreateInfo);
+            m_Instance->m_DebugCreateInfo = debugCreateInfo;
         }
 
         if (m_Validater->isValidationEnabled() && !m_Validater->ensureRequiredLayers()) {
@@ -43,7 +43,7 @@ namespace Magma {
             Z_LOG_TXT("VulkanAPI::initInstance", "Validation layers were requested but are not available");
         }
 
-        m_Instance->pRequiredExtensions = getRequiredExtensions();
+        m_Instance->m_RequiredExtensions = getRequiredExtensions();
         m_Instance->init();
 
         if (m_Validater->isValidationEnabled()) {
@@ -194,20 +194,20 @@ namespace Magma {
         return m_ShaderAttributes;
     }
 
-    std::vector<std::shared_ptr<MagmaShader>>& VulkanCore::getShaders() {
+    std::vector<std::shared_ptr<Shader>>& VulkanCore::getShaders() {
         return m_Shaders;
     }
 
-    std::shared_ptr<MagmaShader> VulkanCore::createShader(const char* code, ShadercType type) {
+    std::shared_ptr<Shader> VulkanCore::createShader(const char* code, ShadercType type) {
         return createShader({ code, type });
     }
 
-    std::shared_ptr<MagmaShader> VulkanCore::createShader(VulkanShaderInfo shaderInfo) {
-        std::shared_ptr<MagmaShader> vulkanShader = std::make_shared<MagmaShader>(m_Device);
-        vulkanShader->pShaderCode = shaderInfo.pCode;
-        vulkanShader->pShaderType = static_cast<shaderc_shader_kind>(shaderInfo.pShaderType);
-        vulkanShader->init();
-        return vulkanShader;
+    std::shared_ptr<Shader> VulkanCore::createShader(VulkanShaderInfo shaderInfo) {
+        auto shader = std::make_shared<Shader>(m_Device);
+        shader->m_ShaderCode = shaderInfo.pCode;
+        shader->m_ShaderType = static_cast<shaderc_shader_kind>(shaderInfo.pShaderType);
+        shader->init();
+        return shader;
     }
 
     std::shared_ptr<Buffer> VulkanCore::createBuffer(int64_t size) {

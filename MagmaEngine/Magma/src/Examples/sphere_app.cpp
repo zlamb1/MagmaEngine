@@ -161,11 +161,11 @@ namespace Magma {
 
 		// create descriptor
 		shaderAttributes.createUniformDescriptor(m_UboBuffer, 0, sizeof(UBO),
-		                                         1, VulkanShaderType::VERTEX);
+		1, ShaderType::VERTEX);
 		shaderAttributes.createUniformDescriptor(m_TimeBuffer, 1, sizeof(float),
-		                                         1, VulkanShaderType::FRAGMENT);
+		1, ShaderType::FRAGMENT);
 		shaderAttributes.createImageDescriptor(m_TextureImageView, m_TextureSampler, 2, 1,
-		                                       VulkanShaderType::FRAGMENT);
+		ShaderType::FRAGMENT);
 
 		// create descriptor set layout
 		shaderAttributes.createDescriptorSetLayout();

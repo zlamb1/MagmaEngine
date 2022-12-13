@@ -7,7 +7,7 @@
 #include <shaderc/shaderc.h>
 
 #include "Magma/Vulkan/Shader/shader_attributes.h"
-#include "Magma/Vulkan/Shader/vulkan_shader.h"
+#include "Magma/Vulkan/Shader/shader.h"
 
 #include "Magma/Vulkan/Surface/swapchain.h"
 
@@ -37,10 +37,10 @@ namespace Magma {
 
 		std::vector<VkPipelineShaderStageCreateInfo> getShaderStages();
 
-		void addShader(std::shared_ptr<MagmaShader> pVulkanShader);
+		void addShader(std::shared_ptr<Shader> shader);
 
 	private:
-		std::vector<std::shared_ptr<MagmaShader>> pVulkanShaders{};
+		std::vector<std::shared_ptr<Shader>> pVulkanShaders{};
 
 	};
 

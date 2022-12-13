@@ -13,8 +13,8 @@ namespace Magma {
 		return shaderStages;
 	}
 
-	void VulkanShaderPipeline::addShader(std::shared_ptr<MagmaShader> pVulkanShader) {
-		pVulkanShaders.push_back(pVulkanShader);
+	void VulkanShaderPipeline::addShader(std::shared_ptr<Shader> shader) {
+		pVulkanShaders.push_back(shader);
 	}
 
 	VkResult VulkanShaderPipeline::init() {

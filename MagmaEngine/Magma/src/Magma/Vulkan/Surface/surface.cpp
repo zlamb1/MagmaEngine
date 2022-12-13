@@ -3,7 +3,7 @@
 namespace Magma {
 
     Surface::Surface(VulkanImpl& windowImpl,
-        std::shared_ptr<VulkanInstance> instance) :
+        std::shared_ptr<Instance> instance) :
         m_WindowImpl{ windowImpl }, m_Instance{ std::move(instance) } {}
 
     Surface::~Surface() {

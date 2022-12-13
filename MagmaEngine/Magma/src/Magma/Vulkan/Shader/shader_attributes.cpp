@@ -60,7 +60,7 @@ namespace Magma {
 	}
 
 	Descriptor VulkanShaderAttributes::createUniformDescriptor(const std::shared_ptr<Buffer> buffer,
-		const uint32_t binding, const uint64_t size, const uint32_t count, const VulkanShaderType stageFlags) {
+		const uint32_t binding, const uint64_t size, const uint32_t count, const ShaderType stageFlags) {
 		Descriptor descriptor{};
 		descriptor.pBinding = binding;
 		descriptor.pCount = count;
@@ -74,7 +74,7 @@ namespace Magma {
 
 	Descriptor VulkanShaderAttributes::createImageDescriptor(const std::shared_ptr<VulkanImageView> imageView,
 		const std::shared_ptr<Sampler> sampler, const uint32_t binding, const uint32_t count, 
-		const VulkanShaderType stageFlags) {
+		const ShaderType stageFlags) {
 		Descriptor descriptor{};
 		descriptor.pDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; 
 		descriptor.pBinding = binding;

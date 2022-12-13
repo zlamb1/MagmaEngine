@@ -19,6 +19,7 @@ namespace Magma {
 		virtual VertexBinding createVertexBinding(uint32_t binding = 0,
 			uint32_t stride = 0,
 			VertexInputRate inputRate = VertexInputRate::VERTEX) = 0;
+
 		virtual VertexAttribute createVertexAttribute(uint32_t binding = 0,
 			uint32_t location = 0,
 			uint32_t offset = 0,
@@ -28,11 +29,14 @@ namespace Magma {
 			uint32_t pBinding = 0,
 			uint64_t pSize = 0,
 			uint32_t pCount = 1,
-			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX) = 0;
+			ShaderType pStageFlags = ShaderType::VERTEX) = 0;
+
 		virtual Descriptor createImageDescriptor(std::shared_ptr<VulkanImageView> pImage,
 			std::shared_ptr<Sampler> pSampler, uint32_t pBinding = 0, uint32_t pCount = 1,
-			VulkanShaderType pStageFlags = VulkanShaderType::VERTEX) = 0;
+			ShaderType pStageFlags = ShaderType::VERTEX) = 0;
+
 		virtual std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout() = 0;
+
 		virtual std::shared_ptr<DescriptorSet> createDescriptorSet(uint32_t pMaxSets = 1) = 0;
 
 	};

@@ -32,13 +32,13 @@
 #include "Magma/Vulkan/Render/vulkan_renderer.h"
 #include "Magma/Vulkan/Render/vulkan_sync.h"
 
-#include "Magma/Vulkan/Setup/vulkan_debugger.h"
-#include "Magma/Vulkan/Setup/vulkan_instance.h"
+#include "Magma/Vulkan/Setup/debugger.h"
+#include "Magma/Vulkan/Setup/instance.h"
 #include "Magma/Vulkan/Setup/vulkan_object.h"
-#include "Magma/Vulkan/Setup/vulkan_validater.h"
+#include "Magma/Vulkan/Setup/validater.h"
 
 #include "Magma/Vulkan/Shader/shader_attributes.h"
-#include "Magma/Vulkan/Shader/vulkan_shader.h"
+#include "Magma/Vulkan/Shader/shader.h"
 
 #include "Magma/Vulkan/Surface/surface.h"
 #include "Magma/Vulkan/Surface/swapchain.h"
@@ -60,10 +60,10 @@ namespace Magma {
 		[[nodiscard]] Renderer& getRenderer() const override;
 		[[nodiscard]] ShaderAttributes& getShaderAttributes() override;
 
-		std::vector<std::shared_ptr<MagmaShader>>& getShaders();
+		std::vector<std::shared_ptr<Shader>>& getShaders();
 
-		std::shared_ptr<MagmaShader> createShader(const char* code, ShadercType type);
-		std::shared_ptr<MagmaShader> createShader(VulkanShaderInfo shaderInfo);
+		std::shared_ptr<Shader> createShader(const char* code, ShadercType type);
+		std::shared_ptr<Shader> createShader(VulkanShaderInfo shaderInfo);
 
 		std::shared_ptr<Buffer> createBuffer(int64_t size) override;
 		std::shared_ptr<Buffer> createBuffer(int64_t size, BufferUsage bufferUsage) override;
@@ -77,9 +77,9 @@ namespace Magma {
 		void setDepthBuffering(bool enabled) override;
 
 	private:
-		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+		[[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
 			VkFormatFeatureFlags features) const;
-		VkFormat findDepthFormat() const;
+		[[nodiscard]] VkFormat findDepthFormat() const;
 
 		void initCommands();
 		void initSync();
@@ -94,9 +94,9 @@ namespace Magma {
 
 		VulkanImpl& m_WindowImpl;
 
-		std::shared_ptr<VulkanInstance> m_Instance;
-		std::shared_ptr<VulkanValidater> m_Validater;
-		std::shared_ptr<VulkanDebugger> m_Debugger;
+		std::shared_ptr<Instance> m_Instance;
+		std::shared_ptr<Validater> m_Validater;
+		std::shared_ptr<Debugger> m_Debugger;
 		std::shared_ptr<Surface> m_Surface;
 		std::shared_ptr<VulkanDevice> m_Device;
 		std::shared_ptr<Swapchain> m_Swapchain;
@@ -112,12 +112,12 @@ namespace Magma {
 		std::vector<std::shared_ptr<VulkanCmdBuffer>> m_CommandBuffers{};
 		std::vector<std::shared_ptr<VulkanRenderSync>> m_RenderSyncs{};
 
-		std::vector<std::shared_ptr<MagmaShader>> m_Shaders{};
+		std::vector<std::shared_ptr<Shader>> m_Shaders{};
 		std::vector<std::shared_ptr<VulkanBuffer>> m_Buffers{};
 
-		std::shared_ptr<MagmaShader> m_VertexShader, m_FragmentShader;
+		std::shared_ptr<Shader> m_VertexShader, m_FragmentShader;
 
-		std::vector<const char*> getRequiredExtensions() const;
+		[[nodiscard]] std::vector<const char*> getRequiredExtensions() const;
 
 	};
 
