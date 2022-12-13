@@ -55,7 +55,7 @@ namespace Magma {
         vulkanDevice = std::make_shared<VulkanDevice>(vulkanInstance, vulkanSurface, vulkanValidater);
         vulkanDevice->init();
 
-        shaderAttributes.pVulkanDevice = vulkanDevice;
+        shaderAttributes.m_Device = vulkanDevice;
 
         vulkanSwapchain = std::make_shared<VulkanSwapchain>(vulkanDevice);
         vulkanSwapchain->init();
@@ -69,7 +69,7 @@ namespace Magma {
     }
 
     void VulkanAPI::initRender() {
-        vulkanRenderer->pDescriptorSets = shaderAttributes.getDescriptorSets();
+        vulkanRenderer->m_DescriptorSets = shaderAttributes.getDescriptorSets();
 
         vulkanPipeline->pVulkanSwapchain = vulkanSwapchain;
         vulkanPipeline->pVulkanRenderer = vulkanRenderer;
@@ -85,7 +85,7 @@ namespace Magma {
         }
 
         for (auto buffer : buffers) {
-            vulkanRenderer->pVertexBuffers.push_back(buffer);
+            vulkanRenderer->m_VertexBuffers.push_back(buffer);
         }
 
         vulkanPipeline->init();
@@ -244,7 +244,7 @@ namespace Magma {
     }
 
     void VulkanAPI::addBuffer(std::shared_ptr<Buffer> buffer) {
-        vulkanRenderer->pVertexBuffers.push_back(dynamic_pointer_cast<VulkanBuffer>(buffer));
+        vulkanRenderer->m_VertexBuffers.push_back(dynamic_pointer_cast<VulkanBuffer>(buffer));
     }
 
     void VulkanAPI::setDepthBuffering(bool enabled) {

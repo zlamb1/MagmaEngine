@@ -145,8 +145,8 @@ namespace Magma {
 
 		vkPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-		auto& descriptorSetLayouts = pShaderAttributes.getDescriptorSetLayouts();
-		if (descriptorSetLayouts.size() == 0) {
+		const auto descriptorSetLayouts = pShaderAttributes.getDescriptorSetLayouts();
+		if (descriptorSetLayouts.empty()) {
 			vkPipelineLayoutCreateInfo.setLayoutCount = 0;
 			vkPipelineLayoutCreateInfo.pSetLayouts = nullptr;
 		}

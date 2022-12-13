@@ -20,8 +20,8 @@ namespace Magma {
 		void reset();
 
 	private:
-		double start = 0.0, end = 0.0;
-		int frames = 1; 
+		double m_StartTime = 0.0, m_EndTime = 0.0;
+		int m_FramesElapsed = 1; 
 
 	};
 

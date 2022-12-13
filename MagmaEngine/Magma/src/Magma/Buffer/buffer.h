@@ -11,13 +11,14 @@ namespace Magma {
 	};
 
 	inline BufferUsage operator|(BufferUsage a, BufferUsage b) {
-		return (BufferUsage)((int)a | (int)b);
+		return static_cast<BufferUsage>(static_cast<int>(a) | static_cast<int>(b));
 	}
 
 	class Buffer {
 
 	public:
 		Buffer() = default;
+		virtual ~Buffer() = default; 
 
 		virtual void init() = 0; 
 
@@ -28,7 +29,7 @@ namespace Magma {
 		virtual void unmap() = 0;
 
 	protected:
-		void* data = nullptr; 
+		void* m_Data = nullptr; 
 
 	};
 

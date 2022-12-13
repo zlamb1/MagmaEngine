@@ -7,8 +7,8 @@
 namespace Magma {
 
 	struct ImageData {
-		unsigned char* pixels = nullptr; 
-		int32_t width = 0, height = 0, channels = 0;
+		unsigned char* m_Pixels = nullptr; 
+		int32_t m_Width = 0, m_Height = 0, m_Channels = 0;
 		virtual ~ImageData() = default; 
 	};
 

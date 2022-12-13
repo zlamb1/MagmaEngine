@@ -2,149 +2,132 @@
 
 namespace Magma {
 
-	VkVertexBinding VulkanVertexBinding::getVertexBinding() {
-		VkVertexBinding vertexBinding{};
-		vertexBinding.binding = binding;
-		vertexBinding.stride = stride;
-		vertexBinding.inputRate = Convert::convertVertexInputRate(inputRate); 
+	VkVertexBinding VulkanVertexBinding::getVertexBinding() const {
+		const VkVertexBinding vertexBinding{
+			m_Binding, m_Stride, Convert::convertVertexInputRate(m_InputRate)
+		};
 
 		return vertexBinding;
 	}
 
-	VkVertexAttribute VulkanVertexAttribute::getVertexAttribute() {
-		VkVertexAttribute vertexAttribute{};
-		vertexAttribute.binding = binding;
-		vertexAttribute.location = location;
-		vertexAttribute.offset = offset;
-		vertexAttribute.format = Convert::convertFormat(format);
+	VkVertexAttribute VulkanVertexAttribute::getVertexAttribute() const {
+		const VkVertexAttribute vertexAttribute{
+			m_Location, m_Binding, Convert::convertFormat(m_Format), m_Offset
+		};
 
 		return vertexAttribute;
 	}
 
 	const std::vector<VulkanVertexBinding>& VulkanShaderAttributes::getVertexBindings() {
-		return vertexBindings;
+		return m_VertexBindings;
 	}
 
 	const std::vector<VulkanVertexAttribute>& VulkanShaderAttributes::getVertexAttributes() {
-		return vertexAttributes;
+		return m_VertexAttributes;
 	}
 
-	const std::vector<VkDescriptorSetLayout> VulkanShaderAttributes::getDescriptorSetLayouts() {
-		std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts{};
-		for (auto& descriptorSetLayout : descriptorSetLayouts) {
-			vkDescriptorSetLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
+	std::vector<VkDescriptorSetLayout> VulkanShaderAttributes::getDescriptorSetLayouts() const {
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{};
+		for (auto& descriptorSetLayout : m_DescriptorSetLayouts) {
+			descriptorSetLayouts.push_back(descriptorSetLayout->getDescriptorSetLayout());
 		}
 
-		return vkDescriptorSetLayouts;
+		return descriptorSetLayouts;
 	}
 
-	const std::vector<VkDescriptorSet> VulkanShaderAttributes::getDescriptorSets() {
-		std::vector<VkDescriptorSet> vkDescriptorSets{};
-		for (auto& descriptorSet : this->descriptorSets) {
+	std::vector<VkDescriptorSet> VulkanShaderAttributes::getDescriptorSets() const {
+		std::vector<VkDescriptorSet> descriptorSets{};
+		for (const auto& descriptorSet : m_DescriptorSets) {
 			auto& sets = descriptorSet->getDescriptorSets();
-			vkDescriptorSets.insert(vkDescriptorSets.end(), sets.begin(), sets.end());
+			descriptorSets.insert(descriptorSets.end(), sets.begin(), sets.end());
 		}
 
-		return vkDescriptorSets;
+		return descriptorSets;
 	}
 
-	VertexBinding VulkanShaderAttributes::createVertexBinding(
-		uint32_t binding, uint32_t stride, VertexInputRate inputRate) {
-		VulkanVertexBinding vertexBinding{};
-		vertexBinding.binding = binding;
-		vertexBinding.stride = stride;
-		vertexBinding.inputRate = inputRate;
-
-		vertexBindings.push_back(vertexBinding);
-
+	VertexBinding VulkanShaderAttributes::createVertexBinding(const uint32_t binding, 
+		const uint32_t stride, const VertexInputRate inputRate) {
+		const VulkanVertexBinding vertexBinding{ binding, stride, inputRate };
+		m_VertexBindings.push_back(vertexBinding);
 		return vertexBinding;
 	}
 
-	VertexAttribute VulkanShaderAttributes::createVertexAttribute(
-		uint32_t binding, uint32_t location, uint32_t offset, DataFormat format) {
-		VulkanVertexAttribute vertexAttribute{};
-		vertexAttribute.binding = binding;
-		vertexAttribute.location = location;
-		vertexAttribute.offset = offset;
-		vertexAttribute.format = format;
-
-		vertexAttributes.push_back(vertexAttribute);
-
+	VertexAttribute VulkanShaderAttributes::createVertexAttribute(const uint32_t binding, 
+		const uint32_t location, const uint32_t offset, const DataFormat format) {
+		const VulkanVertexAttribute vertexAttribute{ binding, location, offset, format };
+		m_VertexAttributes.push_back(vertexAttribute);
 		return vertexAttribute;
 	}
 
-	Descriptor VulkanShaderAttributes::createUniformDescriptor(std::shared_ptr<Buffer> pBuffer,
-		uint32_t pBinding, uint64_t pSize, uint32_t pCount, VulkanShaderType pStageFlags) {
+	Descriptor VulkanShaderAttributes::createUniformDescriptor(const std::shared_ptr<Buffer> buffer,
+		const uint32_t binding, const uint64_t size, const uint32_t count, const VulkanShaderType stageFlags) {
 		Descriptor descriptor{};
-		descriptor.pBinding = pBinding;
-		descriptor.pCount = pCount;
-		descriptor.pStageFlags = pStageFlags;
-		descriptor.pBuffer = pBuffer;
-		descriptor.pSize = pSize;
+		descriptor.pBinding = binding;
+		descriptor.pCount = count;
+		descriptor.pStageFlags = stageFlags;
+		descriptor.pBuffer = buffer;
+		descriptor.pSize = size;
 		descriptor.init();
-		descriptors.push_back(descriptor);
+		m_Descriptors.push_back(descriptor);
 		return descriptor;
 	}
 
-	Descriptor VulkanShaderAttributes::createImageDescriptor(std::shared_ptr<VulkanImageView> pImageView,
-		std::shared_ptr<Sampler> pSampler, uint32_t pBinding, uint32_t pCount, VulkanShaderType pStageFlags) {
+	Descriptor VulkanShaderAttributes::createImageDescriptor(const std::shared_ptr<VulkanImageView> imageView,
+		const std::shared_ptr<Sampler> sampler, const uint32_t binding, const uint32_t count, 
+		const VulkanShaderType stageFlags) {
 		Descriptor descriptor{};
 		descriptor.pDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; 
-		descriptor.pBinding = pBinding;
-		descriptor.pCount = pCount;
-		descriptor.pStageFlags = pStageFlags;
-		descriptor.pImageView = pImageView;
-		descriptor.pSampler = pSampler; 
+		descriptor.pBinding = binding;
+		descriptor.pCount = count;
+		descriptor.pStageFlags = stageFlags;
+		descriptor.pImageView = imageView;
+		descriptor.pSampler = sampler; 
 		descriptor.init();
-		descriptors.push_back(descriptor);
+		m_Descriptors.push_back(descriptor);
 		return descriptor;
 	}
 
 	std::shared_ptr<DescriptorSetLayout> VulkanShaderAttributes::createDescriptorSetLayout() {
-		std::shared_ptr<DescriptorSetLayout> descriptorSetLayout =
-			std::make_shared<DescriptorSetLayout>();
-		descriptorSetLayout->pVulkanDevice = pVulkanDevice;
-		for (auto& descriptor : descriptors) {
+		auto descriptorSetLayout = std::make_shared<DescriptorSetLayout>();
+		descriptorSetLayout->pVulkanDevice = m_Device;
+		for (auto& descriptor : m_Descriptors) {
 			descriptorSetLayout->pDescriptors.push_back(descriptor);
 		}
 		descriptorSetLayout->init();
-		descriptorSetLayouts.push_back(descriptorSetLayout);
+		m_DescriptorSetLayouts.push_back(descriptorSetLayout);
 		return descriptorSetLayout;
 	}
 
 	std::shared_ptr<DescriptorSet> VulkanShaderAttributes::createDescriptorSet(uint32_t pMaxSets) {
-		std::shared_ptr<DescriptorSet> descriptorSet = std::make_shared<DescriptorSet>();
-		descriptorSet->pVulkanDevice = pVulkanDevice;
-
-		for (auto descriptorSetLayout : descriptorSetLayouts) {
+		auto descriptorSet = std::make_shared<DescriptorSet>();
+		descriptorSet->pVulkanDevice = m_Device;
+		for (auto descriptorSetLayout : m_DescriptorSetLayouts) {
 			descriptorSet->pDescriptorSetLayouts.push_back(descriptorSetLayout);
 		}
-
 		descriptorSet->pMaxSets = pMaxSets;
 		descriptorSet->init();
-		descriptorSets.push_back(descriptorSet);
-
+		m_DescriptorSets.push_back(descriptorSet);
 		return descriptorSet;
 	}
 
 	void VulkanShaderAttributes::clearVertexBindings() {
-		vertexBindings.clear();
+		m_VertexBindings.clear();
 	}
 
 	void VulkanShaderAttributes::clearVertexAttributes() {
-		vertexAttributes.clear();
+		m_VertexAttributes.clear();
 	}
 
 	void VulkanShaderAttributes::clearDescriptors() {
-		descriptors.clear();
+		m_Descriptors.clear();
 	}
 
 	void VulkanShaderAttributes::clearDescriptorSetLayouts() {
-		descriptorSetLayouts.clear();
+		m_DescriptorSetLayouts.clear();
 	}
 
 	void VulkanShaderAttributes::clearDescriptorSets() {
-		descriptorSets.clear();
+		m_DescriptorSets.clear();
 	}
 
 }

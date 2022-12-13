@@ -2,40 +2,40 @@
 
 namespace Magma {
 
-	void Renderer::setVertexCount(uint32_t nVertexCount) {
-		vertexCount = nVertexCount;
+	void Renderer::setVertexCount(const uint32_t vertexCount) {
+		m_VertexCount = vertexCount;
 	}
 
-	void Renderer::setIndexCount(uint32_t nIndexCount) {
-		indexCount = nIndexCount;
+	void Renderer::setIndexCount(const uint32_t indexCount) {
+		m_IndexCount = indexCount;
 	}
 
-	void Renderer::setInstanceCount(uint32_t nInstanceCount) {
-		instanceCount = nInstanceCount;
+	void Renderer::setInstanceCount(const uint32_t instanceCount) {
+		m_InstanceCount = instanceCount;
 	}
 
-	void Renderer::setFirstVertex(uint32_t nFirstVertex) {
-		firstVertex = nFirstVertex;
+	void Renderer::setFirstVertex(const uint32_t firstVertex) {
+		m_FirstVertex = firstVertex;
 	}
 
-	void Renderer::setFirstInstance(uint32_t nFirstInstance) {
-		firstInstance = nFirstInstance;
+	void Renderer::setFirstInstance(const uint32_t firstInstance) {
+		m_FirstInstance = firstInstance;
 	}
 
-	void Renderer::setFirstIndex(uint32_t nFirstIndex) {
-		firstIndex = nFirstIndex;
+	void Renderer::setFirstIndex(const uint32_t firstIndex) {
+		m_FirstIndex = firstIndex;
 	}
 
-	void Renderer::setVertexOffset(uint32_t nVertexOffset) {
-		vertexOffset = nVertexOffset;
+	void Renderer::setVertexOffset(const int32_t vertexOffset) {
+		m_VertexOffset = vertexOffset;
 	}
 
-	void Renderer::setUseIndexing(bool nUseIndexing) {
-		useIndexing = nUseIndexing;
+	void Renderer::setUseIndexing(const bool useIndexing) {
+		m_UseIndexing = useIndexing;
 	}
 
-	void Renderer::setIndexBuffer(std::shared_ptr<Buffer> nIndexBuffer) {
-		indexBuffer = nIndexBuffer; 
+	void Renderer::setIndexBuffer(const std::shared_ptr<Buffer>& indexBuffer) {
+		m_IndexBuffer = indexBuffer;
 	}
 
 }

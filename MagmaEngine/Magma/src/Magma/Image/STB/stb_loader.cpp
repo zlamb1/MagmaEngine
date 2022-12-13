@@ -6,7 +6,7 @@
 namespace Magma {
 
 	StbImageData::~StbImageData() {
-		stbi_image_free(pixels);
+		stbi_image_free(m_Pixels);
 	}
 
 	StbImageLoader::StbImageLoader() {
@@ -17,8 +17,9 @@ namespace Magma {
 
 	std::shared_ptr<ImageData> StbImageLoader::loadImage(const std::string& path) {
 		std::shared_ptr<ImageData> imageData = std::make_shared<StbImageData>();
-		imageData->pixels = stbi_load(path.c_str(), &imageData->width, &imageData->height,
-			&imageData->channels, STBI_rgb_alpha);
+		imageData->m_Pixels = stbi_load(path.c_str(), 
+			&imageData->m_Width, &imageData->m_Height,
+			&imageData->m_Channels, STBI_rgb_alpha);
 		return imageData; 
 	}
 

@@ -90,26 +90,26 @@ namespace Magma {
 	}
 
 	void* VmaBuffer::getData() const {
-		return data; 
+		return m_Data; 
 	}
 
 	void VmaBuffer::setData(void* inData, size_t size) {
-		if (data == nullptr)
+		if (m_Data == nullptr)
 			Z_LOG_TXT("VulkanBuffer::setData", "warning: attempting to set data of unmapped buffer");
-		else memcpy(data, inData, size);
+		else memcpy(m_Data, inData, size);
 	}
 
 	void VmaBuffer::map() {
 		// create temp pointer as you can't copy into nullptr
 		void* tmpData;
 		auto mapMemoryResult = vmaMapMemory(allocator->getAllocator(), vmaAllocation, &tmpData);
-		data = tmpData; 
+		m_Data = tmpData; 
 		Z_LOG_OBJ("VulkanBuffer::map", mapMemoryResult);
 	}
 
 	void VmaBuffer::unmap() {
 		vmaUnmapMemory(allocator->getAllocator(), vmaAllocation);
-		data = nullptr; 
+		m_Data = nullptr; 
 	}
 
 }

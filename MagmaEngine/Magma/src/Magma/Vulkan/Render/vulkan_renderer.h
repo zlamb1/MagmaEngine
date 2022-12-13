@@ -8,7 +8,6 @@
 
 #include "Magma/Vulkan/Command/vulkan_cmd.h"
 #include "Magma/Vulkan/Memory/vulkan_buffer.h"
-#include "Magma/Vulkan/Setup/vulkan_object.h"
 
 namespace Magma {
 
@@ -18,12 +17,11 @@ namespace Magma {
 		VulkanRenderer() = default;
 		~VulkanRenderer() = default;
 
-		void onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, VkPipelineLayout& vkPipelineLayout);
+		void onNewFrame(VulkanCmdBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout) const;
 	
 	public:
-		std::vector<std::shared_ptr<VulkanBuffer>> pVertexBuffers{};
-
-		std::vector<VkDescriptorSet> pDescriptorSets{};
+		std::vector<std::shared_ptr<VulkanBuffer>> m_VertexBuffers{};
+		std::vector<VkDescriptorSet> m_DescriptorSets{};
 
 	};
 

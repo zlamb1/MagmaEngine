@@ -229,18 +229,18 @@ namespace Magma {
 		StbImageLoader loader{};
 		const auto imageData = loader.loadImage("texture1.jpg");
 
-		const int64_t imageSize = static_cast<int64_t>(imageData->width) * imageData->height * 4;
+		const int64_t imageSize = static_cast<int64_t>(imageData->m_Width) * imageData->m_Height * 4;
 
-		if (!imageData->pixels) {
+		if (!imageData->m_Pixels) {
 			throw std::runtime_error("failed to load texture image!");
 		}
 
 		m_TextureBuffer = m_RenderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
 		m_TextureBuffer->map();
-		m_TextureBuffer->setData(imageData->pixels, imageSize);
+		m_TextureBuffer->setData(imageData->m_Pixels, imageSize);
 		m_TextureBuffer->unmap();
 
-		m_TextureImage = m_RenderCore->createTexture(imageData->width, imageData->height);
+		m_TextureImage = m_RenderCore->createTexture(imageData->m_Width, imageData->m_Height);
 
 		TransitionImage transitionImage{m_RenderCore->getDevice()};
 		transitionImage.pImage = m_TextureImage;

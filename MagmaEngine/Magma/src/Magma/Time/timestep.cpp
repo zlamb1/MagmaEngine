@@ -3,13 +3,13 @@
 namespace Magma {
 
 	Timestep::Timestep() {
-		start = glfwGetTime();
-		end = start; 
+		m_StartTime = glfwGetTime();
+		m_EndTime = m_StartTime; 
 	}
 
 	void Timestep::onNewFrame() {
-		end = glfwGetTime(); 
-		frames++;
+		m_EndTime = glfwGetTime(); 
+		m_FramesElapsed++;
 	}
 
 	double Timestep::getFps() {
@@ -17,17 +17,17 @@ namespace Magma {
 	}
 
 	double Timestep::getMps() {
-		return getElapsed() * 1000.0 / frames; 
+		return getElapsed() * 1000.0 / m_FramesElapsed; 
 	}
 
 	double Timestep::getElapsed() {
-		return end - start; 
+		return m_EndTime - m_StartTime; 
 	}
 
 	void Timestep::reset() {
-		start = glfwGetTime();
-		end = start; 
-		frames = 1; 
+		m_StartTime = glfwGetTime();
+		m_EndTime = m_StartTime; 
+		m_FramesElapsed = 1; 
 	}
 
 }

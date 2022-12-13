@@ -18,13 +18,13 @@ namespace Magma {
 	};
 
 	struct VertexBinding {
-		uint32_t binding, stride;
-		VertexInputRate inputRate;
+		uint32_t m_Binding, m_Stride;
+		VertexInputRate m_InputRate;
 	};
 
 	struct VertexAttribute {
-		uint32_t binding, location, offset;
-		DataFormat format; 
+		uint32_t m_Binding, m_Location, m_Offset;
+		DataFormat m_Format; 
 	};
 
 	class ShaderAttributes {
