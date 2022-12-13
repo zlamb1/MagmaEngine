@@ -19,6 +19,8 @@ namespace Magma {
 		public:
 			std::shared_ptr<VulkanDevice> pVulkanDevice;
 
+			VkImageUsageFlagBits m_ImageUsage; 
+
 		private:
 			const MemoryAllocator* const memoryAllocator;
 			VmaAllocationCreateInfo vmaImageAllocCreateInfo;

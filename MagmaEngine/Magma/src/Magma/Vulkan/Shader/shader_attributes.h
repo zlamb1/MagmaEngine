@@ -8,37 +8,9 @@
 #include "Magma/Vulkan/Memory/descriptor.h"
 #include "Magma/Vulkan/Memory/VMA/vma_buffer.h"
 
+#include "Magma/Vulkan/Render/render_enums.h"
+
 namespace Magma {
-
-	namespace Convert {
-
-		static VkVertexInputRate convertVertexInputRate(const VertexInputRate inputRate) {
-			switch (inputRate) {
-				case VertexInputRate::VERTEX:
-					return VK_VERTEX_INPUT_RATE_VERTEX;
-				case VertexInputRate::INSTANCE:
-					return VK_VERTEX_INPUT_RATE_INSTANCE;
-			}
-
-			return VK_VERTEX_INPUT_RATE_VERTEX; 
-		}
-
-		static VkFormat convertFormat(const DataFormat format) {
-			switch (format) {
-				case DataFormat::R_SFLOAT32:
-					return VK_FORMAT_R32_SFLOAT;
-				case DataFormat::RG_SFLOAT32:
-					return VK_FORMAT_R32G32_SFLOAT;
-				case DataFormat::RGB_SFLOAT32:
-					return VK_FORMAT_R32G32B32_SFLOAT;
-				case DataFormat::RGBA_SFLOAT32:
-					return VK_FORMAT_R32G32B32A32_SFLOAT;
-			}
-
-			return VK_FORMAT_R32G32B32A32_SFLOAT;
-		}
-
-	}
 
 	typedef VkVertexInputBindingDescription VkVertexBinding;
 	typedef VkVertexInputAttributeDescription VkVertexAttribute;
@@ -69,7 +41,7 @@ namespace Magma {
 		VertexAttribute createVertexAttribute(uint32_t binding = 0,
 			uint32_t location = 0,
 			uint32_t offset = 0,
-			DataFormat format = DataFormat::RGB_SFLOAT32) override;
+			DataFormat format = DataFormat::R32G32B32_SFLOAT) override;
 
 		Descriptor createUniformDescriptor(std::shared_ptr<Buffer> buffer,
 			uint32_t binding = 0, uint64_t size = 0, uint32_t count = 1,

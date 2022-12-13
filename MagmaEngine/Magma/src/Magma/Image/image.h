@@ -2,25 +2,27 @@
 
 #include <vulkan/vulkan.h>
 
+#include "Magma/Render/render_enums.h"
+
 namespace Magma {
 
 	class Image {
 
 	public:
+		virtual ~Image() = default; 
 		virtual VkResult init() = 0; 
 
 	public:
-		uint32_t pExtentWidth = 0, pExtentHeight = 0, pExtentDepth = 1;
-		uint32_t pMipLevels = 1, pArrayLayers = 1;
+		uint32_t m_ExtentWidth = 0, m_ExtentHeight = 0, m_ExtentDepth = 1;
+		uint32_t m_MipLevels = 1, m_ArrayLayers = 1;
 
-		VkImageType pType = VK_IMAGE_TYPE_2D;
-		VkFormat pFormat;
-		VkImageTiling pTiling = VK_IMAGE_TILING_OPTIMAL;
-		VkImageLayout pInitialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		VkImageUsageFlags pUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		VkSharingMode pSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		VkSampleCountFlagBits pSamples = VK_SAMPLE_COUNT_1_BIT;
-		VkImageCreateFlags pFlags = 0;
+		ImageType m_Type = ImageType::IMAGE_TYPE_2D;
+		DataFormat m_Format = DataFormat::R8G8B8A8_SRGB;
+		ImageTiling m_Tiling = ImageTiling::OPTIMAL;
+		ImageLayout m_InitialLayout = ImageLayout::UNDEFINED;
+		SharingMode m_SharingMode = SharingMode::EXCLUSIVE;
+		SampleCount m_Samples = SampleCount::SAMPLE_COUNT_1_BIT;
+		uint32_t m_Flags = 0; 
 
 	};
 

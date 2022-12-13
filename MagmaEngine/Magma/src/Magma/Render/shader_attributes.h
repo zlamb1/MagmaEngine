@@ -2,41 +2,27 @@
 
 #include <stdint.h>
 
-#include "Magma/Buffer/buffer.h"
+#include "buffer.h"
+
+#include "render_enums.h"
 
 // TODO: abstract this
 #include "Magma/Vulkan/Memory/descriptor.h"
 
 namespace Magma {
 
-	enum class VertexInputRate {
-		VERTEX, INSTANCE
-	};
-
-	enum class DataFormat {
-		R_SFLOAT32, RG_SFLOAT32, RGB_SFLOAT32, RGBA_SFLOAT32
-	};
-
-	struct VertexBinding {
-		uint32_t m_Binding, m_Stride;
-		VertexInputRate m_InputRate;
-	};
-
-	struct VertexAttribute {
-		uint32_t m_Binding, m_Location, m_Offset;
-		DataFormat m_Format; 
-	};
-
 	class ShaderAttributes {
 
 	public:
+		virtual ~ShaderAttributes() = default; 
+
 		virtual VertexBinding createVertexBinding(uint32_t binding = 0,
 			uint32_t stride = 0,
 			VertexInputRate inputRate = VertexInputRate::VERTEX) = 0;
 		virtual VertexAttribute createVertexAttribute(uint32_t binding = 0,
 			uint32_t location = 0,
 			uint32_t offset = 0,
-			DataFormat format = DataFormat::RGB_SFLOAT32) = 0;
+			DataFormat format = DataFormat::R32G32B32_SFLOAT) = 0;
 
 		virtual Descriptor createUniformDescriptor(std::shared_ptr<Buffer> pBuffer,
 			uint32_t pBinding = 0,

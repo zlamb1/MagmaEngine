@@ -134,13 +134,13 @@ namespace Magma {
 		auto& shaderAttributes = m_RenderCore->getShaderAttributes();
 		shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
 		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
-		                                       DataFormat::RGB_SFLOAT32);
+		                                       DataFormat::R32G32B32_SFLOAT);
 		shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, color),
-		                                       DataFormat::RGB_SFLOAT32);
+		                                       DataFormat::R32G32B32_SFLOAT);
 		shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, normal),
-		                                       DataFormat::RGB_SFLOAT32);
+		                                       DataFormat::R32G32B32_SFLOAT);
 		shaderAttributes.createVertexAttribute(0, 3, offsetof(SphereVertex, uv),
-		                                       DataFormat::RG_SFLOAT32);
+		                                       DataFormat::R32G32_SFLOAT);
 
 		m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
 		updateSphereData();
@@ -209,17 +209,17 @@ namespace Magma {
 		m_Resolution = 5;
 
 		switch (m_SphereMode) {
-		case 0:
-			m_SphereData = UVSphere::createSphere(m_Resolution);
-			break;
-		case 1:
-			m_SphereData = IcoSphere::createSphere(m_Resolution);
-			break;
-		case 2:
-			m_SphereData = QuadSphere::createSphere(m_Resolution, false);
-			break;
-		default:
-			break;
+			case 0:
+				m_SphereData = UVSphere::createSphere(m_Resolution);
+				break;
+			case 1:
+				m_SphereData = IcoSphere::createSphere(m_Resolution);
+				break;
+			case 2:
+				m_SphereData = QuadSphere::createSphere(m_Resolution, false);
+				break;
+			default:
+				break;
 		}
 
 		m_Resolution++;
@@ -243,10 +243,9 @@ namespace Magma {
 		m_TextureImage = m_RenderCore->createTexture(imageData->m_Width, imageData->m_Height);
 
 		TransitionImage transitionImage{m_RenderCore->getDevice()};
-		transitionImage.pImage = m_TextureImage;
-		transitionImage.pFormat = VK_FORMAT_R8G8B8A8_SRGB;
-		transitionImage.pOldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		transitionImage.m_Image = m_TextureImage;
+		transitionImage.m_OldLayout = ImageLayout::UNDEFINED;
+		transitionImage.m_NewLayout = ImageLayout::TRANSFER_DST_OPTIMAL;
 		transitionImage.init();
 
 		CopyBufferToImage copyBufferToImage{m_RenderCore->getDevice()};
@@ -254,8 +253,8 @@ namespace Magma {
 		copyBufferToImage.pImage = m_TextureImage;
 		copyBufferToImage.init();
 
-		transitionImage.pOldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		transitionImage.pNewLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		transitionImage.m_OldLayout = ImageLayout::TRANSFER_DST_OPTIMAL;
+		transitionImage.m_NewLayout = ImageLayout::SHADER_READ_ONLY_OPTIMAL;
 		transitionImage.init();
 
 		m_TextureImageView = m_RenderCore->createTextureImageView(m_TextureImage);

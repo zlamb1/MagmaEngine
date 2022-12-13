@@ -4,7 +4,7 @@ namespace Magma {
 
 	VkVertexBinding VulkanVertexBinding::getVertexBinding() const {
 		const VkVertexBinding vertexBinding{
-			m_Binding, m_Stride, Convert::convertVertexInputRate(m_InputRate)
+			m_Binding, m_Stride, convertVertexInputRate(m_InputRate)
 		};
 
 		return vertexBinding;
@@ -12,7 +12,7 @@ namespace Magma {
 
 	VkVertexAttribute VulkanVertexAttribute::getVertexAttribute() const {
 		const VkVertexAttribute vertexAttribute{
-			m_Location, m_Binding, Convert::convertFormat(m_Format), m_Offset
+			m_Location, m_Binding, static_cast<VkFormat>(m_Format), m_Offset
 		};
 
 		return vertexAttribute;

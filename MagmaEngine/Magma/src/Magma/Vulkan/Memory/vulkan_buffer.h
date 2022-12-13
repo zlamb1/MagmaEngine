@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magma/Buffer/buffer.h"
+#include "Magma/Render/buffer.h"
 
 #include "Magma/Vulkan/Device/vulkan_device.h"
 

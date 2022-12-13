@@ -4,6 +4,7 @@
 
 #include "Magma/Vulkan/Image/vulkan_image.h"
 #include "Magma/Vulkan/Memory/VMA/vma_buffer.h"
+#include "Magma/Vulkan/Render/render_enums.h"
 
 namespace Magma {
 
@@ -34,8 +35,8 @@ namespace Magma {
 		VkResult init() override;
 
 	public:
-		std::shared_ptr<Image> pImage; VkFormat pFormat;
-		VkImageLayout pOldLayout, pNewLayout;
+		std::shared_ptr<Image> m_Image;
+		ImageLayout m_OldLayout, m_NewLayout;
 
 	};
 

@@ -2,6 +2,8 @@
 
 #include "vulkan_image.h"
 
+#include "Magma/Vulkan/Render/render_enums.h"
+
 namespace Magma {
 
 	class VulkanImageView : public VulkanObject {
@@ -13,8 +15,8 @@ namespace Magma {
 
 		VkResult init() override;
 	
-		const VkImageView& getImageView() const;
-		const VkFormat getImageFormat() const; 
+		[[nodiscard]] const VkImageView& getImageView() const;
+		[[nodiscard]] VkFormat getImageFormat() const; 
 
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr; 

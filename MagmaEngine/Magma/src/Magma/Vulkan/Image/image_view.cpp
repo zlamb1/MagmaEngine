@@ -17,7 +17,7 @@ namespace Magma {
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = pVulkanImage->getImage();
 		viewInfo.viewType = pImageViewType;
-		viewInfo.format = pVulkanImage->pFormat;
+		viewInfo.format = getImageFormat();
 		viewInfo.subresourceRange.aspectMask = pImageAspectFlags;
 		viewInfo.subresourceRange.baseMipLevel = pBaseMipLevel;
 		viewInfo.subresourceRange.levelCount = pLevelCount;
@@ -35,8 +35,8 @@ namespace Magma {
 		return vkImageView; 
 	}
 
-	const VkFormat VulkanImageView::getImageFormat() const {
-		return pVulkanImage->pFormat;
+	VkFormat VulkanImageView::getImageFormat() const {
+		return static_cast<VkFormat>(pVulkanImage->m_Format);
 	}
 
 }

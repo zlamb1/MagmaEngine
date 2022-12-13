@@ -28,6 +28,7 @@
 #include "Magma/Vulkan/Pipeline/vulkan_pipeline.h"
 #include "Magma/Vulkan/Pipeline/vulkan_pipeline_c.h"
 
+#include "Magma/Vulkan/Render/render_enums.h"
 #include "Magma/Vulkan/Render/vulkan_framebuffer.h"
 #include "Magma/Vulkan/Render/vulkan_renderer.h"
 #include "Magma/Vulkan/Render/vulkan_sync.h"

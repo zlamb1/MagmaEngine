@@ -49,13 +49,15 @@ namespace Magma {
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = pOldLayout;
-		barrier.newLayout = pNewLayout;
+		const auto oldLayout = convertImageLayout(m_OldLayout);
+		barrier.oldLayout = oldLayout;
+		const auto newLayout = convertImageLayout(m_NewLayout); 
+		barrier.newLayout = newLayout;
 
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-		const auto image = std::dynamic_pointer_cast<VulkanImage>(pImage);
+		const auto image = std::dynamic_pointer_cast<VulkanImage>(m_Image);
 		barrier.image = image->getImage();
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
@@ -65,16 +67,16 @@ namespace Magma {
 
 		VkPipelineStageFlags srcStage, dstStage;
 
-		if (pOldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
-			pNewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
+			newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
-		else if (pOldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && 
-			pNewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && 
+			newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -109,10 +111,10 @@ namespace Magma {
 		region.imageSubresource.layerCount = 1;
 
 		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { (uint32_t)pImage->pExtentWidth, (uint32_t)pImage->pExtentHeight, 1 };
+		region.imageExtent = { pImage->m_ExtentWidth, pImage->m_ExtentHeight, 1 };
 
-		auto vImage = dynamic_pointer_cast<VulkanImage>(pImage);
-		auto vBuffer = dynamic_pointer_cast<VmaBuffer>(pBuffer);
+		const auto vImage = dynamic_pointer_cast<VulkanImage>(pImage);
+		const auto vBuffer = dynamic_pointer_cast<VmaBuffer>(pBuffer);
 		vkCmdCopyBufferToImage(vulkanCmdBuffer->getCmdBuffer(),
 			vBuffer->getBuffer(), vImage->getImage(),
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);

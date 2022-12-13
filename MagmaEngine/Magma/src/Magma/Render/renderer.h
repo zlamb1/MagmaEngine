@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Magma/Buffer/buffer.h"
+#include "Magma/Render/buffer.h"
 
 namespace Magma {
 

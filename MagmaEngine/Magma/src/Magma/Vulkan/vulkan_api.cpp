@@ -213,7 +213,7 @@ namespace Magma {
     std::shared_ptr<Buffer> VulkanAPI::createBuffer(int64_t size,
         BufferUsage bufferUsage) {
         std::shared_ptr<VulkanBuffer> vulkanBuffer = std::make_shared<VmaBuffer>(vulkanDevice);
-        vulkanBuffer->pSize = (uint32_t)size;
+        vulkanBuffer->pSize = static_cast<uint32_t>(size);
         vulkanBuffer->pBufferUsageFlags = bufferUsage;
         vulkanBuffer->init();
         return vulkanBuffer;
@@ -221,9 +221,11 @@ namespace Magma {
 
     std::shared_ptr<Image> VulkanAPI::createTexture(uint32_t width, uint32_t height) {
         std::shared_ptr<VulkanImage> image = std::make_shared<VulkanImage>(vulkanDevice);
-        image->pExtentWidth = static_cast<uint32_t>(width);
-        image->pExtentHeight = static_cast<uint32_t>(height);
-        image->pFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        image->m_ExtentWidth = width;
+        image->m_ExtentHeight = height;
+        image->m_InitialLayout = ImageLayout::UNDEFINED;
+        image->m_ImageUsage = static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_SAMPLED_BIT | 
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT); 
         image->init();
         return image;
     }
@@ -250,16 +252,15 @@ namespace Magma {
     void VulkanAPI::setDepthBuffering(bool enabled) {
         if (depthImage != nullptr) depthImage.reset();
         if (depthImageView != nullptr) depthImageView.reset();
-
         if (enabled) {
-            auto& swapchainExtent = vulkanSwapchain->getSwapchainExtent();
+            const auto& [width, height] = vulkanSwapchain->getSwapchainExtent();
             depthImage = std::make_shared<VulkanImage>(vulkanDevice);
-            depthImage->pExtentWidth = swapchainExtent.width;
-            depthImage->pExtentHeight = swapchainExtent.height;
+            depthImage->m_ExtentWidth = width;
+            depthImage->m_ExtentHeight = height;
 
             const auto depthFormat = findDepthFormat();
-            depthImage->pFormat = findDepthFormat();
-            depthImage->pUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            depthImage->m_Format = static_cast<DataFormat>(depthFormat);
+            depthImage->m_ImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT; 
             depthImage->init();
 
             depthImageView = std::make_shared<VulkanImageView>(vulkanDevice, depthImage);
@@ -272,7 +273,7 @@ namespace Magma {
 
     VkFormat VulkanAPI::findSupportedFormat(const std::vector<VkFormat>& candidates, 
         VkImageTiling tiling, VkFormatFeatureFlags features) {
-        for (VkFormat format : candidates) {
+        for (const VkFormat format : candidates) {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(vulkanDevice->getPhysicalDevice(), format, &props);
 
