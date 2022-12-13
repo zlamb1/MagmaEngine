@@ -9,22 +9,22 @@ namespace Magma {
 	class EntityImpl {
 
 		public:
-			virtual void onUpdate(Timestep step);
+			virtual void onUpdate(Timestep step) {};
 
-			const glm::vec3& getScale();
-			const glm::vec3& getPosition();
-			const glm::vec3& getRotation();
+			[[nodiscard]] const glm::vec3& getScale() const;
+			[[nodiscard]] const glm::vec3& getPosition() const;
+			[[nodiscard]] const glm::vec3& getRotation() const;
 
 			void setScale(glm::vec3 scale);
 			void setPosition(glm::vec3 position);
 			void setRotation(glm::vec3 rotation);
 
 		protected:
-			glm::vec3 scale{ 1.0f };
-			glm::vec3 position{ 0.0f };
-			glm::vec3 rotation{ 0.0f };
+			glm::vec3 m_Scale{ 1.0f };
+			glm::vec3 m_Position{ 0.0f };
+			glm::vec3 m_Rotation{ 0.0f };
 
-			EntityImpl* parent = nullptr;
+			EntityImpl* m_Parent = nullptr;
 
 	};
 

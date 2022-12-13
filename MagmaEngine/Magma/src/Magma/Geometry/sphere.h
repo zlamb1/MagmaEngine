@@ -124,14 +124,14 @@ namespace Magma {
 
 		const float t = (1.0f + sqrt(5.0f)) / 2.0f;
 
-		const std::vector<glm::vec3> icosahedronVerts{
+		const std::vector<glm::vec3> m_IcosahedronPositions{
 			{t, 1.0f, 0}, {-t, 1.0f, 0.0f}, { t, -1.0f, 0.0f },
 			{-t, -1.0f, 0.0f}, {1.0f, 0.0f, t}, {1.0f, 0.0f, -t},
 			{-1.0f, 0.0f, t}, {-1.0f, 0.0f, -t}, {0.0f, t, 1.0f},
 			{0.0f, -t, 1.0f}, {0.0f, t, -1.0f}, {0.0f, -t, -1.0f}
 		};
 
-		const std::vector<uint16_t> icosahedronIndices{
+		const std::vector<uint16_t> m_IcosahedronIndices{
 			0, 8, 4, 0, 5, 10, 2, 4, 9, 2, 11, 5, 1, 6, 8, 1, 10, 7, 3, 9, 6, 3, 7, 11, 0, 10, 8, 1, 8, 10,
 			2, 9, 11, 3, 9, 11, 4, 2, 0, 5, 0, 2, 6, 1, 3, 7, 3, 1, 8, 6, 4, 9, 4, 6, 10, 5, 7, 11, 7, 5
 		};
@@ -139,9 +139,9 @@ namespace Magma {
 		static SphereData createSphere(int resolution) {
 			SphereData sphereData{};
 
-			sphereData.m_Indices = icosahedronIndices;
+			sphereData.m_Indices = m_IcosahedronIndices;
 
-			std::vector<glm::vec3> inVerts = icosahedronVerts;
+			std::vector<glm::vec3> inVerts = m_IcosahedronPositions;
 			std::vector<uint16_t> inIndices = sphereData.m_Indices;
 
 			if (resolution == 0) {

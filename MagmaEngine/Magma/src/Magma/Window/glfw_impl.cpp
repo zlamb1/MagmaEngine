@@ -11,7 +11,7 @@ namespace Magma {
 
 	void GLFWImpl::init(int32_t width, int32_t height) {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		window = glfwCreateWindow(width, height, "", NULL, NULL);
+		window = glfwCreateWindow(width, height, "", nullptr, nullptr);
 
 		glfwSetWindowUserPointer(window, this);
 

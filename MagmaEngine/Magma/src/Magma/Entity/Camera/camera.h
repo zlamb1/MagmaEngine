@@ -1,32 +1,39 @@
 #pragma once
 
 #include "Magma/Entity/entity.h"
+#include "Magma/Window/window_input.h"
 
 namespace Magma {
 
 	class CameraImpl : public EntityImpl {
 
 	public:
-		CameraImpl() = default;
-		~CameraImpl() = default;
+		CameraImpl(WindowInput& input) : m_Input{input} {};
+		virtual ~CameraImpl() = default;
 
-		const glm::vec3& getUpVector() { return upVec3f; }
-		void setUpVector(glm::vec3 upVec3f) { this->upVec3f = upVec3f; }
+		[[nodiscard]] const glm::vec3& getUpVector() const { return m_UpVector; }
+		void setUpVector(const glm::vec3 upVector) { m_UpVector = upVector; }
 
-		virtual void updateViewMat4f() = 0;
-		virtual void updatePerspectiveMat4f() = 0;
+		[[nodiscard]] virtual const glm::mat4& getViewMatrix() const { return m_ViewMatrix; };
+		[[nodiscard]] virtual const glm::mat4& getPerspectiveMatrix() const { return m_PerspectiveMatrix; };
 
-		virtual const glm::mat4& getViewMat4f() const = 0;
-		virtual const glm::mat4& getPerspectiveMat4f() const = 0;
+		virtual void updateViewMatrix() = 0;
+		virtual void updatePerspectiveMatrix() {
+			const auto [width, height] = m_Input.getWindowImpl().getSize();
+			m_PerspectiveMatrix = glm::perspective(glm::radians(m_FOV),
+				static_cast<float>(width) / static_cast<float>(height), m_NearPlane, m_FarPlane);
+		}
 
 	protected:
+		WindowInput& m_Input;
+
 		// invert y to match Vulkan's left handed NDC system
-		glm::vec3 upVec3f{ 0.0f, -1.0f, 0.0f };
+		glm::vec3 m_UpVector{ 0.0f, -1.0f, 0.0f };
 
-		float fov = 45.0f, zNear = 0.01f, zFar = 100.0f;
+		float m_FOV = 45.0f, m_NearPlane = 0.01f, m_FarPlane = 100.0f;
 
-		glm::mat4 viewMat4f{ 1.0f };
-		glm::mat4 perspectiveMat4f{ 1.0f };
+		glm::mat4 m_ViewMatrix{ 1.0f };
+		glm::mat4 m_PerspectiveMatrix{ 1.0f };
 
 	};
 

@@ -186,8 +186,8 @@ namespace Magma {
 		start.onNewFrame();
 		UBO ubo{
 			glm::mat4{1.0f},
-			m_Camera->getViewMat4f(),
-			m_Camera->getPerspectiveMat4f()
+			m_Camera->getViewMatrix(),
+			m_Camera->getPerspectiveMatrix()
 		};
 		m_UboBuffer->setData(&ubo, sizeof(ubo));
 	}

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_LEFT_HANDED
 #include <glm/glm.hpp>
@@ -9,23 +7,17 @@
 
 #include "camera.h"
 
-#include "Magma/Window/window_input.h"
-
 namespace Magma {
 
 	class FirstPersonImpl : public CameraImpl, public EventHandler {
 
 	public:
 		FirstPersonImpl(WindowInput& input);
-		~FirstPersonImpl();
+		~FirstPersonImpl() override;
 
 		void onUpdate(Timestep step) override;
 
-		void updateViewMat4f() override;
-		void updatePerspectiveMat4f() override;
-
-		const glm::mat4& getViewMat4f() const override;
-		const glm::mat4& getPerspectiveMat4f() const override;
+		void updateViewMatrix() override;
 
 		void onEvent(const WindowResizeEvent& _event) override;
 		void onEvent(const WindowFocusEvent& _event) override;
@@ -33,13 +25,12 @@ namespace Magma {
 		void onEvent(const MouseMoveEvent& _event) override;
 
 	private:
-		glm::vec3 getForwardVec3f(bool includeY);
+		[[nodiscard]] glm::vec3 getForwardVec3f(bool includeY) const;
 		void setAcceptInput(bool acceptInput);
 
 	private:
-		WindowInput& input;
-		bool acceptInput = false, forwardY = false;
-		const double targetFps = 60.0;
+		bool m_AcceptInput = false;
+		const double m_TargetFps = 60.0;
 
 	};
 

@@ -7,8 +7,6 @@
 
 #include "camera.h"
 
-#include "Magma/Window/window_input.h"
-
 namespace Magma {
 
 	typedef glm::dvec2 MousePosition;
@@ -17,25 +15,20 @@ namespace Magma {
 
 	public:
 		ThirdPersonImpl(WindowInput& input);
-		~ThirdPersonImpl();
+		~ThirdPersonImpl() override;
 
-		void updateViewMat4f() override;
-		void updatePerspectiveMat4f() override;
-
-		const glm::mat4& getViewMat4f() const override;
-		const glm::mat4& getPerspectiveMat4f() const override; 
+		void updateViewMatrix() override;
 
 		void onEvent(const WindowResizeEvent& _event) override;
 		void onEvent(const MouseMoveEvent& _event) override;
 		void onEvent(const MouseScrollEvent& _event) override;
 			
 	private:
-		float getZoomSpeed();
+		[[nodiscard]] float getZoomSpeed() const;
 
 	private:
-		WindowInput& input;
-		MousePosition lastMousePos{ -1.0f, -1.0f };
-		float radius = 5.0f;
+		MousePosition m_LastMousePosition{ -1.0f, -1.0f };
+		float m_ViewRadius = 5.0f;
 
 	};
 

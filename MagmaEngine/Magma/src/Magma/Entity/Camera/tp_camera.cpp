@@ -2,47 +2,31 @@
 
 namespace Magma {
 
-    ThirdPersonImpl::ThirdPersonImpl(WindowInput& input) : input{ input } {
-        updateViewMat4f();
-        updatePerspectiveMat4f();
-
-        input.getWindowImpl().setMouseHidden(false);
-
-        input.getEventDispatcher().subscribe<WindowResizeEvent>(this);
-        input.getEventDispatcher().subscribe<MouseMoveEvent>(this);
-        input.getEventDispatcher().subscribe<MouseScrollEvent>(this);
+    ThirdPersonImpl::ThirdPersonImpl(WindowInput& input) : CameraImpl{ input } {
+        updateViewMatrix();
+        updatePerspectiveMatrix();
+        m_Input.getWindowImpl().setMouseHidden(false);
+        m_Input.getEventDispatcher().subscribe<WindowResizeEvent>(this);
+        m_Input.getEventDispatcher().subscribe<MouseMoveEvent>(this);
+        m_Input.getEventDispatcher().subscribe<MouseScrollEvent>(this);
     }
 
     ThirdPersonImpl::~ThirdPersonImpl() {
-        input.getEventDispatcher().unsubscribe<WindowResizeEvent>(this);
-        input.getEventDispatcher().unsubscribe<MouseMoveEvent>(this);
-        input.getEventDispatcher().unsubscribe<MouseScrollEvent>(this);
+        m_Input.getEventDispatcher().unsubscribe<WindowResizeEvent>(this);
+        m_Input.getEventDispatcher().unsubscribe<MouseMoveEvent>(this);
+        m_Input.getEventDispatcher().unsubscribe<MouseScrollEvent>(this);
     }
 
-    void ThirdPersonImpl::updateViewMat4f() {
-        glm::vec3 eye{
-            sin(rotation.x) * radius * cos(rotation.y),
-            sin(rotation.y) * radius,
-            cos(rotation.x) * radius * cos(rotation.y)};
-        viewMat4f = glm::lookAt(eye, position, upVec3f);
+    void ThirdPersonImpl::updateViewMatrix() {
+        const glm::vec3 eye{
+            sin(m_Rotation.x) * m_ViewRadius * cos(m_Rotation.y),
+            sin(m_Rotation.y) * m_ViewRadius,
+            cos(m_Rotation.x) * m_ViewRadius* cos(m_Rotation.y)};
+        m_ViewMatrix = glm::lookAt(eye, m_Position, m_UpVector);
     }
 
-    void ThirdPersonImpl::updatePerspectiveMat4f() {
-        auto windowSize = input.getWindowImpl().getSize();
-        perspectiveMat4f = glm::perspective(glm::radians(fov),
-            (float)windowSize.first / (float)windowSize.second, zNear, zFar);
-    }
-
-    const glm::mat4& ThirdPersonImpl::getViewMat4f() const {
-        return viewMat4f;
-    }
-
-    const glm::mat4& ThirdPersonImpl::getPerspectiveMat4f() const {
-        return perspectiveMat4f;
-    }
-
-    float ThirdPersonImpl::getZoomSpeed() {
-        float distance = radius * 0.2f;
+    float ThirdPersonImpl::getZoomSpeed() const {
+        float distance = m_ViewRadius * 0.2f;
         distance = std::max(distance, 0.1f);
         float speed = distance * distance;
         speed = std::min(std::max(speed, 1.0f), 25.0f); 
@@ -50,32 +34,32 @@ namespace Magma {
     }
 
     void ThirdPersonImpl::onEvent(const WindowResizeEvent& _event) {
-        updatePerspectiveMat4f();
+        updatePerspectiveMatrix();
     }
 
     void ThirdPersonImpl::onEvent(const MouseMoveEvent& _event) {
-        if (input.isMouseBtnPressed(MouseButton::RIGHT)) {
+        if (m_Input.isMouseBtnPressed(MouseButton::RIGHT)) {
             bool updateView = false;
-            const float sensitivity = 0.005f;
-            if (lastMousePos.x >= 0.0f) {
-                float dx = _event.x - lastMousePos.x;
-                rotation.x += -dx * sensitivity;
+            constexpr float mouseSensitivity = 0.005f;
+            if (m_LastMousePosition.x >= 0.0) {
+                const double dx = _event.m_X - m_LastMousePosition.x;
+                m_Rotation.x += static_cast<float>(-dx) * mouseSensitivity;
                 updateView = true;
             }
-            if (lastMousePos.y >= 0.0f) {
-                float dy = _event.y - lastMousePos.y;
-                rotation.y = std::max(glm::radians(-89.9f), std::min(glm::radians(89.9f), 
-                    rotation.y + dy * sensitivity));
+            if (m_LastMousePosition.y >= 0.0) {
+                const double dy = _event.m_Y - m_LastMousePosition.y;
+                m_Rotation.y = std::max(glm::radians(-89.9f), std::min(glm::radians(89.9f),
+                    m_Rotation.y + static_cast<float>(dy) * mouseSensitivity));
                 updateView = true; 
             }
-            if (updateView) updateViewMat4f();
+            if (updateView) updateViewMatrix();
         }
-        lastMousePos = { _event.x, _event.y };
+        m_LastMousePosition = { _event.m_X, _event.m_Y };
     }
 
     void ThirdPersonImpl::onEvent(const MouseScrollEvent& _event) {
-        radius = std::max(0.1f, radius + (float)(-_event.y) * 0.5f * getZoomSpeed());
-        updateViewMat4f();
+        m_ViewRadius = std::max(0.1f, m_ViewRadius + static_cast<float>(-_event.m_Y) * 0.5f * getZoomSpeed());
+        updateViewMatrix();
     }
 
 }
