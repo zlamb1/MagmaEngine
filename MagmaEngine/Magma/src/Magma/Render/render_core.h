@@ -16,7 +16,7 @@ namespace Magma {
 		virtual void onNewFrame() = 0;
 
 		[[nodiscard]] virtual Renderer& getRenderer() const = 0;
-		[[nodiscard]] virtual ShaderAttributes& getShaderAttributes() const = 0; 
+		[[nodiscard]] virtual ShaderAttributes& getShaderAttributes() = 0; 
 
 		virtual std::shared_ptr<Buffer> createBuffer(int64_t size) = 0;
 		virtual std::shared_ptr<Buffer> createBuffer(int64_t size, BufferUsage usage) = 0;

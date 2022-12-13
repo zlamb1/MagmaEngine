@@ -8,7 +8,6 @@
 #include "Magma/Geometry/sphere.h"
 #include "Magma/Image/image.h"
 #include "Magma/Time/timestep.h"
-#include "Magma/Vulkan/vulkan_api.h"
 
 namespace Magma {
 

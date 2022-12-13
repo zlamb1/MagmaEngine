@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <map>
 
 #include <vulkan/vulkan.h>
 
@@ -46,11 +45,11 @@
 
 namespace Magma {
 
-	class VulkanAPI : public RenderCore {
+	class VulkanCore : public RenderCore {
 
 	public:
-		VulkanAPI(VulkanImpl& windowImpl);
-		~VulkanAPI();
+		VulkanCore(VulkanImpl& windowImpl);
+		virtual ~VulkanCore();
 
 		void init() override;
 		void initRender() override;
@@ -58,20 +57,20 @@ namespace Magma {
 
 		std::shared_ptr<VulkanDevice> getDevice();
 
-		Renderer& getRenderer() const override;
-		ShaderAttributes& getShaderAttributes() const override;
+		[[nodiscard]] Renderer& getRenderer() const override;
+		[[nodiscard]] ShaderAttributes& getShaderAttributes() override;
 
 		std::vector<std::shared_ptr<MagmaShader>>& getShaders();
 
 		std::shared_ptr<MagmaShader> createShader(const char* code, ShadercType type);
-		std::shared_ptr<MagmaShader> createShader(VulkanShaderInfo info);
+		std::shared_ptr<MagmaShader> createShader(VulkanShaderInfo shaderInfo);
 
 		std::shared_ptr<Buffer> createBuffer(int64_t size) override;
 		std::shared_ptr<Buffer> createBuffer(int64_t size, BufferUsage bufferUsage) override;
 
 		std::shared_ptr<Image> createTexture(uint32_t width, uint32_t height);
 		std::shared_ptr<VulkanImageView> createTextureImageView(std::shared_ptr<Image> image); 
-		std::shared_ptr<Sampler> createSampler(); 
+		[[nodiscard]] std::shared_ptr<Sampler> createSampler() const; 
 
 		void addBuffer(std::shared_ptr<Buffer> buffer) override; 
 
@@ -79,8 +78,8 @@ namespace Magma {
 
 	private:
 		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-			VkFormatFeatureFlags features);
-		VkFormat findDepthFormat();
+			VkFormatFeatureFlags features) const;
+		VkFormat findDepthFormat() const;
 
 		void initCommands();
 		void initSync();
@@ -89,36 +88,36 @@ namespace Magma {
 	private:
 		const int MAX_FRAMES_IN_FLIGHT = 1;
 
-		uint32_t currentFrame = 0;
+		uint32_t m_CurrentFrame = 0;
 
-		bool framebufferResized = false;
+		bool m_FramebufferResized = false;
 
-		VulkanImpl& windowImpl;
+		VulkanImpl& m_WindowImpl;
 
-		std::shared_ptr<VulkanInstance> vulkanInstance;
-		std::shared_ptr<VulkanValidater> vulkanValidater;
-		std::shared_ptr<VulkanDebugger> vulkanDebugger;
-		std::shared_ptr<VulkanSurface> vulkanSurface;
-		std::shared_ptr<VulkanDevice> vulkanDevice;
-		std::shared_ptr<VulkanSwapchain> vulkanSwapchain;
-		std::shared_ptr<VulkanRenderer> vulkanRenderer;
-		std::shared_ptr<VulkanPipeline> vulkanPipeline;
+		std::shared_ptr<VulkanInstance> m_Instance;
+		std::shared_ptr<VulkanValidater> m_Validater;
+		std::shared_ptr<VulkanDebugger> m_Debugger;
+		std::shared_ptr<VulkanSurface> m_Surface;
+		std::shared_ptr<VulkanDevice> m_Device;
+		std::shared_ptr<VulkanSwapchain> m_Swapchain;
+		std::shared_ptr<VulkanRenderer> m_Renderer;
+		std::shared_ptr<VulkanPipeline> m_Pipeline;
 
-		std::shared_ptr<VulkanImage> depthImage; 
-		std::shared_ptr<VulkanImageView> depthImageView; 
+		std::shared_ptr<VulkanImage> m_DepthImage; 
+		std::shared_ptr<VulkanImageView> m_DepthImageView; 
 
-		VulkanShaderAttributes shaderAttributes{};
+		VulkanShaderAttributes m_ShaderAttributes{};
 
-		std::vector<std::shared_ptr<VulkanCmdPool>> vulkanCmdPools{};
-		std::vector<std::shared_ptr<VulkanCmdBuffer>> vulkanCmdBuffers{};
-		std::vector<std::shared_ptr<VulkanRenderSync>> vulkanRenderSyncs{};
+		std::vector<std::shared_ptr<VulkanCmdPool>> m_CommandPools{};
+		std::vector<std::shared_ptr<VulkanCmdBuffer>> m_CommandBuffers{};
+		std::vector<std::shared_ptr<VulkanRenderSync>> m_RenderSyncs{};
 
-		std::vector<std::shared_ptr<MagmaShader>> vulkanShaders{};
-		std::vector<std::shared_ptr<VulkanBuffer>> buffers{};
+		std::vector<std::shared_ptr<MagmaShader>> m_Shaders{};
+		std::vector<std::shared_ptr<VulkanBuffer>> m_Buffers{};
 
-		std::shared_ptr<MagmaShader> defaultVertexShader, defaultFragmentShader;
+		std::shared_ptr<MagmaShader> m_VertexShader, m_FragmentShader;
 
-		std::vector<const char*> getRequiredExtensions();
+		std::vector<const char*> getRequiredExtensions() const;
 
 	};
 

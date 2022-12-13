@@ -19,8 +19,8 @@ namespace Magma {
 	}
 
 	void Application::initVulkan() {
-        auto& vulkanImpl = static_cast<VulkanImpl&>(*m_WindowImpl);
-        m_RenderCore = std::make_shared<VulkanAPI>(vulkanImpl);
+        auto& vulkanImpl = dynamic_cast<VulkanImpl&>(*m_WindowImpl);
+        m_RenderCore = std::make_shared<VulkanCore>(vulkanImpl);
 	}
 
     void Application::initMainLoop() {
