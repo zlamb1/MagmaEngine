@@ -15,7 +15,7 @@ namespace Magma {
 			return VK_ERROR_INITIALIZATION_FAILED;
 		}
 
-		auto pVulkanDevice = pVulkanSwapchain->pVulkanDevice;
+		auto pVulkanDevice = pVulkanSwapchain->m_Device;
 
 		// member init
 		vulkanShaderPipeline.pAllocator = pAllocator;
@@ -67,7 +67,7 @@ namespace Magma {
 	}
 
 	VkResult VulkanPipeline::initFramebuffers() {
-		auto pVulkanDevice = pVulkanSwapchain->pVulkanDevice;
+		auto pVulkanDevice = pVulkanSwapchain->m_Device;
 		if (vulkanFramebuffer == nullptr) {
 			vulkanFramebuffer = std::make_shared<VulkanFramebuffer>(pVulkanDevice, pVulkanSwapchain);
 		}
@@ -87,8 +87,8 @@ namespace Magma {
 	}
 
 	void VulkanPipeline::destroyPipeline() {
-		if (pVulkanSwapchain != nullptr && pVulkanSwapchain->pVulkanDevice != nullptr) {
-			vkDestroyPipeline(pVulkanSwapchain->pVulkanDevice->getDevice(),
+		if (pVulkanSwapchain != nullptr && pVulkanSwapchain->m_Device != nullptr) {
+			vkDestroyPipeline(pVulkanSwapchain->m_Device->getDevice(),
 				vkPipeline, nullptr);
 		}
 	}

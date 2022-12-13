@@ -1,5 +1,7 @@
 #include "vulkan_core.h"
 
+#include <GLFW/glfw3.h>
+
 const char* defVertexShader = R"(#version 450
     void main() {
         gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
@@ -49,7 +51,7 @@ namespace Magma {
         }
 
         // create fields
-        m_Surface = std::make_shared<VulkanSurface>(m_WindowImpl, m_Instance);
+        m_Surface = std::make_shared<Surface>(m_WindowImpl, m_Instance);
         m_Surface->init();
 
         m_Device = std::make_shared<VulkanDevice>(m_Instance, m_Surface, m_Validater);
@@ -57,7 +59,7 @@ namespace Magma {
 
         m_ShaderAttributes.m_Device = m_Device;
 
-        m_Swapchain = std::make_shared<VulkanSwapchain>(m_Device);
+        m_Swapchain = std::make_shared<Swapchain>(m_Device);
         m_Swapchain->init();
 
         m_Renderer = std::make_shared<VulkanRenderer>();

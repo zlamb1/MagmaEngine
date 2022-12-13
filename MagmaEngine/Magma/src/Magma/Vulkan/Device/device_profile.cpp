@@ -62,8 +62,8 @@ namespace Magma {
         this->vkDevice = vkDevice;
     }
 
-    void DeviceProfile::setVulkanSurface(std::shared_ptr<VulkanSurface> pVulkanSurface) {
-        this->pVulkanSurface = pVulkanSurface;
+    void DeviceProfile::setSurface(std::shared_ptr<Surface> surface) {
+        this->pVulkanSurface = surface;
     }
 
     void DeviceProfile::setDeviceTypePriority(VulkanPriority vulkanDeviceTypePriority) {

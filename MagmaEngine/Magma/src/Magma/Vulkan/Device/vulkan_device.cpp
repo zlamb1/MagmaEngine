@@ -3,8 +3,8 @@
 namespace Magma {
 
     VulkanDevice::VulkanDevice(std::shared_ptr<VulkanInstance> pVulkanInstance,
-        std::shared_ptr<VulkanSurface> pVulkanSurface, std::shared_ptr<VulkanValidater> pVulkanValidater) :
-        pVulkanInstance{ pVulkanInstance }, pVulkanSurface{ pVulkanSurface },
+        std::shared_ptr<Surface> surface, std::shared_ptr<VulkanValidater> pVulkanValidater) :
+        pVulkanInstance{ pVulkanInstance }, pVulkanSurface{ surface },
         pVulkanValidater{ pVulkanValidater } {}
 
     VulkanDevice::~VulkanDevice() {
@@ -43,7 +43,7 @@ namespace Magma {
         vkEnumeratePhysicalDevices(pVulkanInstance->getInstance(), &deviceCount, devices.data());
 
         auto& deviceProfile = DeviceProfile::instance();
-        deviceProfile.setVulkanSurface(pVulkanSurface);
+        deviceProfile.setSurface(pVulkanSurface);
 
         int32_t bScore = -1;
         for (auto& device : devices) {

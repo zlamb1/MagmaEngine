@@ -40,8 +40,8 @@
 #include "Magma/Vulkan/Shader/shader_attributes.h"
 #include "Magma/Vulkan/Shader/vulkan_shader.h"
 
-#include "Magma/Vulkan/Surface/vulkan_surface.h"
-#include "Magma/Vulkan/Surface/vulkan_swapchain.h"
+#include "Magma/Vulkan/Surface/surface.h"
+#include "Magma/Vulkan/Surface/swapchain.h"
 
 namespace Magma {
 
@@ -97,9 +97,9 @@ namespace Magma {
 		std::shared_ptr<VulkanInstance> m_Instance;
 		std::shared_ptr<VulkanValidater> m_Validater;
 		std::shared_ptr<VulkanDebugger> m_Debugger;
-		std::shared_ptr<VulkanSurface> m_Surface;
+		std::shared_ptr<Surface> m_Surface;
 		std::shared_ptr<VulkanDevice> m_Device;
-		std::shared_ptr<VulkanSwapchain> m_Swapchain;
+		std::shared_ptr<Swapchain> m_Swapchain;
 		std::shared_ptr<VulkanRenderer> m_Renderer;
 		std::shared_ptr<VulkanPipeline> m_Pipeline;
 

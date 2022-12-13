@@ -1,8 +1,5 @@
 #pragma once
 
-#include <iostream>  
-#include <stdexcept>
-
 #include "device_profile.h"
 
 #include "Magma/Vulkan/Memory/VMA/memory_allocator.h"
@@ -15,21 +12,21 @@ namespace Magma {
 
 	public:
 		VulkanDevice(std::shared_ptr<VulkanInstance> pVulkanInstance,
-			std::shared_ptr<VulkanSurface> pVulkanSurface, std::shared_ptr<VulkanValidater> pValidater);
-		~VulkanDevice();
+			std::shared_ptr<Surface> surface, std::shared_ptr<VulkanValidater> pValidater);
+		~VulkanDevice() override;
 
-		VkResult init();
+		VkResult init() override;
 
 		VkPhysicalDevice& getPhysicalDevice();
 		VkDevice& getDevice();
 
-		const MemoryAllocator* getMemoryAllocator() const;
+		[[nodiscard]] const MemoryAllocator* getMemoryAllocator() const;
 
 		SwapchainSupportDetails querySwapchainSupport();
 
 	public:
 		std::shared_ptr<VulkanInstance> pVulkanInstance = nullptr;
-		std::shared_ptr<VulkanSurface> pVulkanSurface = nullptr;
+		std::shared_ptr<Surface> pVulkanSurface = nullptr;
 		std::shared_ptr<VulkanValidater> pVulkanValidater = nullptr;
 
 	private:

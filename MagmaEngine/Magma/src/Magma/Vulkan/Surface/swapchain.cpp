@@ -1,4 +1,4 @@
-#include "vulkan_swapchain.h"
+#include "swapchain.h"
 
 namespace Magma {
 
@@ -25,17 +25,16 @@ namespace Magma {
             return VK_PRESENT_MODE_FIFO_KHR;
         }
 
-        static VkExtent2D chooseSwapExtent(VulkanImpl& windowImpl,
+        static VkExtent2D chooseSwapExtent(const VulkanImpl& windowImpl,
             const VkSurfaceCapabilitiesKHR& capabilities) {
             if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
                 return capabilities.currentExtent;
             }
             else {
-                auto framebufferSize = windowImpl.getFramebufferSize();
+                auto [width, height] = windowImpl.getFramebufferSize();
 
                 VkExtent2D actualExtent = {
-                    static_cast<uint32_t>(framebufferSize.first),
-                    static_cast<uint32_t>(framebufferSize.second)
+                    static_cast<uint32_t>(width), static_cast<uint32_t>(height)
                 };
 
                 actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
@@ -46,30 +45,30 @@ namespace Magma {
         }
     }
 
-    VulkanSwapchain::VulkanSwapchain(std::shared_ptr<VulkanDevice> pVulkanDevice) :
-        pVulkanDevice{ pVulkanDevice } {}
+    Swapchain::Swapchain(std::shared_ptr<VulkanDevice> device) :
+        m_Device{ std::move(device)} {}
 
-    VulkanSwapchain::~VulkanSwapchain() {
-        if (pVulkanDevice != nullptr) {
+    Swapchain::~Swapchain() {
+        if (m_Device != nullptr) {
             deleteImageViews();
-            vkDestroySwapchainKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, nullptr);
+            vkDestroySwapchainKHR(m_Device->getDevice(), m_SwapchainKHR, nullptr);
         }
     }
 
-    VkResult VulkanSwapchain::init() {
-        if (pVulkanDevice == nullptr) {
+    VkResult Swapchain::init() {
+        if (m_Device == nullptr) {
             Z_LOG_TXT("VulkanSwapchain::init", "pDevice is nullptr");
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        auto pVulkanSurface = pVulkanDevice->pVulkanSurface;
-        auto vkSwapchainSupport = pVulkanDevice->querySwapchainSupport();
+        const auto pVulkanSurface = m_Device->pVulkanSurface;
+        auto vkSwapchainSupport = m_Device->querySwapchainSupport();
 
         VkSurfaceFormatKHR surfaceFormat = SwapchainUtility::chooseSwapSurfaceFormat(
             vkSwapchainSupport.formats);
         VkPresentModeKHR presentMode = SwapchainUtility::chooseSwapPresentMode(
             vkSwapchainSupport.presentModes);
-        VkExtent2D extent = SwapchainUtility::chooseSwapExtent(pVulkanSurface->pWindowImpl,
+        VkExtent2D extent = SwapchainUtility::chooseSwapExtent(pVulkanSurface->m_WindowImpl,
             vkSwapchainSupport.capabilities);
 
         uint32_t imageCount = vkSwapchainSupport.capabilities.minImageCount + 1;
@@ -122,32 +121,32 @@ namespace Magma {
 
         vkCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        auto createSwapchainResult = vkCreateSwapchainKHR(pVulkanDevice->getDevice(), &vkCreateInfo,
-            nullptr, &vkSwapchainKHR);
+        auto createSwapchainResult = vkCreateSwapchainKHR(m_Device->getDevice(), &vkCreateInfo,
+            nullptr, &m_SwapchainKHR);
         Z_LOG_OBJ("VulkanSwapchain::init::vkCreateSwapchainResult", createSwapchainResult);
 
         if (createSwapchainResult != VK_SUCCESS) {
             return createSwapchainResult;
         }
 
-        vkGetSwapchainImagesKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR(m_Device->getDevice(), m_SwapchainKHR, &imageCount, nullptr);
 
-        vkImages.resize(imageCount);
-        vkGetSwapchainImagesKHR(pVulkanDevice->getDevice(), vkSwapchainKHR, &imageCount, vkImages.data());
+        m_Images.resize(imageCount);
+        vkGetSwapchainImagesKHR(m_Device->getDevice(), m_SwapchainKHR, &imageCount, m_Images.data());
 
-        vkSwapchainImageFormat = surfaceFormat.format;
-        vkSwapchainExtent = extent;
+        m_SwapchainImageFormat = surfaceFormat.format;
+        m_SwapchainExtent = extent;
 
         // Image View Init
 
-        vkImageViews.resize(vkImages.size());
-        for (size_t i = 0; i < vkImages.size(); i++) {
+        m_ImageViews.resize(m_Images.size());
+        for (size_t i = 0; i < m_Images.size(); i++) {
             VkImageViewCreateInfo imageViewCreateInfo{};
             imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            imageViewCreateInfo.image = vkImages[i];
+            imageViewCreateInfo.image = m_Images[i];
 
             imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageViewCreateInfo.format = vkSwapchainImageFormat;
+            imageViewCreateInfo.format = m_SwapchainImageFormat;
 
             imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -160,39 +159,39 @@ namespace Magma {
             imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
             imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-            auto createImageViewResult = vkCreateImageView(pVulkanDevice->getDevice(),
-                &imageViewCreateInfo, pAllocator, &vkImageViews[i]);
+            auto createImageViewResult = vkCreateImageView(m_Device->getDevice(),
+                &imageViewCreateInfo, pAllocator, &m_ImageViews[i]);
             Z_LOG_OBJ("VulkanSwapchain::init::vkCreateImageView", createImageViewResult);
         }
 
         return VK_SUCCESS;
     }
 
-    VkSwapchainKHR& VulkanSwapchain::getSwapchainKHR() {
-        return vkSwapchainKHR;
+    VkSwapchainKHR& Swapchain::getSwapchainKHR() {
+        return m_SwapchainKHR;
     }
 
-    VkFormat& VulkanSwapchain::getSwapchainImageFormat() {
-        return vkSwapchainImageFormat;
+    VkFormat& Swapchain::getSwapchainImageFormat() {
+        return m_SwapchainImageFormat;
     }
 
-    VkExtent2D& VulkanSwapchain::getSwapchainExtent() {
-        return vkSwapchainExtent;
+    VkExtent2D& Swapchain::getSwapchainExtent() {
+        return m_SwapchainExtent;
     }
 
-    std::vector<VkImage>& VulkanSwapchain::getImages() {
-        return vkImages;
+    std::vector<VkImage>& Swapchain::getImages() {
+        return m_Images;
     }
 
-    std::vector<VkImageView>& VulkanSwapchain::getImageViews() {
-        return vkImageViews;
+    std::vector<VkImageView>& Swapchain::getImageViews() {
+        return m_ImageViews;
     }
 
-    void VulkanSwapchain::deleteImageViews() {
-        for (auto vkImageView : vkImageViews) {
-            vkDestroyImageView(pVulkanDevice->getDevice(), vkImageView, nullptr);
+    void Swapchain::deleteImageViews() {
+        for (const auto imageView : m_ImageViews) {
+            vkDestroyImageView(m_Device->getDevice(), imageView, pAllocator);
         }
-        vkImageViews.clear();
+        m_ImageViews.clear();
     }
 
 }

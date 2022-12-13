@@ -4,7 +4,7 @@
 
 #include "device_enums.h"
 
-#include "Magma/Vulkan/Surface/vulkan_surface.h"
+#include "Magma/Vulkan/Surface/surface.h"
 
 namespace Magma {
 
@@ -25,7 +25,7 @@ namespace Magma {
 		void generateProfile(VkPhysicalDevice vkPhysicalDevice);
 
 		void setDevice(VkDevice vkDevice);
-		void setVulkanSurface(std::shared_ptr<VulkanSurface> pVulkanSurface);
+		void setSurface(std::shared_ptr<Surface> surface);
 
 		void setDeviceTypePriority(VulkanPriority vulkanDeviceTypePriority);
 		void setDeviceType(VulkanDeviceType vulkanDeviceType);
@@ -48,7 +48,7 @@ namespace Magma {
 		VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
 		VkDevice vkDevice = VK_NULL_HANDLE;
 
-		std::shared_ptr<VulkanSurface> pVulkanSurface = nullptr;
+		std::shared_ptr<Surface> pVulkanSurface = nullptr;
 
 		VulkanPriority vulkanDeviceTypePriority = VulkanPriority::HIGH;
 		VulkanDeviceType vulkanDeviceType = VulkanDeviceType::DISCRETE_GPU;

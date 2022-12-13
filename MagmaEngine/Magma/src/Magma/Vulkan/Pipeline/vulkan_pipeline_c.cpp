@@ -218,8 +218,8 @@ namespace Magma {
 	}
 
 	VulkanRenderPass::VulkanRenderPass(std::shared_ptr<VulkanDevice> pVulkanDevice,
-		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) : pVulkanDevice{ pVulkanDevice },
-		pVulkanSwapchain{ pVulkanSwapchain } {}
+		std::shared_ptr<Swapchain> swapchain) : pVulkanDevice{ pVulkanDevice },
+		pVulkanSwapchain{ swapchain } {}
 
 	VulkanRenderPass::~VulkanRenderPass() {
 		if (pVulkanDevice != nullptr) {

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <stdexcept>
-
 #include <vulkan/vulkan.h>
 #include <shaderc/shaderc.hpp>
 

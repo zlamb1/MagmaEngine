@@ -9,7 +9,7 @@
 #include "Magma/Vulkan/Shader/shader_attributes.h"
 #include "Magma/Vulkan/Shader/vulkan_shader.h"
 
-#include "Magma/Vulkan/Surface/vulkan_swapchain.h"
+#include "Magma/Vulkan/Surface/swapchain.h"
 
 namespace Magma {
 
@@ -68,7 +68,7 @@ namespace Magma {
 
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
+		std::shared_ptr<Swapchain> pVulkanSwapchain = nullptr;
 
 		VulkanShaderAttributes& pShaderAttributes;
 
@@ -103,7 +103,7 @@ namespace Magma {
 
 	public:
 		VulkanRenderPass(std::shared_ptr<VulkanDevice> pVulkanDevice,
-			std::shared_ptr<VulkanSwapchain> pVulkanSwapchain);
+			std::shared_ptr<Swapchain> pVulkanSwapchain);
 		~VulkanRenderPass() override;
 
 		VkResult init() override;
@@ -112,7 +112,7 @@ namespace Magma {
 	
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
+		std::shared_ptr<Swapchain> pVulkanSwapchain = nullptr;
 
 		VkFormat pDepthFormat; 
 

@@ -28,7 +28,7 @@ namespace Magma {
 		void onNewFrame(VulkanCmdBuffer& vulkanCmdBuffer, uint32_t imageIndex);
 
 	public:
-		std::shared_ptr<VulkanSwapchain> pVulkanSwapchain = nullptr;
+		std::shared_ptr<Swapchain> pVulkanSwapchain = nullptr;
 		std::shared_ptr<VulkanRenderer> pVulkanRenderer = nullptr;
 		std::shared_ptr<VulkanImageView> pDepthImageView = nullptr;
 

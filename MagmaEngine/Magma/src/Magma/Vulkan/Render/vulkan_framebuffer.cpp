@@ -3,8 +3,8 @@
 namespace Magma {
 
     VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanDevice> pVulkanDevice,
-        std::shared_ptr<VulkanSwapchain> pVulkanSwapchain) : pVulkanDevice{ pVulkanDevice },
-        pVulkanSwapchain{ pVulkanSwapchain } {}
+        std::shared_ptr<Swapchain> swapchain) : pVulkanDevice{ pVulkanDevice },
+        pVulkanSwapchain{ swapchain } {}
 
     VulkanFramebuffer::~VulkanFramebuffer() {
         destroyFramebuffers();

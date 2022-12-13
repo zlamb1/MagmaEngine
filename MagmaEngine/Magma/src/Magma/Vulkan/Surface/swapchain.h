@@ -1,10 +1,7 @@
 #pragma once
 
 #include <algorithm> // std::numeric_limits
-#include <limits>    // std::clamp
 #include <vector>
-
-#include <GLFW/glfw3.h>
 
 #include <vulkan/vulkan.h>
 
@@ -13,11 +10,11 @@
 
 namespace Magma {
 
-	class VulkanSwapchain : public VulkanObject {
+	class Swapchain : public VulkanObject {
 
 	public:
-		VulkanSwapchain(std::shared_ptr<VulkanDevice> pVulkanDevice);
-		~VulkanSwapchain() override;
+		Swapchain(std::shared_ptr<VulkanDevice> device);
+		~Swapchain() override;
 
 		VkResult init() override;
 
@@ -31,15 +28,15 @@ namespace Magma {
 		void deleteImageViews();
 
 	public:
-		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
+		std::shared_ptr<VulkanDevice> m_Device = nullptr;
 
 	private:
-		VkSwapchainKHR vkSwapchainKHR{};
-		VkFormat vkSwapchainImageFormat{};
-		VkExtent2D vkSwapchainExtent{};
+		VkSwapchainKHR m_SwapchainKHR{};
+		VkFormat m_SwapchainImageFormat{};
+		VkExtent2D m_SwapchainExtent{};
 
-		std::vector<VkImage> vkImages{};
-		std::vector<VkImageView> vkImageViews{};
+		std::vector<VkImage> m_Images{};
+		std::vector<VkImageView> m_ImageViews{};
 
 	};
 }
