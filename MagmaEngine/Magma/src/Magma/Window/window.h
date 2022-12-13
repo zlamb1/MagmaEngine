@@ -56,16 +56,16 @@ namespace Magma {
 
 		virtual void waitForEvents() = 0;
 
-		virtual bool shouldWindowClose() const = 0;
-		virtual Int32Size getMonitorResolution() const = 0;
-		virtual Int32Size getSize() const = 0;
-		virtual Int32Size getFramebufferSize() const = 0;
-		virtual std::vector<int32_t> getFrameSize() const = 0;
-		virtual Int32Pos getPosition() const = 0;
-		virtual const std::string& getTitle() const = 0;
-		virtual bool isResizable() const = 0;
-		virtual bool isFocused() const = 0;
-		virtual DoublePos getMousePosition() const = 0;
+		[[nodiscard]] virtual bool shouldWindowClose() const = 0;
+		[[nodiscard]] virtual Int32Size getMonitorResolution() const = 0;
+		[[nodiscard]] virtual Int32Size getSize() const = 0;
+		[[nodiscard]] virtual Int32Size getFramebufferSize() const = 0;
+		[[nodiscard]] virtual std::vector<int32_t> getFrameSize() const = 0;
+		[[nodiscard]] virtual Int32Pos getPosition() const = 0;
+		[[nodiscard]] virtual const std::string& getTitle() const = 0;
+		[[nodiscard]] virtual bool isResizable() const = 0;
+		[[nodiscard]] virtual bool isFocused() const = 0;
+		[[nodiscard]] virtual DoublePos getMousePosition() const = 0;
 
 		virtual void setSize(int32_t width, int32_t height) = 0;
 		virtual void setPosition(int32_t x, int32_t y) = 0;
@@ -101,15 +101,15 @@ namespace Magma {
 		virtual KeyButton getKeyButton(int btn) = 0;
 
 	private:
-		std::vector<SizeCallback> windowSizeCallbacks{};
-		std::vector<BoolCallback> windowFocusCallbacks{};
-		std::vector<SizeCallback> framebufferSizeCallbacks{};
-		std::vector<PosCallback> mousePosCallbacks{};
-		std::vector<OffsetCallback> mouseScrollCallbacks{};
-		std::vector<MouseButtonCallback> mouseButtonCallbacks{};
-		std::vector<KeyPressCallback> keyPressCallbacks{};
-		std::vector<VoidCallback> mouseEnterCallbacks{};
-		std::vector<VoidCallback> mouseExitCallbacks{};
+		std::vector<SizeCallback> m_WindowSizeCallbacks{};
+		std::vector<BoolCallback> m_WindowFocusCallbacks{};
+		std::vector<SizeCallback> m_FramebufferSizeCallbacks{};
+		std::vector<PosCallback> m_MousePosCallbacks{};
+		std::vector<OffsetCallback> m_MouseScrollCallbacks{};
+		std::vector<MouseButtonCallback> m_MouseButtonCallbacks{};
+		std::vector<KeyPressCallback> m_KeyPressCallbacks{};
+		std::vector<VoidCallback> m_MouseEnterCallbacks{};
+		std::vector<VoidCallback> m_MouseExitCallbacks{};
 
 	};
 

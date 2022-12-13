@@ -9,7 +9,7 @@ namespace Magma {
 	class VulkanImpl : public WindowImpl {
 
 	public:
-		virtual VkResult getSurfaceKHR(VkInstance& vkInstance, VkSurfaceKHR& vkSurfaceKHR) = 0;
+		virtual VkResult getSurfaceKHR(VkInstance& instance, VkSurfaceKHR& surfaceKHR) = 0;
 
 	};
 

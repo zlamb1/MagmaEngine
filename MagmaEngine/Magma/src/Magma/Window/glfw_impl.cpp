@@ -1,28 +1,28 @@
 #include "glfw_impl.h"
 
-#define MakeSize(x, y) std::make_pair<int32_t, int32_t>((int32_t)x, (int32_t)y)
-#define MakePos(x, y) std::make_pair<int32_t, int32_t>((int32_t)x, (int32_t)y)
+#define MakeSize(x, y) std::make_pair<int32_t, int32_t>(static_cast<int32_t>(x), static_cast<int32_t>(y))
+#define MakePos(x, y) std::make_pair<int32_t, int32_t>(static_cast<int32_t>(x), static_cast<int32_t>(y))
 
 namespace Magma {
 
 	GLFWImpl::~GLFWImpl() {
-		glfwDestroyWindow(window);
+		glfwDestroyWindow(m_Window);
 	}
 
-	void GLFWImpl::init(int32_t width, int32_t height) {
+	void GLFWImpl::init(const int32_t width, const int32_t height) {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		window = glfwCreateWindow(width, height, "", nullptr, nullptr);
+		m_Window = glfwCreateWindow(width, height, "", nullptr, nullptr);
 
-		glfwSetWindowUserPointer(window, this);
+		glfwSetWindowUserPointer(m_Window, this);
 
-		glfwSetWindowSizeCallback(window, glfwOnWindowResize);
-		glfwSetWindowFocusCallback(window, glfwOnWindowFocus);
-		glfwSetFramebufferSizeCallback(window, glfwOnFramebufferResize);
-		glfwSetCursorPosCallback(window, glfwOnMouseMove);
-		glfwSetScrollCallback(window, glfwOnMouseScroll);
-		glfwSetMouseButtonCallback(window, glfwOnMousePress);
-		glfwSetCursorEnterCallback(window, glfwOnMouseEnter);
-		glfwSetKeyCallback(window, glfwOnKeyPress);
+		glfwSetWindowSizeCallback(m_Window, glfwOnWindowResize);
+		glfwSetWindowFocusCallback(m_Window, glfwOnWindowFocus);
+		glfwSetFramebufferSizeCallback(m_Window, glfwOnFramebufferResize);
+		glfwSetCursorPosCallback(m_Window, glfwOnMouseMove);
+		glfwSetScrollCallback(m_Window, glfwOnMouseScroll);
+		glfwSetMouseButtonCallback(m_Window, glfwOnMousePress);
+		glfwSetCursorEnterCallback(m_Window, glfwOnMouseEnter);
+		glfwSetKeyCallback(m_Window, glfwOnKeyPress);
 	}
 
 	void GLFWImpl::waitForEvents() {
@@ -30,91 +30,90 @@ namespace Magma {
 	}
 
 	bool GLFWImpl::shouldWindowClose() const {
-		return glfwWindowShouldClose(window);
+		return glfwWindowShouldClose(m_Window);
 	}
 
 	std::pair<int32_t, int32_t> GLFWImpl::getMonitorResolution() const {
-		const GLFWmonitor* primary = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		return MakeSize(mode->width, mode->height);
 	}
 
 	std::pair<int32_t, int32_t> GLFWImpl::getSize() const {
 		int32_t width, height;
-		glfwGetWindowSize(window, &width, &height);
+		glfwGetWindowSize(m_Window, &width, &height);
 		return MakeSize(width, height);
 	}
 
 	Int32Size GLFWImpl::getFramebufferSize() const {
 		int32_t width, height;
-		glfwGetFramebufferSize(window, &width, &height);
+		glfwGetFramebufferSize(m_Window, &width, &height);
 		return MakeSize(width, height);
 	}
 
 	std::vector<int32_t> GLFWImpl::getFrameSize() const {
 		int32_t l, t, r, b;
-		glfwGetWindowFrameSize(window, &l, &t, &r, &b);
+		glfwGetWindowFrameSize(m_Window, &l, &t, &r, &b);
 		std::vector<int32_t> sizes{ l, t, r, b };
 		return sizes; 
 	}
 
 	Int32Pos GLFWImpl::getPosition() const {
 		int x, y;
-		glfwGetWindowPos(window, &x, &y);
+		glfwGetWindowPos(m_Window, &x, &y);
 		return MakePos(x, y);
 	}
 
 	const std::string& GLFWImpl::getTitle() const {
-		return title;
+		return m_Title;
 	}
 
 	DoublePos GLFWImpl::getMousePosition() const {
 		double x, y;
-		glfwGetCursorPos(window, &x, &y);
+		glfwGetCursorPos(m_Window, &x, &y);
 		return std::make_pair<double, double>((double)x, (double)y);
 	}
 
 	bool GLFWImpl::isResizable() const {
-		return glfwGetWindowAttrib(window, GLFW_RESIZABLE);
+		return glfwGetWindowAttrib(m_Window, GLFW_RESIZABLE);
 	}
 
 	bool GLFWImpl::isFocused() const {
-		return glfwGetWindowAttrib(window, GLFW_FOCUSED);
+		return glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
 	}
 
-	void GLFWImpl::setSize(int32_t width, int32_t height) {
-		glfwSetWindowSize(window, width, height);
+	void GLFWImpl::setSize(const int32_t width, const int32_t height) {
+		glfwSetWindowSize(m_Window, width, height);
 	}
 
-	void GLFWImpl::setPosition(int32_t x, int32_t y) {
-		glfwSetWindowPos(window, x, y);
+	void GLFWImpl::setPosition(const int32_t x, const int32_t y) {
+		glfwSetWindowPos(m_Window, x, y);
 	}
 
-	void GLFWImpl::setTitle(std::string title) {
-		glfwSetWindowTitle(window, title.c_str());
-		this->title = title;
+	void GLFWImpl::setTitle(const std::string title) {
+		glfwSetWindowTitle(m_Window, title.c_str());
+		m_Title = title;
 	}
 
 	void GLFWImpl::setResizable(bool resizable) {
-		glfwSetWindowAttrib(window, GLFW_RESIZABLE, resizable);
+		glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, resizable);
 	}
 
 	void GLFWImpl::setMousePosition(double x, double y) {
-		glfwSetCursorPos(window, x, y);
+		glfwSetCursorPos(m_Window, x, y);
 	}
 
 	void GLFWImpl::setMouseHidden(bool hidden) {
 		if (hidden) {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 		else {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
 
 	void GLFWImpl::setMouseCentered() {
-		auto windowSize = getSize();
-		glfwSetCursorPos(window, windowSize.first / 2.0, windowSize.second / 2.0);
+		auto [width, height] = getSize();
+		glfwSetCursorPos(m_Window, width / 2.0, height / 2.0);
 	}
 
 	MouseAction GLFWImpl::getMouseAction(int action) {
@@ -246,48 +245,44 @@ namespace Magma {
 	}
 
 	VkResult GLFWImpl::getSurfaceKHR(VkInstance& vkInstance, VkSurfaceKHR& vkSurfaceKHR) {
-		return glfwCreateWindowSurface(vkInstance, window, nullptr, &vkSurfaceKHR);
+		return glfwCreateWindowSurface(vkInstance, m_Window, nullptr, &vkSurfaceKHR);
 	}
 
 	GLFWImpl* GLFWImpl::getUserPtrFromWindow(GLFWwindow* window) {
-		return (GLFWImpl*)glfwGetWindowUserPointer(window);
+		return static_cast<GLFWImpl*>(glfwGetWindowUserPointer(window));
 	}
 
 	void GLFWImpl::glfwOnWindowResize(GLFWwindow* window, int32_t width,
 		int32_t height) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		windowPtr->onWindowResize(width, height);
+		getUserPtrFromWindow(window)->onWindowResize(width, height);
 	}
 
 	void GLFWImpl::glfwOnWindowFocus(GLFWwindow* window, int focused) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		windowPtr->onWindowFocus(focused);
+		getUserPtrFromWindow(window)->onWindowFocus(focused);
 	}
 
 	void GLFWImpl::glfwOnFramebufferResize(GLFWwindow* window, int32_t width,
 		int32_t height) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		windowPtr->onFramebufferResize(width, height);
+		getUserPtrFromWindow(window)->onFramebufferResize(width, height);
 	}
 
-	void GLFWImpl::glfwOnMouseMove(GLFWwindow* window, double x, double y) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		windowPtr->onMouseMove(x, y);
+	void GLFWImpl::glfwOnMouseMove(GLFWwindow* window, const double x, const double y) {
+		getUserPtrFromWindow(window)->onMouseMove(static_cast<int32_t>(x), static_cast<int32_t>(y));
 	}
 
 	void GLFWImpl::glfwOnMouseScroll(GLFWwindow* window, double x, double y) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		windowPtr->onMouseScroll(x, y);
+		getUserPtrFromWindow(window)->onMouseScroll(x, y);
 	}
 
-	void GLFWImpl::glfwOnMousePress(GLFWwindow* window, int btn, int action, int mods) {
-		auto windowPtr = getUserPtrFromWindow(window);
-		int pressed = std::min(1, std::max(0, (int)windowPtr->getMouseAction(action)));
-		windowPtr->onMousePress(windowPtr->getMouseButton(btn), pressed, mods);
+	void GLFWImpl::glfwOnMousePress(GLFWwindow* window, int button, int action, int mods) {
+		const auto windowPtr = getUserPtrFromWindow(window);
+		const int pressed = std::min(1, std::max(0, 
+		static_cast<int>(windowPtr->getMouseAction(action))));
+		windowPtr->onMousePress(windowPtr->getMouseButton(button), pressed, mods);
 	}
 
 	void GLFWImpl::glfwOnMouseEnter(GLFWwindow* window, int entered) {
-		auto windowPtr = getUserPtrFromWindow(window);
+		const auto windowPtr = getUserPtrFromWindow(window);
 		if (entered) {
 			windowPtr->onMouseEnter();
 		}
@@ -297,7 +292,7 @@ namespace Magma {
 	}
 
 	void GLFWImpl::glfwOnKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		auto windowPtr = getUserPtrFromWindow(window);
+		const auto windowPtr = getUserPtrFromWindow(window);
 		windowPtr->onKeyPress(windowPtr->getKeyButton(key), windowPtr->getKeyAction(action));
 	}
 

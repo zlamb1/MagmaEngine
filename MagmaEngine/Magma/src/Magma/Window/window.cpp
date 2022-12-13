@@ -5,93 +5,93 @@
 namespace Magma {
 
 	void WindowImpl::onWindowResize(int32_t width, int32_t height) {
-		for (auto& callback : windowSizeCallbacks) {
+		for (auto& callback : m_WindowSizeCallbacks) {
 			callback(width, height);
 		}
 	}
 
 	void WindowImpl::onWindowFocus(int focused) {
-		for (auto& callback : windowFocusCallbacks) {
+		for (auto& callback : m_WindowFocusCallbacks) {
 			callback(focused);
 		}
 	}
 
 	void WindowImpl::onFramebufferResize(int32_t width, int32_t height) {
-		for (auto& callback : framebufferSizeCallbacks) {
+		for (auto& callback : m_FramebufferSizeCallbacks) {
 			callback(width, height);
 		}
 	}
 
 	void WindowImpl::onMouseMove(int32_t x, int32_t y) {
-		for (auto& callback : mousePosCallbacks) {
+		for (auto& callback : m_MousePosCallbacks) {
 			callback(x, y);
 		}
 	}
 
 	void WindowImpl::onMouseScroll(double x, double y) {
-		for (auto& callback : mouseScrollCallbacks) {
+		for (auto& callback : m_MouseScrollCallbacks) {
 			callback(x, y);
 		}
 	}
 
 	void WindowImpl::onMousePress(MouseButton button, bool pressed, int mods) {
-		for (auto& callback : mouseButtonCallbacks) {
+		for (auto& callback : m_MouseButtonCallbacks) {
 			callback(button, pressed, mods);
 		}
 	}
 
 	void WindowImpl::onMouseEnter() {
-		for (auto& callback : mouseEnterCallbacks) {
+		for (auto& callback : m_MouseEnterCallbacks) {
 			callback();
 		}
 	}
 
 	void WindowImpl::onMouseExit() {
-		for (auto& callback : mouseExitCallbacks) {
+		for (auto& callback : m_MouseExitCallbacks) {
 			callback();
 		}
 	}
 
 	void WindowImpl::onKeyPress(KeyButton button, KeyAction action) {
-		for (auto& callback : keyPressCallbacks) {
+		for (auto& callback : m_KeyPressCallbacks) {
 			callback(button, action);
 		}
 	}
 
 	void WindowImpl::addWindowSizeCallback(SizeCallback callback) {
-		windowSizeCallbacks.push_back(callback);
+		m_WindowSizeCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addWindowFocusCallback(BoolCallback callback) {
-		windowFocusCallbacks.push_back(callback);
+		m_WindowFocusCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addFramebufferSizeCallback(SizeCallback callback) {
-		framebufferSizeCallbacks.push_back(callback);
+		m_FramebufferSizeCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMousePosCallback(PosCallback callback) {
-		mousePosCallbacks.push_back(callback);
+		m_MousePosCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMouseScrollCallback(OffsetCallback callback) {
-		mouseScrollCallbacks.push_back(callback);
+		m_MouseScrollCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMouseButtonCallback(MouseButtonCallback callback) {
-		mouseButtonCallbacks.push_back(callback);
+		m_MouseButtonCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addKeyButtonCallback(KeyPressCallback callback) {
-		keyPressCallbacks.push_back(callback);
+		m_KeyPressCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMouseEnterCallback(VoidCallback callback) {
-		mouseEnterCallbacks.push_back(callback);
+		m_MouseEnterCallbacks.push_back(callback);
 	}
 
 	void WindowImpl::addMouseExitCallback(VoidCallback callback) {
-		mouseExitCallbacks.push_back(callback);
+		m_MouseExitCallbacks.push_back(callback);
 	}
 
 	MouseButton WindowImpl::getMouseButton(int btn) {

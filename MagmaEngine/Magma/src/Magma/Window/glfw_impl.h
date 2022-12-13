@@ -17,16 +17,16 @@ namespace Magma {
 
 		void waitForEvents() override;
 
-		bool shouldWindowClose() const override;
-		Int32Size getMonitorResolution() const override;
-		Int32Size getSize() const override;
-		Int32Size getFramebufferSize() const override;
-		std::vector<int32_t> getFrameSize() const override;
-		Int32Pos getPosition() const override;
-		const std::string& getTitle() const override;
-		DoublePos getMousePosition() const override;
-		bool isResizable() const override;
-		bool isFocused() const override; 
+		[[nodiscard]] bool shouldWindowClose() const override;
+		[[nodiscard]] Int32Size getMonitorResolution() const override;
+		[[nodiscard]] Int32Size getSize() const override;
+		[[nodiscard]] Int32Size getFramebufferSize() const override;
+		[[nodiscard]] std::vector<int32_t> getFrameSize() const override;
+		[[nodiscard]] Int32Pos getPosition() const override;
+		[[nodiscard]] const std::string& getTitle() const override;
+		[[nodiscard]] DoublePos getMousePosition() const override;
+		[[nodiscard]] bool isResizable() const override;
+		[[nodiscard]] bool isFocused() const override; 
 
 		void setSize(int32_t width, int32_t height) override;
 		void setPosition(int32_t x, int32_t y) override;
@@ -44,9 +44,9 @@ namespace Magma {
 		VkResult getSurfaceKHR(VkInstance& vkInstance, VkSurfaceKHR& vkSurfaceKHR) override;
 
 	private:
-		GLFWwindow* window = nullptr;
+		GLFWwindow* m_Window = nullptr;
 
-		std::string title;
+		std::string m_Title;
 
 		static GLFWImpl* getUserPtrFromWindow(GLFWwindow* window);
 

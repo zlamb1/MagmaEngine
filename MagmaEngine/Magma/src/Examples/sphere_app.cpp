@@ -173,10 +173,6 @@ namespace Magma {
 		// create descriptor set
 		shaderAttributes.createDescriptorSet(1);
 
-		// set renderer fields
-		// m_RenderCore->getRenderer().setIndexBuffer(indexBuffer);
-		// m_RenderCore->getRenderer().setUseIndexing(true);
-
 		// init render structures
 		m_RenderCore->initRender();
 	}
@@ -221,7 +217,7 @@ namespace Magma {
 
 	void SphereApp::createTexture() {
 		StbImageLoader loader{};
-		const auto imageData = loader.loadImage("texture1.jpg");
+		const auto imageData = loader.loadImage("texture2.jpg");
 
 		const int64_t imageSize = static_cast<int64_t>(imageData->m_Width) * imageData->m_Height * 4;
 
