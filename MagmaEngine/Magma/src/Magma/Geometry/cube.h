@@ -6,6 +6,6 @@
 
 namespace Magma {
 
-	extern const std::vector<glm::vec3> cubeVerts;
+	extern const std::vector<glm::vec3> m_CubePositions;
 
 }

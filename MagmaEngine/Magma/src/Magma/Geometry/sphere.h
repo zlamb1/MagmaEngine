@@ -5,37 +5,42 @@
 namespace Magma {
 
 	struct SphereVertex {
-		SphereVertex() {} 
-		SphereVertex(glm::vec3 pos) : pos{ pos }, color{ 1.0f } {}
+		SphereVertex() : m_Position{}, m_Normal{}, m_UV{} {}
+		SphereVertex(glm::vec3 position) : m_Position{ position }, m_Normal{}, m_UV{} {}
 
-		glm::vec3 pos, color, normal;
-		glm::vec2 uv;
+		glm::vec3 m_Position, m_Normal;
+		glm::vec2 m_UV;
 	};
 
 	struct SphereData {
-		std::vector<SphereVertex> verts{};
-		std::vector<uint16_t> indices{};
+		std::vector<SphereVertex> m_Vertices{};
+		std::vector<uint16_t> m_Indices{};
 	};
 
 	namespace SphereUtility {
 
-		static uint16_t getIndex(std::vector<glm::vec3>& verts, glm::vec3& pos) {
-			auto iter = std::find(verts.begin(), verts.end(), pos);
-			if (iter == verts.end()) return verts.size();
-			else return std::distance(verts.begin(), iter);
+		static uint16_t getIndex(std::vector<glm::vec3>& vertices, const glm::vec3& position) {
+			const auto iter = std::ranges::find(vertices.begin(),
+				vertices.end(), position);
+			if (iter == vertices.end()) {
+				return static_cast<uint16_t>(vertices.size());
+			}
+			else {
+				return static_cast<uint16_t>(std::distance(vertices.begin(), iter));
+			}
 		}
 
-		static uint16_t getIndexAndAdd(std::vector<glm::vec3>& verts, glm::vec3 pos) {
-			auto index = getIndex(verts, pos);
-			if (index == verts.size())
-				verts.push_back(pos);
+		static uint16_t getIndexAndAdd(std::vector<glm::vec3>& vertices, glm::vec3 position) {
+			const auto index = getIndex(vertices, position);
+			if (index == vertices.size())
+				vertices.push_back(position);
 			return index;
 		}
 		
 		static glm::vec3 getSurfaceNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-			glm::vec3 u = b - a; 
-			glm::vec3 v = c - a; 
-			glm::vec3 normal{ 
+			const glm::vec3 u = b - a; 
+			const glm::vec3 v = c - a; 
+			const glm::vec3 normal{ 
 				(u.y * v.z) - (u.z * v.y),
 				(u.z * v.x) - (u.x * v.z),
 				(u.x * v.y) - (u.y * v.x)
@@ -53,37 +58,35 @@ namespace Magma {
 	namespace UVSphere {
 
 		static SphereData createSphere(int rings) {
-
 			SphereData sphereData{};
 
-			if (rings < 2)
+			if (rings < 2) {
 				rings = 2;
+			}
 
-			int segments = rings * 2;
-			float radius = 1.0f;
+			const int segments = rings * 2;
+			constexpr float radius = 1.0f;
 
 			float lengthInv = 1.0f / radius;
 
-			float deltaLatitude = glm::pi<float>() / rings;
-			float deltaLongitude = 2 * glm::pi<float>() / segments;
-			float latitudeAngle, longitudeAngle;
+			const float deltaLatitude = glm::pi<float>() / static_cast<float>(rings);
+			const float deltaLongitude = 2 * glm::pi<float>() / static_cast<float>(segments);
+			float latitudeAngle = 0.0f, longitudeAngle = 0.0f;
 
 			for (int i = 0; i <= rings; ++i)
 			{
 				latitudeAngle = glm::pi<float>() / 2.0f - i * deltaLatitude;
-				float xy = radius * cosf(latitudeAngle);
-				float z = radius * sinf(latitudeAngle);
-
+				const float xy = radius * cosf(latitudeAngle);
+				const float z = radius * sinf(latitudeAngle);
 				for (int j = 0; j <= segments; ++j)
 				{
 					longitudeAngle = j * deltaLongitude;
-
-					glm::vec3 vertex{ xy * cosf(longitudeAngle), xy * sinf(longitudeAngle), z };
-					sphereData.verts.push_back(vertex);
+					const glm::vec3 vertex{ xy * cosf(longitudeAngle), xy * sinf(longitudeAngle), z };
+					sphereData.m_Vertices.push_back(vertex);
 				}
 			}
 
-			unsigned int k1, k2;
+			unsigned int k1 = 0, k2 = 0;
 			for (int i = 0; i < rings; ++i)
 			{
 				k1 = i * (segments + 1);
@@ -92,24 +95,24 @@ namespace Magma {
 				{
 					if (i != 0)
 					{
-						sphereData.indices.push_back(k1);
-						sphereData.indices.push_back(k2);
-						sphereData.indices.push_back(k1 + 1);
+						sphereData.m_Indices.push_back(k1);
+						sphereData.m_Indices.push_back(k2);
+						sphereData.m_Indices.push_back(k1 + 1);
 					}
 
 					if (i != (rings - 1))
 					{
-						sphereData.indices.push_back(k1 + 1);
-						sphereData.indices.push_back(k2);
-						sphereData.indices.push_back(k2 + 1);
+						sphereData.m_Indices.push_back(k1 + 1);
+						sphereData.m_Indices.push_back(k2);
+						sphereData.m_Indices.push_back(k2 + 1);
 					}
 				}
 			}
 
-			for (auto& vertex : sphereData.verts) {
+			for (auto& vertex : sphereData.m_Vertices) {
 				// a vertex on a sphere is its own normal
-				vertex.normal = vertex.pos;
-				vertex.uv = { vertex.normal.x / 2.0f + 0.5f, vertex.normal.y / 2.0f + 0.5f };
+				vertex.m_Normal = vertex.m_Position;
+				vertex.m_UV = { vertex.m_Normal.x / 2.0f + 0.5f, vertex.m_Normal.y / 2.0f + 0.5f };
 			}
 
 			return sphereData;
@@ -136,14 +139,16 @@ namespace Magma {
 		static SphereData createSphere(int resolution) {
 			SphereData sphereData{};
 
-			sphereData.indices = icosahedronIndices;
+			sphereData.m_Indices = icosahedronIndices;
 
 			std::vector<glm::vec3> inVerts = icosahedronVerts;
-			std::vector<uint16_t> inIndices = sphereData.indices;
+			std::vector<uint16_t> inIndices = sphereData.m_Indices;
 
-			if (resolution == 0)
-				for (int i = 0; i < inVerts.size(); i++)
-					inVerts[i] = glm::normalize(inVerts[i]);
+			if (resolution == 0) {
+				for (auto& position : inVerts) {
+					position = glm::normalize(position);
+				}
+			}
 
 			for (int j = 0; j < resolution; j++) {
 				std::vector<glm::vec3> nVerts{};
@@ -181,15 +186,15 @@ namespace Magma {
 			}
 
 			for (auto& pos : inVerts) {
-				sphereData.verts.push_back({ glm::normalize(pos) });
+				sphereData.m_Vertices.push_back({ glm::normalize(pos) });
 			}
 
-			sphereData.indices = inIndices;
+			sphereData.m_Indices = inIndices;
 
-			for (auto& vertex : sphereData.verts) {
+			for (auto& vertex : sphereData.m_Vertices) {
 				// a vertex on a sphere is its own normal
-				vertex.normal = vertex.pos;
-				vertex.uv = { vertex.normal.x / 2.0f + 0.5f, vertex.normal.y / 2.0f + 0.5f };
+				vertex.m_Normal = vertex.m_Position;
+				vertex.m_UV = { vertex.m_Normal.x / 2.0f + 0.5f, vertex.m_Normal.y / 2.0f + 0.5f };
 			}
 
 			return sphereData;
@@ -201,19 +206,19 @@ namespace Magma {
 		
 		static SphereData createSphere(int resolution, bool useIndexing) {
 			SphereData sphereData{};
-			std::vector<glm::vec3> inVerts = cubeVerts;
+			std::vector<glm::vec3> inVerts = m_CubePositions;
 
 			if (useIndexing) {
-				for (int i = 0; i < cubeVerts.size(); i += 4) {
+				for (int i = 0; i < m_CubePositions.size(); i += 4) {
 					std::vector _indices{
 						(uint16_t)i, (uint16_t)(i + 1), (uint16_t)(i + 2),
 						(uint16_t)(i + 2), (uint16_t)(i + 3), (uint16_t)i
 					};
-					sphereData.indices.insert(sphereData.indices.end(),
+					sphereData.m_Indices.insert(sphereData.m_Indices.end(),
 						_indices.begin(), _indices.end());
 				}
 
-				std::vector<uint16_t> inIndices = sphereData.indices;
+				std::vector<uint16_t> inIndices = sphereData.m_Indices;
 				for (int j = 0; j < resolution; j++) {
 					std::vector<glm::vec3> nVerts{};
 					std::vector<uint16_t> nIndices{};
@@ -260,7 +265,7 @@ namespace Magma {
 					inIndices = nIndices;
 				}
 
-				sphereData.indices = inIndices;
+				sphereData.m_Indices = inIndices;
 			}
 			else {
 				std::vector<glm::vec3> nVerts{}; 
@@ -301,34 +306,32 @@ namespace Magma {
 				}
 			}
 
-			sphereData.verts = std::vector(inVerts.size(), SphereVertex{});
+			sphereData.m_Vertices = std::vector(inVerts.size(), SphereVertex{});
 
 			if (useIndexing) {
 				for (int i = 0; i < inVerts.size(); i++) {
-					auto& vertex = sphereData.verts[i];
-					vertex.pos = glm::normalize(inVerts[i]);
-					vertex.normal = vertex.pos;
-					vertex.uv = { vertex.pos.x / 2.0f + 0.5f, vertex.pos.y / 2.0f + 0.5f };
+					auto& vertex = sphereData.m_Vertices[i];
+					vertex.m_Position = glm::normalize(inVerts[i]);
+					vertex.m_Normal = vertex.m_Position;
+					vertex.m_UV = { vertex.m_Position.x / 2.0f + 0.5f, vertex.m_Position.y / 2.0f + 0.5f };
 				}
 			}
 			else {
-				for (int i = 0; i < sphereData.verts.size(); i++) {
-					auto& vertex = sphereData.verts[i];
+				for (int i = 0; i < sphereData.m_Vertices.size(); i++) {
+					auto& vertex = sphereData.m_Vertices[i];
 
 					constexpr auto M_PI = glm::pi<float>(); 
 
-					vertex.pos = glm::normalize(inVerts[i]);
-					vertex.normal = vertex.pos;
-					vertex.uv = {
-						1.0f - glm::clamp((std::atan2(vertex.pos.z, 
-						vertex.pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
-						1.0f - glm::clamp(((std::atan(-vertex.pos.y / 
-							glm::length(glm::vec2{vertex.pos.x, vertex.pos.z})) + (M_PI / 2.0f)) 
+					vertex.m_Position = glm::normalize(inVerts[i]);
+					vertex.m_Normal = vertex.m_Position;
+					vertex.m_UV = {
+						1.0f - glm::clamp((std::atan2(vertex.m_Position.z, 
+						vertex.m_Position.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
+						1.0f - glm::clamp(((std::atan(-vertex.m_Position.y / 
+							glm::length(glm::vec2{vertex.m_Position.x, vertex.m_Position.z})) + (M_PI / 2.0f)) 
 							/ M_PI), 0.0f, 1.0f)
 					};
-
 				}
-
 			}
 
 			return sphereData; 

@@ -2,7 +2,7 @@
 
 namespace Magma {
 
-    const std::vector<glm::vec3> cubeVerts{
+    const std::vector<glm::vec3> m_CubePositions{
         // SOUTH
         {-0.5f, -0.5f, -0.5f},
         {0.5f, -0.5f, -0.5f},

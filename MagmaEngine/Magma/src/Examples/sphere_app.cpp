@@ -22,25 +22,21 @@ namespace Magma {
         } ubo;
 
         layout(location = 0) in vec3 vertexPos;
-        layout(location = 1) in vec3 vertexColor;
-        layout(location = 2) in vec3 vertexNormal; 
-        layout(location = 3) in vec2 vertexUV;
+        layout(location = 1) in vec3 vertexNormal; 
+        layout(location = 2) in vec2 vertexUV;
 
-        layout(location = 0) out vec3 fragColor;
-        layout(location = 1) out vec3 fragNormal;
-        layout(location = 2) out vec2 fragUV;
+        layout(location = 0) out vec3 fragNormal;
+        layout(location = 1) out vec2 fragUV;
 
         void main() {
             gl_Position = ubo.proj * ubo.view * ubo.model * vec4(vertexPos, 1.0);
-            fragColor = vertexColor;
             fragNormal = vertexNormal;
             fragUV = vertexUV;
         })";
 
 	const char* fragmentShaderCode = R"(#version 450
-        layout(location = 0) in vec3 fragColor;
-        layout(location = 1) in vec3 fragNormal;
-        layout(location = 2) in vec2 fragUV; 
+        layout(location = 0) in vec3 fragNormal;
+        layout(location = 1) in vec2 fragUV; 
 
         layout(location = 0) out vec4 outColor;
         
@@ -62,14 +58,14 @@ namespace Magma {
 	}
 
 	void SphereApp::onNewFrame() {
-		m_VertexBuffer->setData(m_SphereData.verts.data(),
-			m_SphereData.verts.size() * sizeof(SphereVertex));
+		m_VertexBuffer->setData(m_SphereData.m_Vertices.data(),
+			m_SphereData.m_Vertices.size() * sizeof(SphereVertex));
 
 		m_TimeStep.onNewFrame();
 		auto time = static_cast<float>(m_TimeStep.getElapsed());
 		m_TimeBuffer->setData(&time, sizeof(float));
 
-		m_RenderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.verts.size()));
+		m_RenderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.m_Vertices.size()));
 
 		m_SphereStep.onNewFrame();
 		if (m_SphereStep.getElapsed() > 0.4) {
@@ -133,14 +129,12 @@ namespace Magma {
 
 		auto& shaderAttributes = m_RenderCore->getShaderAttributes();
 		shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
-		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, pos),
-		                                       DataFormat::R32G32B32_SFLOAT);
-		shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, color),
-		                                       DataFormat::R32G32B32_SFLOAT);
-		shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, normal),
-		                                       DataFormat::R32G32B32_SFLOAT);
-		shaderAttributes.createVertexAttribute(0, 3, offsetof(SphereVertex, uv),
-		                                       DataFormat::R32G32_SFLOAT);
+		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, m_Position),
+			DataFormat::R32G32B32_SFLOAT);
+		shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, m_Normal),
+			DataFormat::R32G32B32_SFLOAT);
+		shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, m_UV),
+			DataFormat::R32G32_SFLOAT);
 
 		m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
 		updateSphereData();
@@ -149,8 +143,8 @@ namespace Magma {
 		constexpr auto vertexBufferSize = sizeof(SphereVertex) * 100000;
 		m_VertexBuffer = m_RenderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
 		m_VertexBuffer->map();
-		m_VertexBuffer->setData(m_SphereData.verts.data(),
-		                      sizeof(SphereVertex) * m_SphereData.verts.size());
+		m_VertexBuffer->setData(m_SphereData.m_Vertices.data(),
+		                      sizeof(SphereVertex) * m_SphereData.m_Vertices.size());
 
 		m_RenderCore->addBuffer(m_VertexBuffer);
 
