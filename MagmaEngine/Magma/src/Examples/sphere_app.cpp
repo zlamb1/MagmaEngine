@@ -58,14 +58,11 @@ namespace Magma {
 	}
 
 	void SphereApp::onNewFrame() {
-		m_VertexBuffer->setData(m_SphereData.m_Vertices.data(),
-			m_SphereData.m_Vertices.size() * sizeof(SphereVertex));
-
 		m_TimeStep.onNewFrame();
 		auto time = static_cast<float>(m_TimeStep.getElapsed());
 		m_TimeBuffer->setData(&time, sizeof(float));
 
-		m_RenderCore->getRenderer().setVertexCount(static_cast<uint32_t>(m_SphereData.m_Vertices.size()));
+		m_RenderCore->getRenderer().setVertexCount(m_Sphere.getVertexCount()); 
 
 		m_SphereStep.onNewFrame();
 		if (m_SphereStep.getElapsed() > 0.4) {
@@ -128,25 +125,18 @@ namespace Magma {
 		m_RenderCore->getShaders().push_back(fragmentShader);
 
 		auto& shaderAttributes = m_RenderCore->getShaderAttributes();
-		shaderAttributes.createVertexBinding(0, sizeof(SphereVertex), VertexInputRate::VERTEX);
-		shaderAttributes.createVertexAttribute(0, 0, offsetof(SphereVertex, m_Position),
+		shaderAttributes.createVertexBinding(0, sizeof(Vertex), VertexInputRate::VERTEX);
+		shaderAttributes.createVertexAttribute(0, 0, offsetof(Vertex, m_Position),
 			DataFormat::R32G32B32_SFLOAT);
-		shaderAttributes.createVertexAttribute(0, 1, offsetof(SphereVertex, m_Normal),
+		shaderAttributes.createVertexAttribute(0, 1, offsetof(Vertex, m_Normal),
 			DataFormat::R32G32B32_SFLOAT);
-		shaderAttributes.createVertexAttribute(0, 2, offsetof(SphereVertex, m_UV),
+		shaderAttributes.createVertexAttribute(0, 2, offsetof(Vertex, m_UV),
 			DataFormat::R32G32_SFLOAT);
 
 		m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
 		updateSphereData();
 
-		// create vertex buffer
-		constexpr auto vertexBufferSize = sizeof(SphereVertex) * 100000;
-		m_VertexBuffer = m_RenderCore->createBuffer(vertexBufferSize, BufferUsage::VERTEX);
-		m_VertexBuffer->map();
-		m_VertexBuffer->setData(m_SphereData.m_Vertices.data(),
-		                      sizeof(SphereVertex) * m_SphereData.m_Vertices.size());
-
-		m_RenderCore->addBuffer(m_VertexBuffer);
+		m_RenderCore->addBuffer(m_Sphere.getBuffer());
 
 		// create ubo buffer
 		m_UboBuffer = m_RenderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
@@ -200,13 +190,13 @@ namespace Magma {
 
 		switch (m_SphereMode) {
 			case 0:
-				m_SphereData = UVSphere::createSphere(m_Resolution);
+				//m_SphereData = UVSphere::createSphere(m_Resolution);
 				break;
 			case 1:
-				m_SphereData = IcoSphere::createSphere(m_Resolution);
+				//m_SphereData = IcoSphere::createSphere(m_Resolution);
 				break;
 			case 2:
-				m_SphereData = QuadSphere::createSphere(m_Resolution, false);
+				m_Sphere.create(*m_RenderCore); 
 				break;
 			default:
 				break;

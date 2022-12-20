@@ -29,7 +29,7 @@ namespace Magma {
 		void createTexture();
 
 	private:
-		std::shared_ptr<Buffer> m_VertexBuffer, m_UboBuffer, m_TimeBuffer, m_TextureBuffer;
+		std::shared_ptr<Buffer> m_UboBuffer, m_TimeBuffer, m_TextureBuffer;
 		std::shared_ptr<DescriptorSet> m_DescriptorSet;
 
 		std::shared_ptr<Image> m_TextureImage;
@@ -38,7 +38,7 @@ namespace Magma {
 
 		Timestep m_TimeStep, m_FrameStep, m_CameraStep, m_SphereStep;
 
-		SphereData m_SphereData;
+		Sphere m_Sphere{10 };
 		int m_Resolution = 0, m_SphereMode = 0;
 
 		const int MIN_RESOLUTIONS[3] = {2, 0, 0};
