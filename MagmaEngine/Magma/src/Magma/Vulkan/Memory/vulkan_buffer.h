@@ -10,7 +10,7 @@ namespace Magma {
 
 	public:
 		VulkanBuffer(std::shared_ptr<VulkanDevice> pVulkanDevice) :
-			pVulkanDevice{ pVulkanDevice } {};
+			pVulkanDevice{ std::move(pVulkanDevice) } {}
 
 		virtual VkBuffer& getBuffer() = 0;
 		virtual VkMemoryRequirements queryMemRequirements() = 0;
@@ -19,7 +19,7 @@ namespace Magma {
 
 	public:
 		std::shared_ptr<VulkanDevice> pVulkanDevice = nullptr;
-		VkDeviceSize pSize = 0; 
+		uint64_t pSize = 0; 
 		BufferUsage pBufferUsageFlags = BufferUsage::VERTEX;
 
 	protected:

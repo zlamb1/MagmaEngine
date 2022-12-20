@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdint.h"
+
 namespace Magma {
 
 	enum class BufferUsage {
@@ -22,8 +24,10 @@ namespace Magma {
 
 		virtual void init() = 0; 
 
-		virtual void* getData() const = 0;
-		virtual void setData(void* nData, size_t size) = 0;
+		[[nodiscard]] virtual uint64_t getSize() const = 0; 
+
+		[[nodiscard]] virtual void* get() const = 0;
+		virtual void set(void* nData, size_t size) = 0;
 
 		virtual void map() = 0;
 		virtual void unmap() = 0;

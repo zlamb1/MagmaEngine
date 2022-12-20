@@ -32,7 +32,7 @@ namespace Magma {
         m_Instance = std::make_shared<Instance>(m_Validater);
 
         if (m_Validater->isValidationEnabled()) {
-            m_Debugger = std::make_shared<Debugger>(m_Instance->getInstance());
+            m_Debugger = std::make_shared<Debugger>(m_Instance);
             VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
             m_Debugger->populateDebugMessengerCreateInfo(debugCreateInfo);
             m_Instance->m_DebugCreateInfo = debugCreateInfo;

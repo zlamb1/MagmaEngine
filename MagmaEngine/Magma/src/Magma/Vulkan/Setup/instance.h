@@ -4,7 +4,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Magma/Vulkan/Setup/debugger.h"
+#include "vulkan_object.h"
 #include "Magma/Vulkan/Setup/validater.h"
 
 namespace Magma {

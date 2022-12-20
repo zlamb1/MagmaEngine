@@ -60,13 +60,13 @@ namespace Magma {
 	void SphereApp::onNewFrame() {
 		m_TimeStep.onNewFrame();
 		auto time = static_cast<float>(m_TimeStep.getElapsed());
-		m_TimeBuffer->setData(&time, sizeof(float));
+		m_TimeBuffer->set(&time, sizeof(float));
 
 		m_RenderCore->getRenderer().setVertexCount(m_Sphere.getVertexCount()); 
 
 		m_SphereStep.onNewFrame();
 		if (m_SphereStep.getElapsed() > 1) {
-			updateSphereData();
+			updateSphere();
 			m_SphereStep.reset();
 		}
 
@@ -133,10 +133,9 @@ namespace Magma {
 		shaderAttributes.createVertexAttribute(0, 2, offsetof(Vertex, m_UV),
 			DataFormat::R32G32_SFLOAT);
 
-		m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
-		updateSphereData();
+		updateSphere();
 
-		m_RenderCore->addBuffer(m_Sphere.getBuffer());
+		m_RenderCore->addBuffer(m_Sphere.getVertexBuffer());
 
 		// create ubo buffer
 		m_UboBuffer = m_RenderCore->createBuffer(sizeof(UBO), BufferUsage::UNIFORM);
@@ -175,20 +174,17 @@ namespace Magma {
 			m_Camera->getViewMatrix(),
 			m_Camera->getPerspectiveMatrix()
 		};
-		m_UboBuffer->setData(&ubo, sizeof(ubo));
+		m_UboBuffer->set(&ubo, sizeof(ubo));
 	}
 
-	void SphereApp::updateSphereData() {
-		if (m_Resolution >= MAX_RESOLUTIONS[m_SphereMode]) {
-			m_SphereMode = (m_SphereMode + 1) % 3;
-			
+	void SphereApp::updateSphere() {
+		if (m_Resolution > MAX_RESOLUTIONS[m_SphereMode]) {
+			//m_SphereMode = (m_SphereMode + 1) % 3;
 			m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
 		}
 
 		// manually set values
-		m_SphereMode = 2;
-		// m_Sphere.setResolution(m_Resolution);
-		m_Sphere.setGenerationStrategy(SphereGenerationStrategy::ICO_SPHERE);
+		m_Sphere.setResolution(m_Resolution);
 		m_Sphere.create(*m_RenderCore);
 
 		m_Resolution++;
@@ -206,7 +202,7 @@ namespace Magma {
 
 		m_TextureBuffer = m_RenderCore->createBuffer(imageSize, BufferUsage::TRANSFER_SRC);
 		m_TextureBuffer->map();
-		m_TextureBuffer->setData(imageData->m_Pixels, imageSize);
+		m_TextureBuffer->set(imageData->m_Pixels, imageSize);
 		m_TextureBuffer->unmap();
 
 		m_TextureImage = m_RenderCore->createTexture(imageData->m_Width, imageData->m_Height);

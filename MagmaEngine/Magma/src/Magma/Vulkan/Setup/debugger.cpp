@@ -4,12 +4,17 @@
 
 namespace Magma {
 
-    Debugger::Debugger(VkInstance& instance) : m_Instance{ instance } {
+    Debugger::Debugger(std::shared_ptr<Instance> instance) : m_Instance{ std::move(instance) } {
 
     }
 
     Debugger::~Debugger() {
-        destroyDebugUtilsMessengerExt();
+        PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT = VK_NULL_HANDLE;
+        DestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
+            m_Instance->getInstance(), "vkDestroyDebugUtilsMessengerEXT"));
+        if (DestroyDebugUtilsMessengerEXT != nullptr) {
+            DestroyDebugUtilsMessengerEXT(m_Instance->getInstance(), m_DebugMessenger, pAllocator); 
+        }
     }
 
     VkResult Debugger::init() {
@@ -29,21 +34,13 @@ namespace Magma {
     }
 
     VkResult Debugger::createDebugUtilsMessengerExt(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo) {
-        const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_Instance, 
-		"vkCreateDebugUtilsMessengerEXT"));
+        const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
+            m_Instance->getInstance(),"vkCreateDebugUtilsMessengerEXT"));
         if (func != nullptr) {
-            return func(m_Instance, pCreateInfo, pAllocator, &m_DebugMessenger);
+            return func(m_Instance->getInstance(), pCreateInfo, pAllocator, &m_DebugMessenger);
         }
         else {
             return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-    }
-
-    void Debugger::destroyDebugUtilsMessengerExt() const {
-        const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_Instance,
-            "vkDestroyDebugUtilsMesssengerEXT"));
-        if (func != nullptr) {
-            func(m_Instance, m_DebugMessenger, pAllocator);
         }
     }
 

@@ -20,8 +20,10 @@ namespace Magma {
 
 		void init() override;
 
-		void* getData() const override;
-		void setData(void* nData, size_t size) override; 
+		[[nodiscard]] uint64_t getSize() const override; 
+		
+		[[nodiscard]] void* get() const override;
+		void set(void* nData, size_t size) override; 
 
 		void map() override;
 		void unmap() override;

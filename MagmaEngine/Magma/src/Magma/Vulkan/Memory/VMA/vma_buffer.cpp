@@ -89,11 +89,15 @@ namespace Magma {
 
 	}
 
-	void* VmaBuffer::getData() const {
+	uint64_t VmaBuffer::getSize() const {
+		return pSize; 
+	}
+
+	void* VmaBuffer::get() const {
 		return m_Data; 
 	}
 
-	void VmaBuffer::setData(void* inData, size_t size) {
+	void VmaBuffer::set(void* inData, size_t size) {
 		if (m_Data == nullptr)
 			Z_LOG_TXT("VulkanBuffer::setData", "warning: attempting to set data of unmapped buffer");
 		else memcpy(m_Data, inData, size);

@@ -5,7 +5,7 @@
 namespace Magma {
 
     Instance::Instance(std::shared_ptr<Validater> validater) :
-        m_Validater{ validater } {}
+        m_Validater{ std::move(validater) } {}
 
     Instance::~Instance() {
         vkDestroyInstance(m_Instance, pAllocator);

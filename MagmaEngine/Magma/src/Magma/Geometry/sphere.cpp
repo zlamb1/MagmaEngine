@@ -6,10 +6,15 @@ namespace Magma {
 
 	UVSphereGenStrategy::UVSphereGenStrategy(Sphere& sphere) : SphereGenStrategy(sphere) {}
 
-	uint32_t UVSphereGenStrategy::getMaxVertices() {
+	uint32_t UVSphereGenStrategy::getMaxVertices(int resolution) {
 		return 100000;
 	}
 
+	uint32_t UVSphereGenStrategy::getMaxIndices(int resolution) {
+		return 100000; 
+	}
+
+	// https://gist.github.com/Pikachuxxxx/5c4c490a7d7679824e0e18af42918efc
 	void UVSphereGenStrategy::createVertices() {
 		// TODO: make this accessible to creator
 		int rings = 2;
@@ -56,27 +61,18 @@ namespace Magma {
 		}
 	}
 
-	void UVSphereGenStrategy::createUVs() {
-		constexpr auto M_PI = glm::pi<float>();
-		for (auto& [pos, n, UV] : m_Sphere.getVertices()) {
-			UV = { 1.0f - glm::clamp((std::atan2(pos.z, pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
-				1.0f - glm::clamp(((std::atan(-pos.y / glm::length(glm::vec2{pos.x, pos.z})) + (M_PI / 2.0f))
-				/ M_PI), 0.0f, 1.0f) };
-		}
-
-		SphereUtility::duplicateVertices(m_Sphere.getVertices());
-	}
-
 	IcoSphereGenStrategy::IcoSphereGenStrategy(Sphere& sphere) : SphereGenStrategy(sphere) {}
 
-	uint32_t IcoSphereGenStrategy::getMaxVertices() {
+	uint32_t IcoSphereGenStrategy::getMaxVertices(int resolution) {
+		return 100000;
+	}
+
+	uint32_t IcoSphereGenStrategy::getMaxIndices(int resolution) {
 		return 100000;
 	}
 
 	void IcoSphereGenStrategy::createVertices() {
-		m_Sphere.getVertices() = std::vector<Vertex>{ getMaxVertices() };
-
-		std::vector<glm::vec3> inPositions = m_IcosahedronPositions;
+		std::vector<glm::vec3> inPositions = ICOSAHEDRON_POSITIONS;
 
 		if (m_Sphere.getResolution() == 0) {
 			for (auto& position : inPositions) {
@@ -85,7 +81,7 @@ namespace Magma {
 		}
 
 		if (m_Sphere.doesGenerateIndices()) {
-			m_Sphere.getIndices() = m_IcosahedronIndices;
+			m_Sphere.getIndices() = ICOSAHEDRON_INDICES;
 
 			std::vector<uint16_t> inIndices = m_Sphere.getIndices();
 			for (int j = 0; j < static_cast<int>(m_Sphere.getResolution()); j++) {
@@ -128,8 +124,8 @@ namespace Magma {
 		} else {
 			inPositions.clear();
 
-			for (auto& index : m_IcosahedronIndices) {
-				inPositions.emplace_back(m_IcosahedronPositions[index]); 
+			for (auto& index : ICOSAHEDRON_INDICES) {
+				inPositions.emplace_back(ICOSAHEDRON_POSITIONS[index]);
 			}
 
 			for (int i = 0; i < static_cast<int>(m_Sphere.getResolution()); i++) {
@@ -164,27 +160,18 @@ namespace Magma {
 		m_Sphere.setVertexCount(static_cast<uint32_t>(inPositions.size()));
 	}
 
-	void IcoSphereGenStrategy::createUVs() {
-		constexpr auto M_PI = glm::pi<float>();
-		for (auto& [pos, n, UV] : m_Sphere.getVertices()) {
-			UV = { 1.0f - glm::clamp((std::atan2(pos.z, pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
-				1.0f - glm::clamp(((std::atan(-pos.y / glm::length(glm::vec2{pos.x, pos.z})) + (M_PI / 2.0f))
-				/ M_PI), 0.0f, 1.0f) };
-		}
-
-		// TODO: broken for icosphere 
-		SphereUtility::duplicateVertices(m_Sphere.getVertices());
-	}
-
 	QuadSphereGenStrategy::QuadSphereGenStrategy(Sphere& sphere) : SphereGenStrategy(sphere) {}
 
-	uint32_t QuadSphereGenStrategy::getMaxVertices() {
-		// vertices > indexing
-		return 36 * static_cast<uint32_t>(glm::pow(4, m_Sphere.getMaxResolution()));
+	uint32_t QuadSphereGenStrategy::getMaxVertices(int resolution) {
+		return 36 * static_cast<uint32_t>(glm::pow(4, resolution));
 	}
 
+	uint32_t QuadSphereGenStrategy::getMaxIndices(int resolution) {
+		return 1000000; 
+	}
+
+
 	void QuadSphereGenStrategy::createVertices() {
-		m_Sphere.getVertices() = std::vector<Vertex>{ getMaxVertices() };
 		std::vector<glm::vec3> inPositions = m_CubePositions;
 
 		if (m_Sphere.doesGenerateIndices()) {
@@ -291,24 +278,17 @@ namespace Magma {
 		m_Sphere.setVertexCount(static_cast<uint32_t>(inPositions.size()));
 	}
 
-	void QuadSphereGenStrategy::createUVs() {
-		constexpr auto M_PI = glm::pi<float>();
-		for (auto& [pos, n, UV] : m_Sphere.getVertices()) {
-			UV = { 1.0f - glm::clamp((std::atan2(pos.z, pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
-				1.0f - glm::clamp(((std::atan(-pos.y / glm::length(glm::vec2{pos.x, pos.z})) + (M_PI / 2.0f))
-				/ M_PI), 0.0f, 1.0f) };
-		}
-
-		SphereUtility::duplicateVertices(m_Sphere.getVertices());
-	}
-
 	Sphere::Sphere(uint32_t maxResolution, SphereGenerationStrategy generationStrategy) :
 		m_MaxResolution{ maxResolution }, m_Resolution{ maxResolution } {
 		setGenerationStrategy(generationStrategy); 
 	}
 
-	std::shared_ptr<Buffer> Sphere::getBuffer() const {
-		return m_Buffer;
+	std::shared_ptr<Buffer> Sphere::getVertexBuffer() const {
+		return m_VertexBuffer;
+	}
+
+	std::shared_ptr<Buffer> Sphere::getIndexBuffer() const {
+		return m_IndexBuffer; 
 	}
 
 	uint32_t Sphere::getMaxResolution() const {
@@ -317,10 +297,6 @@ namespace Magma {
 
 	uint32_t Sphere::getResolution() const {
 		return m_Resolution;
-	}
-
-	uint32_t Sphere::getVertexCount() const {
-		return m_VertexCount;
 	}
 
 	bool Sphere::doesGenerateIndices() const {
@@ -349,33 +325,54 @@ namespace Magma {
 	}
 
 	void Sphere::setResolution(uint32_t resolution) {
+		if (resolution > m_MaxResolution) {
+			throw std::invalid_argument(std::string("sphere resolution (") + 
+				std::to_string(resolution) + ") cannot be greater than max resolution (" + 
+				std::to_string(m_MaxResolution) + ")");
+		}
+
 		m_Resolution = resolution; 
 	}
 
-	void Sphere::setVertexCount(uint32_t vertexCount) {
-		m_VertexCount = vertexCount;
-	}
-
 	void Sphere::create(RenderCore& renderCore) {
-		if (m_Buffer == nullptr) {
+		if (m_VertexBuffer == nullptr) {
 			// TODO: calculate max number of vertices
-			m_Buffer = renderCore.createBuffer(static_cast<int64_t>(sizeof(Vertex)) *
-				m_GenStrategy->getMaxVertices(), BufferUsage::VERTEX);
-			m_Buffer->map();
+			m_VertexBuffer = renderCore.createBuffer(static_cast<int64_t>(sizeof(Vertex)) *
+				m_GenStrategy->getMaxVertices(static_cast<int>(m_MaxResolution)), BufferUsage::VERTEX);
+			m_VertexBuffer->map();
 		}
 
+		const auto newBufferSize = m_GenStrategy->getMaxVertices(static_cast<int>(m_Resolution)) * sizeof(Vertex);
+		if (newBufferSize > m_VertexBuffer->getSize()) {
+			throw std::invalid_argument(std::to_string(newBufferSize) + " is larger than allocated buffer size");
+		}
+
+		m_Vertices = std::vector<Vertex>{
+			m_GenStrategy->getMaxVertices(static_cast<int>(m_Resolution))
+		};
+
 		m_GenStrategy->createVertices();
+
+		if (m_GenerateIndices) {
+			if (m_IndexBuffer == nullptr) {
+				m_IndexBuffer = renderCore.createBuffer(static_cast<int64_t>(sizeof(uint16_t) *
+					m_GenStrategy->getMaxIndices(static_cast<int>(m_MaxResolution)), BufferUsage::INDEX));
+				m_IndexBuffer->map();
+			}
+
+			m_IndexBuffer->set(m_Indices.data(), sizeof(uint16_t) * m_Indices.size()); 
+		}
 
 		if (m_GenerateNormals) {
 			createNormals();
 		}
 
 		if (m_GenerateUVs) {
-			m_GenStrategy->createUVs();
+			createUVs();
 		}
 
 		// set buffer data
-		m_Buffer->setData(m_Vertices.data(), sizeof(Vertex) * m_Vertices.size());
+		m_VertexBuffer->set(m_Vertices.data(), sizeof(Vertex) * m_Vertices.size());
 	}
 
 	void Sphere::createNormals() {
@@ -384,6 +381,16 @@ namespace Magma {
 		}
 	}
 
+	void Sphere::createUVs() {
+		constexpr auto M_PI = glm::pi<float>();
+		for (auto& [pos, n, UV] : m_Vertices) {
+			UV = { 1.0f - glm::clamp((std::atan2(pos.z, pos.x) + M_PI) / (2.0f * M_PI), 0.0f, 1.0f),
+				1.0f - glm::clamp(((std::atan(-pos.y / glm::length(glm::vec2{pos.x, pos.z})) + (M_PI / 2.0f))
+				/ M_PI), 0.0f, 1.0f) };
+		}
+
+		SphereUtility::duplicateVertices(m_Vertices);
+	} 
 
 
 }
