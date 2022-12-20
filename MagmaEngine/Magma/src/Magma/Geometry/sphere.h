@@ -5,6 +5,8 @@
 
 #include <glm/gtc/constants.hpp>
 
+#include "sphere.h"
+
 #include "Magma/Render/render_core.h"
 
 namespace Magma {
@@ -32,7 +34,7 @@ namespace Magma {
 		static void duplicateVertices(std::vector<Vertex>& vertices) {
 			for (int i = static_cast<int>(vertices.size()) - 1; i >= 0; i--) {
 				auto& [pos, normal, UV] = vertices[i];
-				if (UV.x == 0.0f) {
+				if (UV.x <= 0.05f) {
 					const int triangleIndex = 3 * (i / 3);
 					for (int j = 2; j >= 0; j--) {
 						const auto& [oPos, oNormal, oUV] = vertices[triangleIndex + j];
@@ -49,7 +51,9 @@ namespace Magma {
 
 	class Sphere;
 
-	enum class SphereGenerationStrategy {
+	enum class SphereGenerationStrategy : int {
+		UV_SPHERE,
+		ICO_SPHERE,
 		QUAD_SPHERE
 	};
 
@@ -64,6 +68,16 @@ namespace Magma {
 
 	protected:
 		Sphere& m_Sphere; 
+
+	};
+
+	struct UVSphereGenStrategy : SphereGenStrategy {
+
+		UVSphereGenStrategy(Sphere& sphere);
+
+		uint32_t getMaxVertices() override;
+		void createVertices() override;
+		void createUVs() override;
 
 	};
 
@@ -91,7 +105,8 @@ namespace Magma {
 
 	public:
 
-		Sphere(uint32_t maxResolution) : m_MaxResolution{ maxResolution }, m_Resolution{ maxResolution } {}
+		Sphere(uint32_t maxResolution, 
+			SphereGenerationStrategy generationStrategy = SphereGenerationStrategy::QUAD_SPHERE);
 		virtual ~Sphere() = default; 
 
 		[[nodiscard]] std::shared_ptr<Buffer> getBuffer() const;
@@ -101,6 +116,8 @@ namespace Magma {
 		[[nodiscard]] bool doesGenerateIndices() const;
 		[[nodiscard]] bool doesGenerateUVs() const;
 
+		void setGenerationStrategy(SphereGenerationStrategy generationStrategy);
+		void setResolution(uint32_t resolution); 
 		void setVertexCount(uint32_t vertexCount);
 
 		virtual void create(RenderCore& renderCore);
@@ -109,7 +126,7 @@ namespace Magma {
 	private:
 		uint32_t m_MaxResolution = 0, m_Resolution = 0, m_VertexCount = 0;
 		bool m_GenerateIndices = false, m_GenerateNormals = true, m_GenerateUVs = true;
-		std::unique_ptr<SphereGenStrategy> m_GenStrategy = std::make_unique<QuadSphereGenStrategy>(*this); 
+		std::unique_ptr<SphereGenStrategy> m_GenStrategy; 
 
 		std::shared_ptr<Buffer> m_Buffer = nullptr;
 
@@ -120,81 +137,19 @@ namespace Magma {
 	// https://gist.github.com/Pikachuxxxx/5c4c490a7d7679824e0e18af42918efc
 	// everything else is written by me
 
-	//namespace UVSphere {
-
-	//	static SphereData createSphere(int rings) {
-	//		SphereData sphereData{};
-
-	//		if (rings < 2) {
-	//			rings = 2;
-	//		}
-
-	//		const int segments = rings * 2;
-	//		constexpr float radius = 1.0f;
-
-	//		float lengthInv = 1.0f / radius;
-
-	//		const float deltaLatitude = glm::pi<float>() / static_cast<float>(rings);
-	//		const float deltaLongitude = 2 * glm::pi<float>() / static_cast<float>(segments);
-	//		float latitudeAngle = 0.0f, longitudeAngle = 0.0f;
-
-	//		for (int i = 0; i <= rings; ++i) {
-	//			latitudeAngle = glm::pi<float>() / 2.0f - i * deltaLatitude;
-	//			const float xy = radius * cosf(latitudeAngle);
-	//			const float z = radius * sinf(latitudeAngle);
-	//			for (int j = 0; j <= segments; ++j)
-	//			{
-	//				longitudeAngle = j * deltaLongitude;
-	//				const glm::vec3 position{ xy * cosf(longitudeAngle), xy * sinf(longitudeAngle), z };
-	//				sphereData.m_Vertices.push_back({ position });
-	//			}
-	//		}
-
-	//		unsigned int k1 = 0, k2 = 0;
-	//		for (int i = 0; i < rings; ++i) {
-	//			k1 = i * (segments + 1);
-	//			k2 = k1 + segments + 1;
-	//			for (int j = 0; j < segments; ++j, ++k1, ++k2) {
-	//				if (i != 0) {
-	//					sphereData.m_Indices.push_back(k1);
-	//					sphereData.m_Indices.push_back(k2);
-	//					sphereData.m_Indices.push_back(k1 + 1);
-	//				}
-
-	//				if (i != (rings - 1)) {
-	//					sphereData.m_Indices.push_back(k1 + 1);
-	//					sphereData.m_Indices.push_back(k2);
-	//					sphereData.m_Indices.push_back(k2 + 1);
-	//				}
-	//			}
-	//		}
-
-	//		for (auto& vertex : sphereData.m_Vertices) {
-	//			// a vertex on a sphere is its own normal
-	//			vertex.m_Normal = vertex.m_Position;
-	//			vertex.m_UV = { vertex.m_Normal.x / 2.0f + 0.5f, vertex.m_Normal.y / 2.0f + 0.5f };
-	//		}
-
-	//		return sphereData;
-	//	}
-
-	//}
-
 	//namespace IcoSphere {
 
-	//	const float t = (1.0f + sqrt(5.0f)) / 2.0f;
-
-	//	const std::vector<glm::vec3> m_IcosahedronPositions{
-	//		{t, 1.0f, 0}, {-t, 1.0f, 0.0f}, { t, -1.0f, 0.0f },
-	//		{-t, -1.0f, 0.0f}, {1.0f, 0.0f, t}, {1.0f, 0.0f, -t},
-	//		{-1.0f, 0.0f, t}, {-1.0f, 0.0f, -t}, {0.0f, t, 1.0f},
-	//		{0.0f, -t, 1.0f}, {0.0f, t, -1.0f}, {0.0f, -t, -1.0f}
-	//	};
-
-	//	const std::vector<uint16_t> m_IcosahedronIndices{
-	//		0, 8, 4, 0, 5, 10, 2, 4, 9, 2, 11, 5, 1, 6, 8, 1, 10, 7, 3, 9, 6, 3, 7, 11, 0, 10, 8, 1, 8, 10,
-	//		2, 9, 11, 3, 9, 11, 4, 2, 0, 5, 0, 2, 6, 1, 3, 7, 3, 1, 8, 6, 4, 9, 4, 6, 10, 5, 7, 11, 7, 5
-	//	};
+	const float t = (1.0f + sqrt(5.0f)) / 2.0f;
+	const std::vector<glm::vec3> m_IcosahedronPositions{
+		{t, 1.0f, 0}, {-t, 1.0f, 0.0f}, { t, -1.0f, 0.0f },
+		{-t, -1.0f, 0.0f}, {1.0f, 0.0f, t}, {1.0f, 0.0f, -t},
+		{-1.0f, 0.0f, t}, {-1.0f, 0.0f, -t}, {0.0f, t, 1.0f},
+		{0.0f, -t, 1.0f}, {0.0f, t, -1.0f}, {0.0f, -t, -1.0f}
+	};
+	const std::vector<uint16_t> m_IcosahedronIndices{
+		0, 8, 4, 0, 5, 10, 2, 4, 9, 2, 11, 5, 1, 6, 8, 1, 10, 7, 3, 9, 6, 3, 7, 11, 0, 10, 8, 1, 8, 10,
+		2, 9, 11, 3, 9, 11, 4, 2, 0, 5, 0, 2, 6, 1, 3, 7, 3, 1, 8, 6, 4, 9, 4, 6, 10, 5, 7, 11, 7, 5
+	};
 
 	//	static SphereData createSphere(int resolution) {
 	//		SphereData sphereData{};

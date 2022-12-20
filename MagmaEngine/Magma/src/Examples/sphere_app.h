@@ -38,7 +38,7 @@ namespace Magma {
 
 		Timestep m_TimeStep, m_FrameStep, m_CameraStep, m_SphereStep;
 
-		Sphere m_Sphere{10 };
+		Sphere m_Sphere{5 };
 		int m_Resolution = 0, m_SphereMode = 0;
 
 		const int MIN_RESOLUTIONS[3] = {2, 0, 0};

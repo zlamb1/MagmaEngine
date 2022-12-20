@@ -65,7 +65,7 @@ namespace Magma {
 		m_RenderCore->getRenderer().setVertexCount(m_Sphere.getVertexCount()); 
 
 		m_SphereStep.onNewFrame();
-		if (m_SphereStep.getElapsed() > 0.4) {
+		if (m_SphereStep.getElapsed() > 1) {
 			updateSphereData();
 			m_SphereStep.reset();
 		}
@@ -181,26 +181,15 @@ namespace Magma {
 	void SphereApp::updateSphereData() {
 		if (m_Resolution >= MAX_RESOLUTIONS[m_SphereMode]) {
 			m_SphereMode = (m_SphereMode + 1) % 3;
+			
 			m_Resolution = MIN_RESOLUTIONS[m_SphereMode];
 		}
 
 		// manually set values
 		m_SphereMode = 2;
-		m_Resolution = 5;
-
-		switch (m_SphereMode) {
-			case 0:
-				//m_SphereData = UVSphere::createSphere(m_Resolution);
-				break;
-			case 1:
-				//m_SphereData = IcoSphere::createSphere(m_Resolution);
-				break;
-			case 2:
-				m_Sphere.create(*m_RenderCore); 
-				break;
-			default:
-				break;
-		}
+		// m_Sphere.setResolution(m_Resolution);
+		m_Sphere.setGenerationStrategy(SphereGenerationStrategy::ICO_SPHERE);
+		m_Sphere.create(*m_RenderCore);
 
 		m_Resolution++;
 	}
